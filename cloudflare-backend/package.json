@@ -1,0 +1,46 @@
+{
+  "name": "design-scraper-cloudflare-backend",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:pages": "node scripts/verify-pages.mjs && node scripts/verify-byok.mjs",
+    "dev": "wrangler dev --ip 127.0.0.1 --port 8787 --var ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173",
+    "types": "wrangler types",
+    "generate": "node scripts/generate-contract.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --exclude '**/*.chromium.test.ts' --exclude '**/*.runtime.test.ts'",
+    "test:chromium": "vitest run tests/capture.chromium.test.ts tests/capture-media.chromium.test.ts tests/capture-sections.chromium.test.ts",
+    "test:relay": "node scripts/test-relay.mjs",
+    "test:runtime": "node scripts/runtime-test.mjs",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "verify": "npm run generate:check && npm run typecheck && npm run test && npm run test:chromium && npm run test:sections && npm run test:runtime && npm run test:relay && npm run deploy:dry-run",
+    "postinstall": "node scripts/patch-playwright-redirects.mjs",
+    "generate:check": "node scripts/generate-contract.mjs --check",
+    "test:ui": "node scripts/test-ui.mjs",
+    "verify:results": "node scripts/verify-results.mjs",
+    "test:sections": "node scripts/test-sections.mjs"
+  },
+  "dependencies": {
+    "@cloudflare/playwright": "1.3.6",
+    "ipaddr.js": "2.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.5.0",
+    "ajv": "8.20.0",
+    "miniflare": "5.20260908.0-alpha",
+    "playwright": "1.63.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "wrangler": "4.130.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "sharp": "0.35.4",
+    "miniflare": {
+      "undici": "7.29.1"
+    }
+  }
+}

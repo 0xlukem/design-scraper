@@ -1,0 +1,50 @@
+[
+  {
+    "id": "stripe",
+    "name": "Stripe",
+    "description": "Measured type, spacing and components from a complex product page.",
+    "category": "SaaS",
+    "date": "2026-09-10",
+    "mode": "single",
+    "sources": ["https://stripe.com/"],
+    "initials": "S",
+    "palette": ["#533afd", "#ff6118", "#061b31", "#e5edf5"],
+    "tone": "#d8c2ff"
+  },
+  {
+    "id": "milligram",
+    "name": "Milligram",
+    "description": "Minimal typography and a compact CSS vocabulary.",
+    "category": "CSS framework",
+    "date": "2026-09-09",
+    "mode": "single",
+    "sources": ["http://milligram.io/"],
+    "initials": "Mm",
+    "palette": ["#9b4dca", "#606c76", "#f4f5f6", "#ffffff"],
+    "tone": "#ff94d5"
+  },
+  {
+    "id": "bootstrap-milligram",
+    "name": "Bootstrap × Milligram",
+    "description": "A weighted blend: 25% Bootstrap, 75% Milligram.",
+    "category": "Combination",
+    "date": "2026-09-09",
+    "mode": "mix",
+    "sources": ["https://getbootstrap.com/docs/5.3/examples/heroes/", "http://milligram.io/"],
+    "initials": "B×M",
+    "palette": ["#0d6efd", "#9b4dca", "#212529", "#f4f5f6"],
+    "tone": "#74e9ee"
+  },
+  {
+    "id": "example-domain",
+    "name": "Example Domain",
+    "description": "A small, familiar page to explore the output formats.",
+    "category": "Starter",
+    "date": "2026-09-09",
+    "mode": "single",
+    "sources": ["https://example.com/"],
+    "initials": "Aa",
+    "palette": ["#38488f", "#000000", "#f0f0f2", "#fdfdff"],
+    "tone": "#efff76"
+  }
+]

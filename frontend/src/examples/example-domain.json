@@ -1,0 +1,285 @@
+{
+  "success": true,
+  "design_md": "# Design System — Extended\n\n## Overview\n\n**Identity:** Minimalist default domain holding page with ultra-clean typographic presentation.\n**Summary:** A minimal layout featuring dark typography on a neutral light grey surface, designed purely for informational reference.\n**Density:** Spacious / Minimal\n**Layout philosophy:** Single container centered vertically and horizontally within the viewport with ample surrounding margin.\n\n### Tone and personality\n\n- Simple\n- Direct\n- Neutral\n- Functional\n- Unadorned\n- Classic\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `link-blue` | `rgb(51, 68, 136)` | Primary hyperlink color | detected; 1.00; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `surface-page` | `rgb(238, 238, 238)` | Page background | detected; 1.00; web_1 |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `text-primary` | `rgb(0, 0, 0)` | Main body and heading text color | detected; 1.00; web_1 |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n- `font-family-body`: system-ui, sans-serif — Body and layout font family (detected, confidence 1.00; source: web_1)\n- `font-family-serif`: \"Times New Roman\" — Fallback serif font family (detected, confidence 1.00; source: web_1)\n\n### Type Scale\n\n- `heading-1`: no measurable values — Main title\n- `body-regular`: no measurable values — Standard paragraph text\n\n### Principles\n\n- High-contrast text on light background\n- Default system fonts for rapid rendering\n\n### Open-source substitutes\n\n- Inter\n- Helvetica Neue\n- Arial\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** Not enough evidence\n\n\n**Section padding**\n\n\n**Card padding**\n\n\n**Button padding**\n\n\n### Border radius\n\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** No images present.\n\n## Components\n\n## Do's and Don'ts\n\n### Do\n\n- Maintain ample whitespace around text block\n- Use high-contrast text color on neutral background\n\n### Don't\n\n- Do not add complex backgrounds or heavy structural shadows\n- Do not introduce multi-column layouts for simple informational copy\n\n## Surfaces\n\n- `surface-base`: rgb(238, 238, 238) — Global page background (detected, confidence 1.00; source: web_1)\n\n**Philosophy:** Single flat surface background.\n\n## Elevation\n\n\n### Borders\n\n\n**Philosophy:** Flat layout without shadows or elevated surfaces.\n\n## Imagery\n\n\n**Visual language:** No visual imagery or graphics.\n**Photography:** None\n**Iconography:** None\n\n## Layout\n\n### Layout values\n\n\n### Container\n\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** Centred container with substantial surrounding body margins creating an uncluttered single-focus layout.\n\n## Responsive Behavior\n\n### Breakpoints\n\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n\n## Iteration Guide\n\n- Keep page layout ultra-lightweight\n- Use native browser fonts where possible for fast fallback rendering\n\n## Known Gaps\n\n- `NO_LINE_HEIGHT`: Line height CSS values were not explicitly provided in the token data. (source: web_1)\n- `NO_BORDER_RADIUS`: Border radius rules were not detected. (source: web_1)\n- `NO_SHADOWS`: Shadow tokens were not detected. (source: web_1)\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n## Agent Prompt Guide\n\n- Build a single-column minimalist page with light gray background #EEEEEE\n- Use default system-ui font family with high-contrast text\n\n## Similar Brands\n\n\n## Quick Start\n\n- Set body background to #EEEEEE\n- Apply margin offset around central content block\n\n## Evidence\n\n- `web_1` — analyzed, weight 100: https://example.com/\n\n<!-- Generated from the normalized DesignSystem model. -->",
+  "design_system": {
+    "metadata": {
+      "title": "Example Domain Design System",
+      "version": "1.0.0"
+    },
+    "overview": {
+      "identity": "Minimalist default domain holding page with ultra-clean typographic presentation.",
+      "tone": [
+        "Simple",
+        "Direct",
+        "Neutral"
+      ],
+      "personality": [
+        "Functional",
+        "Unadorned",
+        "Classic"
+      ],
+      "density": "Spacious / Minimal",
+      "layout_philosophy": "Single container centered vertically and horizontally within the viewport with ample surrounding margin.",
+      "summary": "A minimal layout featuring dark typography on a neutral light grey surface, designed purely for informational reference."
+    },
+    "colors": {
+      "brand": [
+        {
+          "name": "link-blue",
+          "value": "rgb(51, 68, 136)",
+          "role": "Primary hyperlink color",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 1,
+          "status": "detected"
+        }
+      ],
+      "accent": [],
+      "surfaces": [
+        {
+          "name": "surface-page",
+          "value": "rgb(238, 238, 238)",
+          "role": "Page background",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 1,
+          "status": "detected"
+        }
+      ],
+      "text": [
+        {
+          "name": "text-primary",
+          "value": "rgb(0, 0, 0)",
+          "role": "Main body and heading text color",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 1,
+          "status": "detected"
+        }
+      ],
+      "borders": [],
+      "gradients": []
+    },
+    "typography": {
+      "families": [
+        {
+          "name": "font-family-body",
+          "value": "system-ui, sans-serif",
+          "role": "Body and layout font family",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 1,
+          "status": "detected"
+        },
+        {
+          "name": "font-family-serif",
+          "value": "\"Times New Roman\"",
+          "role": "Fallback serif font family",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 1,
+          "status": "detected"
+        }
+      ],
+      "scale": [
+        {
+          "name": "heading-1",
+          "family": null,
+          "size": null,
+          "weight": null,
+          "line_height": null,
+          "letter_spacing": null,
+          "use": "Main title"
+        },
+        {
+          "name": "body-regular",
+          "family": null,
+          "size": null,
+          "weight": null,
+          "line_height": null,
+          "letter_spacing": null,
+          "use": "Standard paragraph text"
+        }
+      ],
+      "principles": [
+        "High-contrast text on light background",
+        "Default system fonts for rapid rendering"
+      ],
+      "substitutes": [
+        "Inter",
+        "Helvetica Neue",
+        "Arial"
+      ]
+    },
+    "spacing": {
+      "base_unit": null,
+      "tokens": [],
+      "section_padding": [],
+      "card_padding": [],
+      "button_padding": []
+    },
+    "layout": {
+      "values": [],
+      "container": [],
+      "grid": [],
+      "whitespace_philosophy": "Centred container with substantial surrounding body margins creating an uncluttered single-focus layout."
+    },
+    "elevation": {
+      "tokens": [],
+      "borders": [],
+      "philosophy": "Flat layout without shadows or elevated surfaces."
+    },
+    "shapes": {
+      "radii": [],
+      "image_geometry": [],
+      "aspect_ratios": [],
+      "cropping": "No images present."
+    },
+    "components": [],
+    "surfaces": {
+      "levels": [
+        {
+          "name": "surface-base",
+          "value": "rgb(238, 238, 238)",
+          "role": "Global page background",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 1,
+          "status": "detected"
+        }
+      ],
+      "philosophy": "Single flat surface background."
+    },
+    "imagery": {
+      "elements": [],
+      "visual_language": "No visual imagery or graphics.",
+      "photography": "None",
+      "iconography": "None"
+    },
+    "responsive": {
+      "breakpoints": [],
+      "touch_targets": [],
+      "changes": [],
+      "image_behavior": []
+    },
+    "guidelines": {
+      "dos": [
+        "Maintain ample whitespace around text block",
+        "Use high-contrast text color on neutral background"
+      ],
+      "donts": [
+        "Do not add complex backgrounds or heavy structural shadows",
+        "Do not introduce multi-column layouts for simple informational copy"
+      ]
+    },
+    "iteration_guide": [
+      "Keep page layout ultra-lightweight",
+      "Use native browser fonts where possible for fast fallback rendering"
+    ],
+    "agent_prompt_guide": [
+      "Build a single-column minimalist page with light gray background #EEEEEE",
+      "Use default system-ui font family with high-contrast text"
+    ],
+    "similar_brands": [],
+    "quick_start": [
+      "Set body background to #EEEEEE",
+      "Apply margin offset around central content block"
+    ],
+    "known_gaps": [
+      {
+        "code": "NO_LINE_HEIGHT",
+        "message": "Line height CSS values were not explicitly provided in the token data.",
+        "source": [
+          "web_1"
+        ]
+      },
+      {
+        "code": "NO_BORDER_RADIUS",
+        "message": "Border radius rules were not detected.",
+        "source": [
+          "web_1"
+        ]
+      },
+      {
+        "code": "NO_SHADOWS",
+        "message": "Shadow tokens were not detected.",
+        "source": [
+          "web_1"
+        ]
+      },
+      {
+        "code": "css-variables-unavailable",
+        "message": "No accessible CSS custom properties were captured from this source.",
+        "source": [
+          "web_1"
+        ]
+      },
+      {
+        "code": "responsive-evidence-limited",
+        "message": "No responsive media-query evidence was captured from this source.",
+        "source": [
+          "web_1"
+        ]
+      },
+      {
+        "code": "component-evidence-limited",
+        "message": "No component samples were captured from this source.",
+        "source": [
+          "web_1"
+        ]
+      }
+    ],
+    "evidence": {
+      "sources": [
+        {
+          "label": "web_1",
+          "url": "https://example.com/",
+          "weight": 100,
+          "status": "analyzed"
+        }
+      ],
+      "notes": [
+        "Data retrieved directly from example.com inspection."
+      ]
+    }
+  },
+  "documents": {
+    "compact": "# Design System — Compact\n\n## Overview\n\n**Identity:** Minimalist default domain holding page with ultra-clean typographic presentation.\n**Summary:** A minimal layout featuring dark typography on a neutral light grey surface, designed purely for informational reference.\n**Density:** Spacious / Minimal\n**Layout philosophy:** Single container centered vertically and horizontally within the viewport with ample surrounding margin.\n\n### Tone and personality\n\n- Simple\n- Direct\n- Neutral\n- Functional\n- Unadorned\n- Classic\n\n## Quick Color Reference\n\n- `link-blue`: rgb(51, 68, 136) — Primary hyperlink color\n- `surface-page`: rgb(238, 238, 238) — Page background\n- `text-primary`: rgb(0, 0, 0) — Main body and heading text color\n## Tokens — Typography\n\n### Families\n\n- `font-family-body`: system-ui, sans-serif — Body and layout font family\n- `font-family-serif`: \"Times New Roman\" — Fallback serif font family\n\n### Type Scale\n\n- `heading-1`: no measurable values — Main title\n- `body-regular`: no measurable values — Standard paragraph text\n\n### Principles\n\n- High-contrast text on light background\n- Default system fonts for rapid rendering\n\n## Core Components\n\n## Key Rules\n\n### Do\n\n- Maintain ample whitespace around text block\n- Use high-contrast text color on neutral background\n\n### Don't\n\n- Do not add complex backgrounds or heavy structural shadows\n- Do not introduce multi-column layouts for simple informational copy\n\n## Known Gaps\n\n- `NO_LINE_HEIGHT`: Line height CSS values were not explicitly provided in the token data. (source: web_1)\n- `NO_BORDER_RADIUS`: Border radius rules were not detected. (source: web_1)\n- `NO_SHADOWS`: Shadow tokens were not detected. (source: web_1)\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n<!-- Generated from the normalized DesignSystem model. -->",
+    "extended": "# Design System — Extended\n\n## Overview\n\n**Identity:** Minimalist default domain holding page with ultra-clean typographic presentation.\n**Summary:** A minimal layout featuring dark typography on a neutral light grey surface, designed purely for informational reference.\n**Density:** Spacious / Minimal\n**Layout philosophy:** Single container centered vertically and horizontally within the viewport with ample surrounding margin.\n\n### Tone and personality\n\n- Simple\n- Direct\n- Neutral\n- Functional\n- Unadorned\n- Classic\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `link-blue` | `rgb(51, 68, 136)` | Primary hyperlink color | detected; 1.00; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `surface-page` | `rgb(238, 238, 238)` | Page background | detected; 1.00; web_1 |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `text-primary` | `rgb(0, 0, 0)` | Main body and heading text color | detected; 1.00; web_1 |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n- `font-family-body`: system-ui, sans-serif — Body and layout font family (detected, confidence 1.00; source: web_1)\n- `font-family-serif`: \"Times New Roman\" — Fallback serif font family (detected, confidence 1.00; source: web_1)\n\n### Type Scale\n\n- `heading-1`: no measurable values — Main title\n- `body-regular`: no measurable values — Standard paragraph text\n\n### Principles\n\n- High-contrast text on light background\n- Default system fonts for rapid rendering\n\n### Open-source substitutes\n\n- Inter\n- Helvetica Neue\n- Arial\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** Not enough evidence\n\n\n**Section padding**\n\n\n**Card padding**\n\n\n**Button padding**\n\n\n### Border radius\n\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** No images present.\n\n## Components\n\n## Do's and Don'ts\n\n### Do\n\n- Maintain ample whitespace around text block\n- Use high-contrast text color on neutral background\n\n### Don't\n\n- Do not add complex backgrounds or heavy structural shadows\n- Do not introduce multi-column layouts for simple informational copy\n\n## Surfaces\n\n- `surface-base`: rgb(238, 238, 238) — Global page background (detected, confidence 1.00; source: web_1)\n\n**Philosophy:** Single flat surface background.\n\n## Elevation\n\n\n### Borders\n\n\n**Philosophy:** Flat layout without shadows or elevated surfaces.\n\n## Imagery\n\n\n**Visual language:** No visual imagery or graphics.\n**Photography:** None\n**Iconography:** None\n\n## Layout\n\n### Layout values\n\n\n### Container\n\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** Centred container with substantial surrounding body margins creating an uncluttered single-focus layout.\n\n## Responsive Behavior\n\n### Breakpoints\n\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n\n## Iteration Guide\n\n- Keep page layout ultra-lightweight\n- Use native browser fonts where possible for fast fallback rendering\n\n## Known Gaps\n\n- `NO_LINE_HEIGHT`: Line height CSS values were not explicitly provided in the token data. (source: web_1)\n- `NO_BORDER_RADIUS`: Border radius rules were not detected. (source: web_1)\n- `NO_SHADOWS`: Shadow tokens were not detected. (source: web_1)\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n## Agent Prompt Guide\n\n- Build a single-column minimalist page with light gray background #EEEEEE\n- Use default system-ui font family with high-contrast text\n\n## Similar Brands\n\n\n## Quick Start\n\n- Set body background to #EEEEEE\n- Apply margin offset around central content block\n\n## Evidence\n\n- `web_1` — analyzed, weight 100: https://example.com/\n\n<!-- Generated from the normalized DesignSystem model. -->"
+  },
+  "exports": {
+    "css_variables": "/* Design Scraper export: CSS Variables */\n/* Primitive values are deduplicated from the normalized model. */\n/* Semantic variables preserve token roles and evidence metadata. */\n:root {\n  --ds-color-primitive-1: rgb(51, 68, 136); /* role: Primary hyperlink color; status: detected; confidence: 1.00; source: web_1; value: rgb(51, 68, 136) */\n  --ds-color-primitive-2: rgb(238, 238, 238); /* role: Page background; status: detected; confidence: 1.00; source: web_1; value: rgb(238, 238, 238) */\n  --ds-color-primitive-3: rgb(0, 0, 0); /* role: Main body and heading text color; status: detected; confidence: 1.00; source: web_1; value: rgb(0, 0, 0) */\n  --ds-font-family-primitive-1: system-ui, sans-serif; /* role: Body and layout font family; status: detected; confidence: 1.00; source: web_1; value: system-ui, sans-serif */\n  --ds-font-family-primitive-2: \"Times New Roman\"; /* role: Fallback serif font family; status: detected; confidence: 1.00; source: web_1; value: \"Times New Roman\" */\n\n  /* Semantic roles */\n  --ds-color-brand-link-blue: var(--ds-color-primitive-1); /* role: Primary hyperlink color; status: detected; confidence: 1.00; source: web_1 */\n  --ds-color-surface-page: var(--ds-color-primitive-2); /* role: Page background; status: detected; confidence: 1.00; source: web_1 */\n  --ds-color-text-primary: var(--ds-color-primitive-3); /* role: Main body and heading text color; status: detected; confidence: 1.00; source: web_1 */\n  --ds-font-family-font-family-body: var(--ds-font-family-primitive-1); /* role: Body and layout font family; status: detected; confidence: 1.00; source: web_1 */\n  --ds-font-family-font-family-serif: var(--ds-font-family-primitive-2); /* role: Fallback serif font family; status: detected; confidence: 1.00; source: web_1 */\n}\n",
+    "tailwind": "/* Tailwind-compatible export generated from the normalized design system. */\n/* This does not imply that the analyzed site uses Tailwind CSS. */\n@theme {\n  --color-brand-link-blue: rgb(51, 68, 136); /* role: Primary hyperlink color; status: detected; confidence: 1.00; source: web_1 */\n  --color-surface-page: rgb(238, 238, 238); /* role: Page background; status: detected; confidence: 1.00; source: web_1 */\n  --color-text-primary: rgb(0, 0, 0); /* role: Main body and heading text color; status: detected; confidence: 1.00; source: web_1 */\n  --font-font-family-body: system-ui, sans-serif; /* role: Body and layout font family; status: detected; confidence: 1.00; source: web_1 */\n  --font-font-family-serif: \"Times New Roman\"; /* role: Fallback serif font family; status: detected; confidence: 1.00; source: web_1 */\n}\n",
+    "design_tokens": "{\n  \"$schema\": \"https://design-tokens.github.io/community-group/format/\",\n  \"name\": \"Design Scraper tokens\",\n  \"metadata\": {\n    \"format\": \"DTCG-compatible\",\n    \"convention\": \"category.primitive|semantic.token-name\",\n    \"sources\": [\n      \"web_1\"\n    ]\n  },\n  \"tokens\": {\n    \"color\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"color\",\n          \"$value\": \"rgb(51, 68, 136)\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"color\",\n          \"$value\": \"rgb(238, 238, 238)\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-3\": {\n          \"$type\": \"color\",\n          \"$value\": \"rgb(0, 0, 0)\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"brand-link-blue\": {\n          \"$type\": \"color\",\n          \"$value\": \"rgb(51, 68, 136)\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Primary hyperlink color\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"surface-page\": {\n          \"$type\": \"color\",\n          \"$value\": \"rgb(238, 238, 238)\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Page background\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"text-primary\": {\n          \"$type\": \"color\",\n          \"$value\": \"rgb(0, 0, 0)\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Main body and heading text color\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-family\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"system-ui, sans-serif\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"\\\"Times New Roman\\\"\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"font-family-body\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"system-ui, sans-serif\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Body and layout font family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"font-family-serif\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"\\\"Times New Roman\\\"\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Fallback serif font family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 1.0,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+  },
+  "metadata": {
+    "url": "https://example.com/",
+    "title": "Example Domain",
+    "description": "",
+    "colors_extracted": 3,
+    "fonts_extracted": 2,
+    "usage": {
+      "provider": "gemini",
+      "model": "gemini-3.6-flash",
+      "input_tokens": 6181,
+      "output_tokens": 916,
+      "total_tokens": 7097,
+      "reasoning_tokens": null,
+      "status": "exact",
+      "estimated_cost_usd": 0.00807075,
+      "cost_status": "estimated",
+      "pricing_source": "environment override",
+      "sources_count": 1,
+      "screenshots_sent": 1,
+      "notes": [
+        "Image token usage may vary by provider and screenshot dimensions."
+      ]
+    }
+  }
+}

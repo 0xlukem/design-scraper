@@ -1,0 +1,11 @@
+.dev.vars*
+!.dev.vars.example
+reports/*
+!reports/.gitkeep
+worker-configuration.d.ts
+
+# Internal execution reports, retained locally
+/ACCEPTANCE.md
+/PHASE*.md
+/FASE*.md
+/STATUS*.md

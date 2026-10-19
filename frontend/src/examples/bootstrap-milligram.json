@@ -1,0 +1,625 @@
+{
+  "success": true,
+  "design_md": "# Design System — Extended\n\n## Overview\n\n**Identity:** Milligram Minimalist Design System\n**Summary:** A lightweight, minimalist UI design system emphasizing whitespace, purple accent highlights, subtle gray tones, and sharp typography.\n**Density:** spacious\n**Layout philosophy:** Clean, centered grid layout with strong typographic vertical rhythm and minimal decorative chrome.\n\n### Tone and personality\n\n- clean\n- minimal\n- modern\n- lightweight\n- functional\n- unobtrusive\n- approachable\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `primary-purple` | `#9b4dca` | Primary actions, branding highlights, accent links | detected; 0.95; web_2 |\n| `bootstrap-blue` | `#0d6efd` | Secondary primary blue CTA buttons | detected; 0.90; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `light-blue` | `#5485b2` | Secondary action button or link state | detected; 0.80; web_2 |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `bg-white` | `#ffffff` | Primary background surface | detected; 0.95; web_2 |\n| `bg-light-gray` | `#f4f5f6` | Code blocks, callouts, light card backgrounds | detected; 0.90; web_2 |\n| `bg-dark-hero` | `#212529` | Dark hero surface background | detected; 0.85; web_1 |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `text-main` | `#606c76` | Body paragraph text | detected; 0.95; web_2 |\n| `text-heading` | `#000000` | Headings and high-contrast text | detected; 0.90; web_2 |\n| `text-muted` | `#6c757d` | Subtitles, secondary labels | detected; 0.85; web_1 |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `border-light` | `#d1d1d1` | Card borders, input outlines | detected; 0.90; web_2 |\n| `border-dark` | `#495057` | Dark theme dividers | detected; 0.80; web_1 |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n- `font-sans`: Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif — Primary body and heading typography (detected, confidence 0.95; source: web_2)\n- `font-mono`: monospace, monospace — Code snippet typography (detected, confidence 0.95; source: web_2)\n\n### Type Scale\n\n- `heading-xl`: no measurable values — Hero main heading\n- `body-regular`: no measurable values — Standard paragraph text\n\n### Principles\n\n- Light weight base typography (300 weight)\n- Generous line height for readable copy\n- Clean monospaced formatting for technical code snippets\n\n### Open-source substitutes\n\n- Inter\n- Roboto\n- System UI\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** 8px\n\n- `spacing-xs`: 4px — Tight element spacing (inferred, confidence 0.85; source: web_2)\n- `spacing-sm`: 8px — Compact margin/padding (inferred, confidence 0.85; source: web_2)\n- `spacing-md`: 16px — Standard gap (inferred, confidence 0.85; source: web_2)\n- `spacing-lg`: 24px — Section margin bottom (inferred, confidence 0.85; source: web_2)\n- `spacing-xl`: 40px — Hero section vertical padding (inferred, confidence 0.85; source: web_2)\n\n**Section padding**\n\n- `section-padding-y`: 75px — Vertical padding between page sections (detected, confidence 0.90; source: web_2)\n\n**Card padding**\n\n\n**Button padding**\n\n- `button-padding-md`: 8px — Standard button vertical padding (detected, confidence 0.90; source: web_2)\n\n### Border radius\n\n- `radius-sm`: 4px — Standard button and input corner rounding (detected, confidence 0.95; source: web_2)\n- `radius-md`: 6px — Card corner rounding (detected, confidence 0.85; source: web_1)\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** Uncropped rectangular images with standard corner radius options.\n\n## Components\n\n### button-primary\n\nMain call-to-action filled button\n\n- `bg-color`: #9b4dca — Background color (detected, confidence 0.95; source: web_2)\n- `text-color`: #ffffff — Label color (detected, confidence 0.95; source: web_2)\n- `border-radius`: 4px — Corner rounding (detected, confidence 0.95; source: web_2)\n\n\n### button-outline\n\nSecondary stroked action button\n\n- `bg-color`: transparent — Background color (detected, confidence 0.90; source: web_2)\n- `text-color`: #9b4dca — Label color (detected, confidence 0.90; source: web_2)\n- `border-color`: #9b4dca — Border tint (detected, confidence 0.90; source: web_2)\n\n\n## Do's and Don'ts\n\n### Do\n\n- Use purple accent colors sparingly for high priority CTAs.\n- Keep layout spacious with light light gray backgrounds for code blocks.\n- Maintain crisp monospaced fonts for technical command examples.\n\n### Don't\n\n- Do not clutter surfaces with dark box-shadow gradients.\n- Avoid heavy text font weights in body paragraphs.\n- Do not mix multiple competing accent bright colors simultaneously.\n\n## Surfaces\n\n\n**Philosophy:** Simple light theme dominated by stark white backgrounds with light gray contrast areas for code documentation.\n\n## Elevation\n\n\n### Borders\n\n\n**Philosophy:** Flat visual design approach with minimal drop shadows, relying on light surface color shifts and clean hairline borders.\n\n## Imagery\n\n\n**Visual language:** Minimalist screenshots with crisp rectangular frames showing web app interfaces.\n**Photography:** Clean digital browser mockups and code preview banners.\n**Iconography:** Simple vector outline icon elements.\n\n## Layout\n\n### Layout values\n\n- `max-width-container`: 1120px — Maximum content width limit (inferred, confidence 0.80; source: web_2)\n\n### Container\n\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** Extensive padding and margins create an uncluttered, open presentation focused on readable typography.\n\n## Responsive Behavior\n\n### Breakpoints\n\n- `breakpoint-sm`: 576px — Small screens (detected, confidence 0.90; source: web_1)\n- `breakpoint-md`: 768px — Medium screens (detected, confidence 0.90; source: web_1)\n- `breakpoint-lg`: 992px — Large screens (detected, confidence 0.90; source: web_1)\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n- Fluid responsive scaling within parent container columns.\n\n## Iteration Guide\n\n- To extend this framework, maintain strict adherence to light surface contrast ratios and simple 4px rounded shapes.\n\n## Known Gaps\n\n- `MISSING_SHADOWS`: No explicit box-shadow tokens detected in primary web_2 source. (source: web_2)\n- `UNRESOLVED_TYPOGRAPHY_METRICS`: Exact line heights and letter spacings for heading levels not fully resolved to single pixel values. (source: web_2)\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_2)\n- `capture-height-truncated`: The page exceeded the screenshot height limit; lower-page evidence may be missing. (source: web_2)\n\n## Agent Prompt Guide\n\n- Build layouts centered around minimal container widths with high contrast Roboto headers and monospaced snippets.\n\n## Similar Brands\n\n- `skeleton-css`: Skeleton CSS — Minimal CSS framework (interpreted, confidence 0.80; source: web_2)\n- `pure-css`: Pure.css — Unobtrusive modular CSS module (interpreted, confidence 0.80; source: web_2)\n\n## Quick Start\n\n- Include Roboto and Monospace fonts, set background to #ffffff, body text to #606c76, and primary buttons to #9b4dca.\n\n## Evidence\n\n- `web_1` — analyzed, weight 25: https://getbootstrap.com/docs/5.3/examples/heroes/\n- `web_2` — analyzed, weight 75: http://milligram.io/\n\n<!-- Generated from the normalized DesignSystem model. -->",
+  "design_system": {
+    "metadata": {
+      "synthesis_mode": "weighted",
+      "primary_weight": 75
+    },
+    "overview": {
+      "identity": "Milligram Minimalist Design System",
+      "tone": [
+        "clean",
+        "minimal",
+        "modern",
+        "lightweight"
+      ],
+      "personality": [
+        "functional",
+        "unobtrusive",
+        "approachable"
+      ],
+      "density": "spacious",
+      "layout_philosophy": "Clean, centered grid layout with strong typographic vertical rhythm and minimal decorative chrome.",
+      "summary": "A lightweight, minimalist UI design system emphasizing whitespace, purple accent highlights, subtle gray tones, and sharp typography."
+    },
+    "colors": {
+      "brand": [
+        {
+          "name": "primary-purple",
+          "value": "#9b4dca",
+          "role": "Primary actions, branding highlights, accent links",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.95,
+          "status": "detected"
+        },
+        {
+          "name": "bootstrap-blue",
+          "value": "#0d6efd",
+          "role": "Secondary primary blue CTA buttons",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        }
+      ],
+      "accent": [
+        {
+          "name": "light-blue",
+          "value": "#5485b2",
+          "role": "Secondary action button or link state",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.8,
+          "status": "detected"
+        }
+      ],
+      "surfaces": [
+        {
+          "name": "bg-white",
+          "value": "#ffffff",
+          "role": "Primary background surface",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.95,
+          "status": "detected"
+        },
+        {
+          "name": "bg-light-gray",
+          "value": "#f4f5f6",
+          "role": "Code blocks, callouts, light card backgrounds",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        },
+        {
+          "name": "bg-dark-hero",
+          "value": "#212529",
+          "role": "Dark hero surface background",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.85,
+          "status": "detected"
+        }
+      ],
+      "text": [
+        {
+          "name": "text-main",
+          "value": "#606c76",
+          "role": "Body paragraph text",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.95,
+          "status": "detected"
+        },
+        {
+          "name": "text-heading",
+          "value": "#000000",
+          "role": "Headings and high-contrast text",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        },
+        {
+          "name": "text-muted",
+          "value": "#6c757d",
+          "role": "Subtitles, secondary labels",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.85,
+          "status": "detected"
+        }
+      ],
+      "borders": [
+        {
+          "name": "border-light",
+          "value": "#d1d1d1",
+          "role": "Card borders, input outlines",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        },
+        {
+          "name": "border-dark",
+          "value": "#495057",
+          "role": "Dark theme dividers",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.8,
+          "status": "detected"
+        }
+      ],
+      "gradients": []
+    },
+    "typography": {
+      "families": [
+        {
+          "name": "font-sans",
+          "value": "Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+          "role": "Primary body and heading typography",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.95,
+          "status": "detected"
+        },
+        {
+          "name": "font-mono",
+          "value": "monospace, monospace",
+          "role": "Code snippet typography",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.95,
+          "status": "detected"
+        }
+      ],
+      "scale": [
+        {
+          "name": "heading-xl",
+          "family": null,
+          "size": null,
+          "weight": null,
+          "line_height": null,
+          "letter_spacing": null,
+          "use": "Hero main heading"
+        },
+        {
+          "name": "body-regular",
+          "family": null,
+          "size": null,
+          "weight": null,
+          "line_height": null,
+          "letter_spacing": null,
+          "use": "Standard paragraph text"
+        }
+      ],
+      "principles": [
+        "Light weight base typography (300 weight)",
+        "Generous line height for readable copy",
+        "Clean monospaced formatting for technical code snippets"
+      ],
+      "substitutes": [
+        "Inter",
+        "Roboto",
+        "System UI"
+      ]
+    },
+    "spacing": {
+      "base_unit": {
+        "name": "base-unit",
+        "value": "8px",
+        "role": "Base unit grid system",
+        "source": [
+          "web_2"
+        ],
+        "confidence": 0.85,
+        "status": "inferred"
+      },
+      "tokens": [
+        {
+          "name": "spacing-xs",
+          "value": "4px",
+          "role": "Tight element spacing",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.85,
+          "status": "inferred"
+        },
+        {
+          "name": "spacing-sm",
+          "value": "8px",
+          "role": "Compact margin/padding",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.85,
+          "status": "inferred"
+        },
+        {
+          "name": "spacing-md",
+          "value": "16px",
+          "role": "Standard gap",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.85,
+          "status": "inferred"
+        },
+        {
+          "name": "spacing-lg",
+          "value": "24px",
+          "role": "Section margin bottom",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.85,
+          "status": "inferred"
+        },
+        {
+          "name": "spacing-xl",
+          "value": "40px",
+          "role": "Hero section vertical padding",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.85,
+          "status": "inferred"
+        }
+      ],
+      "section_padding": [
+        {
+          "name": "section-padding-y",
+          "value": "75px",
+          "role": "Vertical padding between page sections",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        }
+      ],
+      "card_padding": [],
+      "button_padding": [
+        {
+          "name": "button-padding-md",
+          "value": "8px",
+          "role": "Standard button vertical padding",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        }
+      ]
+    },
+    "layout": {
+      "values": [
+        {
+          "name": "max-width-container",
+          "value": "1120px",
+          "role": "Maximum content width limit",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.8,
+          "status": "inferred"
+        }
+      ],
+      "container": [],
+      "grid": [],
+      "whitespace_philosophy": "Extensive padding and margins create an uncluttered, open presentation focused on readable typography."
+    },
+    "elevation": {
+      "tokens": [],
+      "borders": [],
+      "philosophy": "Flat visual design approach with minimal drop shadows, relying on light surface color shifts and clean hairline borders."
+    },
+    "shapes": {
+      "radii": [
+        {
+          "name": "radius-sm",
+          "value": "4px",
+          "role": "Standard button and input corner rounding",
+          "source": [
+            "web_2"
+          ],
+          "confidence": 0.95,
+          "status": "detected"
+        },
+        {
+          "name": "radius-md",
+          "value": "6px",
+          "role": "Card corner rounding",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.85,
+          "status": "detected"
+        }
+      ],
+      "image_geometry": [],
+      "aspect_ratios": [],
+      "cropping": "Uncropped rectangular images with standard corner radius options."
+    },
+    "components": [
+      {
+        "name": "button-primary",
+        "description": "Main call-to-action filled button",
+        "values": [
+          {
+            "name": "bg-color",
+            "value": "#9b4dca",
+            "role": "Background color",
+            "source": [
+              "web_2"
+            ],
+            "confidence": 0.95,
+            "status": "detected"
+          },
+          {
+            "name": "text-color",
+            "value": "#ffffff",
+            "role": "Label color",
+            "source": [
+              "web_2"
+            ],
+            "confidence": 0.95,
+            "status": "detected"
+          },
+          {
+            "name": "border-radius",
+            "value": "4px",
+            "role": "Corner rounding",
+            "source": [
+              "web_2"
+            ],
+            "confidence": 0.95,
+            "status": "detected"
+          }
+        ],
+        "states": [],
+        "source": [
+          "web_2"
+        ],
+        "confidence": 0.95,
+        "status": "detected"
+      },
+      {
+        "name": "button-outline",
+        "description": "Secondary stroked action button",
+        "values": [
+          {
+            "name": "bg-color",
+            "value": "transparent",
+            "role": "Background color",
+            "source": [
+              "web_2"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          },
+          {
+            "name": "text-color",
+            "value": "#9b4dca",
+            "role": "Label color",
+            "source": [
+              "web_2"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          },
+          {
+            "name": "border-color",
+            "value": "#9b4dca",
+            "role": "Border tint",
+            "source": [
+              "web_2"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "states": [],
+        "source": [
+          "web_2"
+        ],
+        "confidence": 0.9,
+        "status": "detected"
+      }
+    ],
+    "surfaces": {
+      "levels": [],
+      "philosophy": "Simple light theme dominated by stark white backgrounds with light gray contrast areas for code documentation."
+    },
+    "imagery": {
+      "elements": [],
+      "visual_language": "Minimalist screenshots with crisp rectangular frames showing web app interfaces.",
+      "photography": "Clean digital browser mockups and code preview banners.",
+      "iconography": "Simple vector outline icon elements."
+    },
+    "responsive": {
+      "breakpoints": [
+        {
+          "name": "breakpoint-sm",
+          "value": "576px",
+          "role": "Small screens",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        },
+        {
+          "name": "breakpoint-md",
+          "value": "768px",
+          "role": "Medium screens",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        },
+        {
+          "name": "breakpoint-lg",
+          "value": "992px",
+          "role": "Large screens",
+          "source": [
+            "web_1"
+          ],
+          "confidence": 0.9,
+          "status": "detected"
+        }
+      ],
+      "touch_targets": [],
+      "changes": [],
+      "image_behavior": [
+        "Fluid responsive scaling within parent container columns."
+      ]
+    },
+    "guidelines": {
+      "dos": [
+        "Use purple accent colors sparingly for high priority CTAs.",
+        "Keep layout spacious with light light gray backgrounds for code blocks.",
+        "Maintain crisp monospaced fonts for technical command examples."
+      ],
+      "donts": [
+        "Do not clutter surfaces with dark box-shadow gradients.",
+        "Avoid heavy text font weights in body paragraphs.",
+        "Do not mix multiple competing accent bright colors simultaneously."
+      ]
+    },
+    "iteration_guide": [
+      "To extend this framework, maintain strict adherence to light surface contrast ratios and simple 4px rounded shapes."
+    ],
+    "agent_prompt_guide": [
+      "Build layouts centered around minimal container widths with high contrast Roboto headers and monospaced snippets."
+    ],
+    "similar_brands": [
+      {
+        "name": "skeleton-css",
+        "value": "Skeleton CSS",
+        "role": "Minimal CSS framework",
+        "source": [
+          "web_2"
+        ],
+        "confidence": 0.8,
+        "status": "interpreted"
+      },
+      {
+        "name": "pure-css",
+        "value": "Pure.css",
+        "role": "Unobtrusive modular CSS module",
+        "source": [
+          "web_2"
+        ],
+        "confidence": 0.8,
+        "status": "interpreted"
+      }
+    ],
+    "quick_start": [
+      "Include Roboto and Monospace fonts, set background to #ffffff, body text to #606c76, and primary buttons to #9b4dca."
+    ],
+    "known_gaps": [
+      {
+        "code": "MISSING_SHADOWS",
+        "message": "No explicit box-shadow tokens detected in primary web_2 source.",
+        "source": [
+          "web_2"
+        ]
+      },
+      {
+        "code": "UNRESOLVED_TYPOGRAPHY_METRICS",
+        "message": "Exact line heights and letter spacings for heading levels not fully resolved to single pixel values.",
+        "source": [
+          "web_2"
+        ]
+      },
+      {
+        "code": "css-variables-unavailable",
+        "message": "No accessible CSS custom properties were captured from this source.",
+        "source": [
+          "web_2"
+        ]
+      },
+      {
+        "code": "capture-height-truncated",
+        "message": "The page exceeded the screenshot height limit; lower-page evidence may be missing.",
+        "source": [
+          "web_2"
+        ]
+      }
+    ],
+    "evidence": {
+      "sources": [
+        {
+          "label": "web_1",
+          "url": "https://getbootstrap.com/docs/5.3/examples/heroes/",
+          "weight": 25,
+          "status": "analyzed"
+        },
+        {
+          "label": "web_2",
+          "url": "http://milligram.io/",
+          "weight": 75,
+          "status": "analyzed"
+        }
+      ],
+      "notes": [
+        "Synthesis prioritized web_2 Milligram minimal style given 75% analysis weight target."
+      ]
+    }
+  },
+  "documents": {
+    "compact": "# Design System — Compact\n\n## Overview\n\n**Identity:** Milligram Minimalist Design System\n**Summary:** A lightweight, minimalist UI design system emphasizing whitespace, purple accent highlights, subtle gray tones, and sharp typography.\n**Density:** spacious\n**Layout philosophy:** Clean, centered grid layout with strong typographic vertical rhythm and minimal decorative chrome.\n\n### Tone and personality\n\n- clean\n- minimal\n- modern\n- lightweight\n- functional\n- unobtrusive\n- approachable\n\n## Quick Color Reference\n\n- `primary-purple`: #9b4dca — Primary actions, branding highlights, accent links\n- `bootstrap-blue`: #0d6efd — Secondary primary blue CTA buttons\n- `light-blue`: #5485b2 — Secondary action button or link state\n- `bg-white`: #ffffff — Primary background surface\n- `bg-light-gray`: #f4f5f6 — Code blocks, callouts, light card backgrounds\n- `bg-dark-hero`: #212529 — Dark hero surface background\n- `text-main`: #606c76 — Body paragraph text\n- `text-heading`: #000000 — Headings and high-contrast text\n- `text-muted`: #6c757d — Subtitles, secondary labels\n- `border-light`: #d1d1d1 — Card borders, input outlines\n- `border-dark`: #495057 — Dark theme dividers\n## Tokens — Typography\n\n### Families\n\n- `font-sans`: Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif — Primary body and heading typography\n- `font-mono`: monospace, monospace — Code snippet typography\n\n### Type Scale\n\n- `heading-xl`: no measurable values — Hero main heading\n- `body-regular`: no measurable values — Standard paragraph text\n\n### Principles\n\n- Light weight base typography (300 weight)\n- Generous line height for readable copy\n- Clean monospaced formatting for technical code snippets\n\n## Core Components\n\n### button-primary\n\nMain call-to-action filled button\n\n- `bg-color`: #9b4dca — Background color\n- `text-color`: #ffffff — Label color\n- `border-radius`: 4px — Corner rounding\n\n\n### button-outline\n\nSecondary stroked action button\n\n- `bg-color`: transparent — Background color\n- `text-color`: #9b4dca — Label color\n- `border-color`: #9b4dca — Border tint\n\n\n## Key Rules\n\n### Do\n\n- Use purple accent colors sparingly for high priority CTAs.\n- Keep layout spacious with light light gray backgrounds for code blocks.\n- Maintain crisp monospaced fonts for technical command examples.\n\n### Don't\n\n- Do not clutter surfaces with dark box-shadow gradients.\n- Avoid heavy text font weights in body paragraphs.\n- Do not mix multiple competing accent bright colors simultaneously.\n\n## Known Gaps\n\n- `MISSING_SHADOWS`: No explicit box-shadow tokens detected in primary web_2 source. (source: web_2)\n- `UNRESOLVED_TYPOGRAPHY_METRICS`: Exact line heights and letter spacings for heading levels not fully resolved to single pixel values. (source: web_2)\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_2)\n- `capture-height-truncated`: The page exceeded the screenshot height limit; lower-page evidence may be missing. (source: web_2)\n\n<!-- Generated from the normalized DesignSystem model. -->",
+    "extended": "# Design System — Extended\n\n## Overview\n\n**Identity:** Milligram Minimalist Design System\n**Summary:** A lightweight, minimalist UI design system emphasizing whitespace, purple accent highlights, subtle gray tones, and sharp typography.\n**Density:** spacious\n**Layout philosophy:** Clean, centered grid layout with strong typographic vertical rhythm and minimal decorative chrome.\n\n### Tone and personality\n\n- clean\n- minimal\n- modern\n- lightweight\n- functional\n- unobtrusive\n- approachable\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `primary-purple` | `#9b4dca` | Primary actions, branding highlights, accent links | detected; 0.95; web_2 |\n| `bootstrap-blue` | `#0d6efd` | Secondary primary blue CTA buttons | detected; 0.90; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `light-blue` | `#5485b2` | Secondary action button or link state | detected; 0.80; web_2 |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `bg-white` | `#ffffff` | Primary background surface | detected; 0.95; web_2 |\n| `bg-light-gray` | `#f4f5f6` | Code blocks, callouts, light card backgrounds | detected; 0.90; web_2 |\n| `bg-dark-hero` | `#212529` | Dark hero surface background | detected; 0.85; web_1 |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `text-main` | `#606c76` | Body paragraph text | detected; 0.95; web_2 |\n| `text-heading` | `#000000` | Headings and high-contrast text | detected; 0.90; web_2 |\n| `text-muted` | `#6c757d` | Subtitles, secondary labels | detected; 0.85; web_1 |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `border-light` | `#d1d1d1` | Card borders, input outlines | detected; 0.90; web_2 |\n| `border-dark` | `#495057` | Dark theme dividers | detected; 0.80; web_1 |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n- `font-sans`: Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif — Primary body and heading typography (detected, confidence 0.95; source: web_2)\n- `font-mono`: monospace, monospace — Code snippet typography (detected, confidence 0.95; source: web_2)\n\n### Type Scale\n\n- `heading-xl`: no measurable values — Hero main heading\n- `body-regular`: no measurable values — Standard paragraph text\n\n### Principles\n\n- Light weight base typography (300 weight)\n- Generous line height for readable copy\n- Clean monospaced formatting for technical code snippets\n\n### Open-source substitutes\n\n- Inter\n- Roboto\n- System UI\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** 8px\n\n- `spacing-xs`: 4px — Tight element spacing (inferred, confidence 0.85; source: web_2)\n- `spacing-sm`: 8px — Compact margin/padding (inferred, confidence 0.85; source: web_2)\n- `spacing-md`: 16px — Standard gap (inferred, confidence 0.85; source: web_2)\n- `spacing-lg`: 24px — Section margin bottom (inferred, confidence 0.85; source: web_2)\n- `spacing-xl`: 40px — Hero section vertical padding (inferred, confidence 0.85; source: web_2)\n\n**Section padding**\n\n- `section-padding-y`: 75px — Vertical padding between page sections (detected, confidence 0.90; source: web_2)\n\n**Card padding**\n\n\n**Button padding**\n\n- `button-padding-md`: 8px — Standard button vertical padding (detected, confidence 0.90; source: web_2)\n\n### Border radius\n\n- `radius-sm`: 4px — Standard button and input corner rounding (detected, confidence 0.95; source: web_2)\n- `radius-md`: 6px — Card corner rounding (detected, confidence 0.85; source: web_1)\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** Uncropped rectangular images with standard corner radius options.\n\n## Components\n\n### button-primary\n\nMain call-to-action filled button\n\n- `bg-color`: #9b4dca — Background color (detected, confidence 0.95; source: web_2)\n- `text-color`: #ffffff — Label color (detected, confidence 0.95; source: web_2)\n- `border-radius`: 4px — Corner rounding (detected, confidence 0.95; source: web_2)\n\n\n### button-outline\n\nSecondary stroked action button\n\n- `bg-color`: transparent — Background color (detected, confidence 0.90; source: web_2)\n- `text-color`: #9b4dca — Label color (detected, confidence 0.90; source: web_2)\n- `border-color`: #9b4dca — Border tint (detected, confidence 0.90; source: web_2)\n\n\n## Do's and Don'ts\n\n### Do\n\n- Use purple accent colors sparingly for high priority CTAs.\n- Keep layout spacious with light light gray backgrounds for code blocks.\n- Maintain crisp monospaced fonts for technical command examples.\n\n### Don't\n\n- Do not clutter surfaces with dark box-shadow gradients.\n- Avoid heavy text font weights in body paragraphs.\n- Do not mix multiple competing accent bright colors simultaneously.\n\n## Surfaces\n\n\n**Philosophy:** Simple light theme dominated by stark white backgrounds with light gray contrast areas for code documentation.\n\n## Elevation\n\n\n### Borders\n\n\n**Philosophy:** Flat visual design approach with minimal drop shadows, relying on light surface color shifts and clean hairline borders.\n\n## Imagery\n\n\n**Visual language:** Minimalist screenshots with crisp rectangular frames showing web app interfaces.\n**Photography:** Clean digital browser mockups and code preview banners.\n**Iconography:** Simple vector outline icon elements.\n\n## Layout\n\n### Layout values\n\n- `max-width-container`: 1120px — Maximum content width limit (inferred, confidence 0.80; source: web_2)\n\n### Container\n\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** Extensive padding and margins create an uncluttered, open presentation focused on readable typography.\n\n## Responsive Behavior\n\n### Breakpoints\n\n- `breakpoint-sm`: 576px — Small screens (detected, confidence 0.90; source: web_1)\n- `breakpoint-md`: 768px — Medium screens (detected, confidence 0.90; source: web_1)\n- `breakpoint-lg`: 992px — Large screens (detected, confidence 0.90; source: web_1)\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n- Fluid responsive scaling within parent container columns.\n\n## Iteration Guide\n\n- To extend this framework, maintain strict adherence to light surface contrast ratios and simple 4px rounded shapes.\n\n## Known Gaps\n\n- `MISSING_SHADOWS`: No explicit box-shadow tokens detected in primary web_2 source. (source: web_2)\n- `UNRESOLVED_TYPOGRAPHY_METRICS`: Exact line heights and letter spacings for heading levels not fully resolved to single pixel values. (source: web_2)\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_2)\n- `capture-height-truncated`: The page exceeded the screenshot height limit; lower-page evidence may be missing. (source: web_2)\n\n## Agent Prompt Guide\n\n- Build layouts centered around minimal container widths with high contrast Roboto headers and monospaced snippets.\n\n## Similar Brands\n\n- `skeleton-css`: Skeleton CSS — Minimal CSS framework (interpreted, confidence 0.80; source: web_2)\n- `pure-css`: Pure.css — Unobtrusive modular CSS module (interpreted, confidence 0.80; source: web_2)\n\n## Quick Start\n\n- Include Roboto and Monospace fonts, set background to #ffffff, body text to #606c76, and primary buttons to #9b4dca.\n\n## Evidence\n\n- `web_1` — analyzed, weight 25: https://getbootstrap.com/docs/5.3/examples/heroes/\n- `web_2` — analyzed, weight 75: http://milligram.io/\n\n<!-- Generated from the normalized DesignSystem model. -->"
+  },
+  "exports": {
+    "css_variables": "/* Design Scraper export: CSS Variables */\n/* Primitive values are deduplicated from the normalized model. */\n/* Semantic variables preserve token roles and evidence metadata. */\n:root {\n  --ds-color-primitive-1: #9b4dca; /* role: Primary actions, branding highlights, accent links; status: detected; confidence: 0.95; source: web_2; value: #9b4dca */\n  --ds-color-primitive-2: #0d6efd; /* role: Secondary primary blue CTA buttons; status: detected; confidence: 0.90; source: web_1; value: #0d6efd */\n  --ds-color-primitive-3: #5485b2; /* role: Secondary action button or link state; status: detected; confidence: 0.80; source: web_2; value: #5485b2 */\n  --ds-color-primitive-4: #ffffff; /* role: Primary background surface; status: detected; confidence: 0.95; source: web_2; value: #ffffff */\n  --ds-color-primitive-5: #f4f5f6; /* role: Code blocks, callouts, light card backgrounds; status: detected; confidence: 0.90; source: web_2; value: #f4f5f6 */\n  --ds-color-primitive-6: #212529; /* role: Dark hero surface background; status: detected; confidence: 0.85; source: web_1; value: #212529 */\n  --ds-color-primitive-7: #606c76; /* role: Body paragraph text; status: detected; confidence: 0.95; source: web_2; value: #606c76 */\n  --ds-color-primitive-8: #000000; /* role: Headings and high-contrast text; status: detected; confidence: 0.90; source: web_2; value: #000000 */\n  --ds-color-primitive-9: #6c757d; /* role: Subtitles, secondary labels; status: detected; confidence: 0.85; source: web_1; value: #6c757d */\n  --ds-color-primitive-10: #d1d1d1; /* role: Card borders, input outlines; status: detected; confidence: 0.90; source: web_2; value: #d1d1d1 */\n  --ds-color-primitive-11: #495057; /* role: Dark theme dividers; status: detected; confidence: 0.80; source: web_1; value: #495057 */\n  --ds-font-family-primitive-1: Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif; /* role: Primary body and heading typography; status: detected; confidence: 0.95; source: web_2; value: Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif */\n  --ds-font-family-primitive-2: monospace, monospace; /* role: Code snippet typography; status: detected; confidence: 0.95; source: web_2; value: monospace, monospace */\n  --ds-spacing-primitive-1: 8px; /* role: Base unit grid system; status: inferred; confidence: 0.85; source: web_2; value: 8px */\n  --ds-spacing-primitive-2: 4px; /* role: Tight element spacing; status: inferred; confidence: 0.85; source: web_2; value: 4px */\n  --ds-spacing-primitive-3: 16px; /* role: Standard gap; status: inferred; confidence: 0.85; source: web_2; value: 16px */\n  --ds-spacing-primitive-4: 24px; /* role: Section margin bottom; status: inferred; confidence: 0.85; source: web_2; value: 24px */\n  --ds-spacing-primitive-5: 40px; /* role: Hero section vertical padding; status: inferred; confidence: 0.85; source: web_2; value: 40px */\n  --ds-spacing-primitive-6: 75px; /* role: Vertical padding between page sections; status: detected; confidence: 0.90; source: web_2; value: 75px */\n  --ds-layout-primitive-1: 1120px; /* role: Maximum content width limit; status: inferred; confidence: 0.80; source: web_2; value: 1120px */\n  --ds-radius-primitive-1: 4px; /* role: Standard button and input corner rounding; status: detected; confidence: 0.95; source: web_2; value: 4px */\n  --ds-radius-primitive-2: 6px; /* role: Card corner rounding; status: detected; confidence: 0.85; source: web_1; value: 6px */\n\n  /* Semantic roles */\n  --ds-color-brand-primary-purple: var(--ds-color-primitive-1); /* role: Primary actions, branding highlights, accent links; status: detected; confidence: 0.95; source: web_2 */\n  --ds-color-brand-bootstrap-blue: var(--ds-color-primitive-2); /* role: Secondary primary blue CTA buttons; status: detected; confidence: 0.90; source: web_1 */\n  --ds-color-accent-light-blue: var(--ds-color-primitive-3); /* role: Secondary action button or link state; status: detected; confidence: 0.80; source: web_2 */\n  --ds-color-surface-bg-white: var(--ds-color-primitive-4); /* role: Primary background surface; status: detected; confidence: 0.95; source: web_2 */\n  --ds-color-surface-bg-light-gray: var(--ds-color-primitive-5); /* role: Code blocks, callouts, light card backgrounds; status: detected; confidence: 0.90; source: web_2 */\n  --ds-color-surface-bg-dark-hero: var(--ds-color-primitive-6); /* role: Dark hero surface background; status: detected; confidence: 0.85; source: web_1 */\n  --ds-color-text-main: var(--ds-color-primitive-7); /* role: Body paragraph text; status: detected; confidence: 0.95; source: web_2 */\n  --ds-color-text-heading: var(--ds-color-primitive-8); /* role: Headings and high-contrast text; status: detected; confidence: 0.90; source: web_2 */\n  --ds-color-text-muted: var(--ds-color-primitive-9); /* role: Subtitles, secondary labels; status: detected; confidence: 0.85; source: web_1 */\n  --ds-color-border-light: var(--ds-color-primitive-10); /* role: Card borders, input outlines; status: detected; confidence: 0.90; source: web_2 */\n  --ds-color-border-dark: var(--ds-color-primitive-11); /* role: Dark theme dividers; status: detected; confidence: 0.80; source: web_1 */\n  --ds-font-family-font-sans: var(--ds-font-family-primitive-1); /* role: Primary body and heading typography; status: detected; confidence: 0.95; source: web_2 */\n  --ds-font-family-font-mono: var(--ds-font-family-primitive-2); /* role: Code snippet typography; status: detected; confidence: 0.95; source: web_2 */\n  --ds-spacing-base-unit: var(--ds-spacing-primitive-1); /* role: Base unit grid system; status: inferred; confidence: 0.85; source: web_2 */\n  --ds-spacing-spacing-spacing-xs: var(--ds-spacing-primitive-2); /* role: Tight element spacing; status: inferred; confidence: 0.85; source: web_2 */\n  --ds-spacing-spacing-spacing-sm: var(--ds-spacing-primitive-1); /* role: Compact margin/padding; status: inferred; confidence: 0.85; source: web_2 */\n  --ds-spacing-spacing-spacing-md: var(--ds-spacing-primitive-3); /* role: Standard gap; status: inferred; confidence: 0.85; source: web_2 */\n  --ds-spacing-spacing-spacing-lg: var(--ds-spacing-primitive-4); /* role: Section margin bottom; status: inferred; confidence: 0.85; source: web_2 */\n  --ds-spacing-spacing-spacing-xl: var(--ds-spacing-primitive-5); /* role: Hero section vertical padding; status: inferred; confidence: 0.85; source: web_2 */\n  --ds-spacing-section-padding-section-padding-y: var(--ds-spacing-primitive-6); /* role: Vertical padding between page sections; status: detected; confidence: 0.90; source: web_2 */\n  --ds-spacing-button-padding-button-padding-md: var(--ds-spacing-primitive-1); /* role: Standard button vertical padding; status: detected; confidence: 0.90; source: web_2 */\n  --ds-layout-layout-max-width-container: var(--ds-layout-primitive-1); /* role: Maximum content width limit; status: inferred; confidence: 0.80; source: web_2 */\n  --ds-radius-radius-sm: var(--ds-radius-primitive-1); /* role: Standard button and input corner rounding; status: detected; confidence: 0.95; source: web_2 */\n  --ds-radius-radius-md: var(--ds-radius-primitive-2); /* role: Card corner rounding; status: detected; confidence: 0.85; source: web_1 */\n}\n",
+    "tailwind": "/* Tailwind-compatible export generated from the normalized design system. */\n/* This does not imply that the analyzed site uses Tailwind CSS. */\n@theme {\n  --color-brand-primary-purple: #9b4dca; /* role: Primary actions, branding highlights, accent links; status: detected; confidence: 0.95; source: web_2 */\n  --color-brand-bootstrap-blue: #0d6efd; /* role: Secondary primary blue CTA buttons; status: detected; confidence: 0.90; source: web_1 */\n  --color-accent-light-blue: #5485b2; /* role: Secondary action button or link state; status: detected; confidence: 0.80; source: web_2 */\n  --color-surface-bg-white: #ffffff; /* role: Primary background surface; status: detected; confidence: 0.95; source: web_2 */\n  --color-surface-bg-light-gray: #f4f5f6; /* role: Code blocks, callouts, light card backgrounds; status: detected; confidence: 0.90; source: web_2 */\n  --color-surface-bg-dark-hero: #212529; /* role: Dark hero surface background; status: detected; confidence: 0.85; source: web_1 */\n  --color-text-main: #606c76; /* role: Body paragraph text; status: detected; confidence: 0.95; source: web_2 */\n  --color-text-heading: #000000; /* role: Headings and high-contrast text; status: detected; confidence: 0.90; source: web_2 */\n  --color-text-muted: #6c757d; /* role: Subtitles, secondary labels; status: detected; confidence: 0.85; source: web_1 */\n  --color-border-light: #d1d1d1; /* role: Card borders, input outlines; status: detected; confidence: 0.90; source: web_2 */\n  --color-border-dark: #495057; /* role: Dark theme dividers; status: detected; confidence: 0.80; source: web_1 */\n  --font-font-sans: Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif; /* role: Primary body and heading typography; status: detected; confidence: 0.95; source: web_2 */\n  --font-font-mono: monospace, monospace; /* role: Code snippet typography; status: detected; confidence: 0.95; source: web_2 */\n  --spacing-base-unit: 8px; /* role: Base unit grid system; status: inferred; confidence: 0.85; source: web_2 */\n  --spacing-spacing-spacing-xs: 4px; /* role: Tight element spacing; status: inferred; confidence: 0.85; source: web_2 */\n  --spacing-spacing-spacing-sm: 8px; /* role: Compact margin/padding; status: inferred; confidence: 0.85; source: web_2 */\n  --spacing-spacing-spacing-md: 16px; /* role: Standard gap; status: inferred; confidence: 0.85; source: web_2 */\n  --spacing-spacing-spacing-lg: 24px; /* role: Section margin bottom; status: inferred; confidence: 0.85; source: web_2 */\n  --spacing-spacing-spacing-xl: 40px; /* role: Hero section vertical padding; status: inferred; confidence: 0.85; source: web_2 */\n  --spacing-section-padding-section-padding-y: 75px; /* role: Vertical padding between page sections; status: detected; confidence: 0.90; source: web_2 */\n  --spacing-button-padding-button-padding-md: 8px; /* role: Standard button vertical padding; status: detected; confidence: 0.90; source: web_2 */\n  --container-layout-max-width-container: 1120px; /* role: Maximum content width limit; status: inferred; confidence: 0.80; source: web_2 */\n  --radius-radius-sm: 4px; /* role: Standard button and input corner rounding; status: detected; confidence: 0.95; source: web_2 */\n  --radius-radius-md: 6px; /* role: Card corner rounding; status: detected; confidence: 0.85; source: web_1 */\n}\n",
+    "design_tokens": "{\n  \"$schema\": \"https://design-tokens.github.io/community-group/format/\",\n  \"name\": \"Design Scraper tokens\",\n  \"metadata\": {\n    \"format\": \"DTCG-compatible\",\n    \"convention\": \"category.primitive|semantic.token-name\",\n    \"sources\": [\n      \"web_1\",\n      \"web_2\"\n    ]\n  },\n  \"tokens\": {\n    \"color\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"color\",\n          \"$value\": \"#9b4dca\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"color\",\n          \"$value\": \"#0d6efd\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-3\": {\n          \"$type\": \"color\",\n          \"$value\": \"#5485b2\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.8,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-4\": {\n          \"$type\": \"color\",\n          \"$value\": \"#ffffff\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-5\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f5f6\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-6\": {\n          \"$type\": \"color\",\n          \"$value\": \"#212529\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-7\": {\n          \"$type\": \"color\",\n          \"$value\": \"#606c76\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-8\": {\n          \"$type\": \"color\",\n          \"$value\": \"#000000\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-9\": {\n          \"$type\": \"color\",\n          \"$value\": \"#6c757d\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-10\": {\n          \"$type\": \"color\",\n          \"$value\": \"#d1d1d1\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-11\": {\n          \"$type\": \"color\",\n          \"$value\": \"#495057\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.8,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"brand-primary-purple\": {\n          \"$type\": \"color\",\n          \"$value\": \"#9b4dca\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Primary actions, branding highlights, accent links\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"brand-bootstrap-blue\": {\n          \"$type\": \"color\",\n          \"$value\": \"#0d6efd\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Secondary primary blue CTA buttons\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"accent-light-blue\": {\n          \"$type\": \"color\",\n          \"$value\": \"#5485b2\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Secondary action button or link state\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.8,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"surface-bg-white\": {\n          \"$type\": \"color\",\n          \"$value\": \"#ffffff\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Primary background surface\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"surface-bg-light-gray\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f5f6\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Code blocks, callouts, light card backgrounds\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"surface-bg-dark-hero\": {\n          \"$type\": \"color\",\n          \"$value\": \"#212529\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Dark hero surface background\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"text-main\": {\n          \"$type\": \"color\",\n          \"$value\": \"#606c76\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Body paragraph text\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"text-heading\": {\n          \"$type\": \"color\",\n          \"$value\": \"#000000\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Headings and high-contrast text\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"text-muted\": {\n          \"$type\": \"color\",\n          \"$value\": \"#6c757d\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Subtitles, secondary labels\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"border-light\": {\n          \"$type\": \"color\",\n          \"$value\": \"#d1d1d1\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Card borders, input outlines\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"border-dark\": {\n          \"$type\": \"color\",\n          \"$value\": \"#495057\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Dark theme dividers\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.8,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-family\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Roboto, \\\"Helvetica Neue\\\", Helvetica, Arial, sans-serif\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"monospace, monospace\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"font-sans\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Roboto, \\\"Helvetica Neue\\\", Helvetica, Arial, sans-serif\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Primary body and heading typography\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"font-mono\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"monospace, monospace\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Code snippet typography\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"spacing\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"4px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"primitive-3\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"16px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"primitive-4\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"24px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"primitive-5\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"40px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"primitive-6\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"75px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"base-unit\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Base unit grid system\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"spacing-spacing-xs\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"4px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Tight element spacing\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"spacing-spacing-sm\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Compact margin/padding\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"spacing-spacing-md\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"16px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Standard gap\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"spacing-spacing-lg\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"24px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Section margin bottom\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"spacing-spacing-xl\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"40px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Hero section vertical padding\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"inferred\"\n            }\n          }\n        },\n        \"section-padding-section-padding-y\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"75px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Vertical padding between page sections\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"button-padding-button-padding-md\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Standard button vertical padding\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"layout\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1120px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.8,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"layout-max-width-container\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1120px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Maximum content width limit\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.8,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      }\n    },\n    \"radius\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"4px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"6px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"radius-sm\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"4px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Standard button and input corner rounding\",\n              \"source\": [\n                \"web_2\"\n              ],\n              \"confidence\": 0.95,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"radius-md\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"6px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Card corner rounding\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.85,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+  },
+  "metadata": {
+    "mode": "mix",
+    "bias": 25,
+    "weights": {
+      "web_1": 25,
+      "web_2": 75
+    },
+    "sources": [
+      {
+        "slot": "web_1",
+        "url": "https://getbootstrap.com/docs/5.3/examples/heroes/",
+        "influence": 25,
+        "status": "analyzed",
+        "title": "Heroes · Bootstrap v5.3",
+        "description": "",
+        "colors_extracted": 16,
+        "fonts_extracted": 2
+      },
+      {
+        "slot": "web_2",
+        "url": "http://milligram.io/",
+        "influence": 75,
+        "status": "analyzed",
+        "title": "Milligram - A minimalist CSS framework",
+        "description": "Milligram - A minimalist CSS framework",
+        "colors_extracted": 20,
+        "fonts_extracted": 4
+      }
+    ],
+    "usage": {
+      "provider": "gemini",
+      "model": "gemini-3.6-flash",
+      "input_tokens": 55918,
+      "output_tokens": 2196,
+      "total_tokens": 58114,
+      "reasoning_tokens": null,
+      "status": "exact",
+      "estimated_cost_usd": 0.0501735,
+      "cost_status": "estimated",
+      "pricing_source": "environment override",
+      "sources_count": 2,
+      "screenshots_sent": 2,
+      "notes": [
+        "Image token usage may vary by provider and screenshot dimensions."
+      ]
+    }
+  }
+}

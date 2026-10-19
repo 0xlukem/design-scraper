@@ -1,0 +1,373 @@
+[
+  {
+    "raw": {
+      "--color-primary": "#1A1C1E"
+    },
+    "expected": {
+      "colors": {
+        "color-primary": "#1A1C1E"
+      },
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--surface": "white"
+    },
+    "expected": {
+      "colors": {
+        "surface": "white"
+      },
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--color-tertiary": "rgba(184, 66, 46, 0.8)"
+    },
+    "expected": {
+      "colors": {
+        "color-tertiary": "rgba(184, 66, 46, 0.8)"
+      },
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--accent": "oklch(0.7 0.1 240)"
+    },
+    "expected": {
+      "colors": {
+        "accent": "oklch(0.7 0.1 240)"
+      },
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--space-md": "16px",
+      "--gap-gutter": "24px"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {
+        "space-md": "16px",
+        "gap-gutter": "24px"
+      },
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--pad": "1.5rem",
+      "--off": "2em"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {
+        "pad": "1.5rem",
+        "off": "2em"
+      },
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--radius-md": "8px",
+      "--rounded-lg": "12px"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {
+        "radius-md": "8px",
+        "rounded-lg": "12px"
+      },
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--font-family": "\"Public Sans\", sans-serif"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {
+        "font-family": "\"Public Sans\", sans-serif"
+      },
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--font-size-md": "16px"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {
+        "font-size-md": "16px"
+      },
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--line-height-md": "1.6"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {
+        "line-height-md": "1.6"
+      },
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--letter-spacing-caps": "0.1em"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {
+        "letter-spacing-caps": "0.1em"
+      },
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--font-weight-bold": "700"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {
+        "font-weight-bold": "700"
+      },
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--token-x": "500"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {
+        "token-x": "500"
+      },
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--weight-regular": "400"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {
+        "weight-regular": "400"
+      },
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--shadow-card": "0 1px 3px rgba(0, 0, 0, 0.08)"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {
+        "shadow-card": "0 1px 3px rgba(0, 0, 0, 0.08)"
+      },
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--misc": "0 2px 4px rgba(0,0,0,0.1)"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {
+        "misc": "0 2px 4px rgba(0,0,0,0.1)"
+      },
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--unknown-flag": "true"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {
+        "unknown-flag": "true"
+      }
+    }
+  },
+  {
+    "raw": {
+      "--opaque-non-token": "3px solid red"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {
+        "opaque-non-token": "3px solid red"
+      }
+    }
+  },
+  {
+    "raw": {
+      "--color-border-color": "#ccc"
+    },
+    "expected": {
+      "colors": {
+        "color-border-color": "#ccc"
+      },
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--color-empty": "",
+      "--space-blank": "   "
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--color-null": null
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "----double-dashed": "red"
+    },
+    "expected": {
+      "colors": {
+        "double-dashed": "red"
+      },
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {}
+    }
+  },
+  {
+    "raw": {
+      "--radius-text": "50%"
+    },
+    "expected": {
+      "colors": {},
+      "spacing": {},
+      "rounded": {},
+      "typography": {},
+      "shadows": {},
+      "weights": {},
+      "other": {
+        "radius-text": "50%"
+      }
+    }
+  }
+]

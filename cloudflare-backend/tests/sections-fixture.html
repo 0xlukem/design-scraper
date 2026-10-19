@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Generic section capture fixture</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-width: 1440px;
+        background: #152130;
+      }
+
+      body {
+        overflow-x: hidden;
+      }
+
+      #fixed-header {
+        position: fixed;
+        z-index: 10;
+        inset: 0 0 auto;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        background: #f6f2e8;
+        border-bottom: 4px solid #151515;
+        color: #151515;
+      }
+
+      .header-inner {
+        width: 1344px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .header-marker {
+        border: 2px solid #151515;
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+
+      .floating-fixed-button {
+        position: fixed;
+        z-index: 11;
+        right: 24px;
+        bottom: 24px;
+        width: 220px;
+        height: 64px;
+        display: grid;
+        place-items: center;
+        border: 4px solid #151515;
+        border-radius: 999px;
+        background: #f4d35e;
+        color: #151515;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .sticky-strip {
+        position: sticky;
+        bottom: 0;
+        z-index: 9;
+        width: 100%;
+        height: 48px;
+        margin-top: -48px;
+        display: grid;
+        place-items: center;
+        background: #f45b69;
+        border-top: 4px solid #151515;
+        color: #151515;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      @keyframes fixture-fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .fade-marker {
+        width: 360px;
+        height: 32px;
+        margin-top: 20px;
+        display: grid;
+        place-items: center;
+        background: #a1ff0f;
+        border: 3px solid #151515;
+        color: #151515;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        animation: fixture-fade-in 480ms both;
+      }
+
+      main {
+        width: 100%;
+      }
+
+      .band {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        overflow: hidden;
+        padding: 112px 48px 32px;
+      }
+
+      .band-inner {
+        width: 1344px;
+        height: 356px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 56px;
+        align-items: center;
+      }
+
+      .band-copy {
+        max-width: 720px;
+      }
+
+      .band-kicker {
+        margin: 0 0 14px;
+        font-size: 16px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.72;
+      }
+
+      .band-title {
+        margin: 0;
+        font-size: 54px;
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+      }
+
+      .band-description {
+        max-width: 560px;
+        margin: 20px 0 0;
+        font-size: 19px;
+        line-height: 1.45;
+      }
+
+      .media-column {
+        display: grid;
+        gap: 16px;
+        align-content: center;
+      }
+
+      .lazy-slot,
+      .observer-component {
+        width: 420px;
+        min-height: 126px;
+        border: 3px solid currentColor;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .lazy-slot {
+        min-height: 222px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      .lazy-slot img {
+        display: block;
+        width: 100%;
+        height: 216px;
+        object-fit: cover;
+      }
+
+      .lazy-placeholder {
+        padding: 18px;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .observer-component {
+        display: grid;
+        place-items: center;
+        min-height: 118px;
+      }
+
+      .observer-component canvas {
+        display: block;
+        width: 100%;
+        height: 112px;
+      }
+
+      .band[data-band="0"] { background: #152130; color: #e8f0f5; }
+      .band[data-band="1"] { background: #d8c39b; color: #241d17; }
+      .band[data-band="2"] { background: #214337; color: #f0f4df; }
+      .band[data-band="3"] { background: #573b62; color: #f8e9ff; }
+      .band[data-band="4"] { background: #254b70; color: #eef6ff; }
+      .band[data-band="5"] { background: #9a583d; color: #fff0e5; }
+      .band[data-band="6"] { background: #27615d; color: #e9ffff; }
+      .band[data-band="7"] { background: #725c2d; color: #fff8d9; }
+    </style>
+  </head>
+  <body>
+    <header id="fixed-header" data-style-probe style="position: fixed; top: 0px; left: 0px; right: 0px; bottom: auto;">
+      <div class="header-inner">
+        <span>Generic section fixture</span>
+        <span class="header-marker">fixed header · 80px</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="band" data-section data-band="0">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 01 · deep blue</p>
+            <h1 class="band-title">A measured page with stable section boundaries.</h1>
+            <p class="band-description">Each section has a known 500 pixel source height so the compositor can be checked at exact boundaries.</p>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" data-section data-band="1">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 02 · sand</p>
+            <h2 class="band-title">The second surface keeps its own color.</h2>
+            <p class="band-description">A quiet change in background makes missing rows and duplicated viewport chrome visible in the final JPEG.</p>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" data-section data-band="2">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 03 · green</p>
+            <h2 class="band-title">Visible work is painted on demand.</h2>
+            <p class="band-description">This component starts blank and draws its marker only after its observer reports a visible intersection.</p>
+            <div class="fade-marker" data-fade-marker>finite fade marker</div>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" data-section data-band="3">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 04 · violet</p>
+            <h2 class="band-title">A delayed resource still belongs to this section.</h2>
+            <p class="band-description">The local fixture waits briefly before inserting each image, giving the pre-tile hook something observable to settle.</p>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" data-section data-band="4">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 05 · blue</p>
+            <h2 class="band-title">The source coordinate remains inspectable.</h2>
+            <p class="band-description">The tile metadata must describe a continuous output even when the browser viewport has to stop at the document maximum scroll.</p>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" data-section data-band="5">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 06 · terracotta</p>
+            <h2 class="band-title">No blank spacer should appear between bands.</h2>
+            <p class="band-description">The edge rows are intentionally simple so the harness can compare pixels without depending on product-specific selectors or assets.</p>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" data-section data-band="6">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 07 · teal</p>
+            <h2 class="band-title">The lower page is just as real as the first viewport.</h2>
+            <p class="band-description">Later sections are included to exercise repeated scrolling, delayed images and observer-driven content across the full capture height.</p>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" data-section data-band="7">
+        <div class="band-inner">
+          <div class="band-copy">
+            <p class="band-kicker">Band 08 · ochre</p>
+            <h2 class="band-title">The final row closes exactly at 4000 pixels.</h2>
+            <p class="band-description">A successful composition reaches this edge with the expected color and without another copy of the fixed header.</p>
+          </div>
+          <div class="media-column">
+            <div class="lazy-slot" data-lazy-slot><span class="lazy-placeholder">lazy image pending</span></div>
+            <div class="observer-component" data-observer-component><canvas width="420" height="112"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="sticky-strip" data-sticky-strip data-style-probe style="position: sticky; bottom: 0px; z-index: 9;">
+        naturally placed sticky strip
+      </footer>
+    </main>
+
+    <button class="floating-fixed-button" data-fixed-button data-style-probe type="button" style="position: fixed; right: 24px; bottom: 24px; opacity: 1;">
+      fixed action
+    </button>
+
+    <script>
+      (() => {
+        const fixture = window.__sectionsFixture = {
+          bands: 8,
+          bandHeight: 500,
+          lazyInserted: 0,
+          painted: 0,
+          lazyDelayMs: 45,
+          observerDelayMs: 20,
+          lazyMarkerColor: '#7cff6b',
+          canvasMarkerColor: '#ff2e63',
+        };
+        const imageSvg = (index) => {
+          const colors = ['#e8f0f5', '#241d17', '#f0f4df', '#f8e9ff', '#eef6ff', '#fff0e5', '#e9ffff', '#fff8d9'];
+          const color = colors[index];
+          const label = `lazy image ${String(index + 1).padStart(2, '0')}`;
+          return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="840" height="432" viewBox="0 0 840 432">
+              <rect width="840" height="432" fill="${color}" fill-opacity="0.18"/>
+              <path d="M0 360 C180 250 260 420 440 290 S670 150 840 250 V432 H0Z" fill="${color}" fill-opacity="0.42"/>
+              <rect x="280" y="165" width="280" height="100" rx="16" fill="${fixture.lazyMarkerColor}"/>
+              <text x="42" y="92" fill="${color}" font-family="Arial,sans-serif" font-size="34" font-weight="700">${label}</text>
+              <text x="42" y="138" fill="${color}" font-family="Arial,sans-serif" font-size="20">inserted after viewport entry</text>
+            </svg>
+          `)}`;
+        };
+
+        const drawObserverComponent = (element, index) => {
+          if (element.dataset.painted === 'true') return;
+          const canvas = element.querySelector('canvas');
+          const context = canvas.getContext('2d');
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          context.fillStyle = 'rgba(255, 255, 255, 0.22)';
+          context.fillRect(12, 12, canvas.width - 24, canvas.height - 24);
+          context.fillStyle = fixture.canvasMarkerColor;
+          context.fillRect(168, 28, 84, 56);
+          context.fillStyle = '#151515';
+          context.font = '700 21px Arial';
+          context.fillText(`observer paint ${String(index + 1).padStart(2, '0')}`, 30, 53);
+          context.font = '15px Arial';
+          context.fillText('drawn only while visible', 30, 80);
+          element.dataset.painted = 'true';
+          fixture.painted += 1;
+        };
+
+        const imageObserver = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const slot = entry.target;
+            if (slot.dataset.scheduled === 'true') continue;
+            slot.dataset.scheduled = 'true';
+            const index = Number(slot.closest('[data-band]').dataset.band);
+            window.setTimeout(() => {
+              const image = document.createElement('img');
+              image.alt = `Lazy fixture image ${index + 1}`;
+              image.width = 840;
+              image.height = 432;
+              image.decoding = 'async';
+              image.src = imageSvg(index);
+              slot.replaceChildren(image);
+              fixture.lazyInserted += 1;
+            }, fixture.lazyDelayMs);
+          }
+        }, { rootMargin: '0px' });
+
+        const componentObserver = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const element = entry.target;
+            if (element.dataset.scheduled === 'true') continue;
+            element.dataset.scheduled = 'true';
+            const index = Number(element.closest('[data-band]').dataset.band);
+            window.setTimeout(() => drawObserverComponent(element, index), fixture.observerDelayMs);
+          }
+        }, { rootMargin: '0px' });
+
+        document.querySelectorAll('[data-lazy-slot]').forEach((element) => imageObserver.observe(element));
+        document.querySelectorAll('[data-observer-component]').forEach((element) => componentObserver.observe(element));
+      })();
+    </script>
+  </body>
+</html>

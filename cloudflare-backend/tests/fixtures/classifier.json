@@ -1,0 +1,36 @@
+{
+  "raw": {
+    "--primary": "#123456",
+    "--font-family": "Inter, sans-serif",
+    "--space-m": "24px",
+    "--rounded": "8px",
+    "--weight": "700",
+    "--unknown": "whatever",
+    "--shadow-card": "0 4px 8px #0003",
+    "--text-size": "16px"
+  },
+  "expected": {
+    "colors": {
+      "primary": "#123456"
+    },
+    "spacing": {
+      "space-m": "24px"
+    },
+    "rounded": {
+      "rounded": "8px"
+    },
+    "typography": {
+      "font-family": "Inter, sans-serif",
+      "text-size": "16px"
+    },
+    "shadows": {
+      "shadow-card": "0 4px 8px #0003"
+    },
+    "weights": {
+      "weight": "700"
+    },
+    "other": {
+      "unknown": "whatever"
+    }
+  }
+}

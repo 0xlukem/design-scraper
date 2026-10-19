@@ -1,0 +1,1740 @@
+[
+  {
+    "name": "minimal-evidence",
+    "raw": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "A calm editorial system."
+      },
+      "colors": {
+        "brand": [
+          {
+            "name": "brand-primary",
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [],
+        "scale": [],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "sources": [
+      {
+        "label": "web_1",
+        "url": "https://example.com",
+        "weight": 100,
+        "data": {}
+      }
+    ],
+    "normalized": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "A calm editorial system."
+      },
+      "colors": {
+        "brand": [
+          {
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "brand-primary"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [],
+        "scale": [],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [
+        {
+          "code": "css-variables-unavailable",
+          "message": "No accessible CSS custom properties were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "responsive-evidence-limited",
+          "message": "No responsive media-query evidence was captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "component-evidence-limited",
+          "message": "No component samples were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        }
+      ],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "documents": {
+      "compact": "# Design System — Compact\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** A calm editorial system.\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Quick Color Reference\n\n- `brand-primary`: #112233 — primary\n## Tokens — Typography\n\n### Families\n\n\n### Type Scale\n\n\n### Principles\n\n\n## Core Components\n\n## Key Rules\n\n### Do\n\n\n### Don't\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n<!-- Generated from the normalized DesignSystem model. -->",
+      "extended": "# Design System — Extended\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** A calm editorial system.\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `brand-primary` | `#112233` | primary | detected; 0.90; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n\n### Type Scale\n\n\n### Principles\n\n\n### Open-source substitutes\n\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** Not enough evidence\n\n\n**Section padding**\n\n\n**Card padding**\n\n\n**Button padding**\n\n\n### Border radius\n\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** cover\n\n## Components\n\n## Do's and Don'ts\n\n### Do\n\n\n### Don't\n\n\n## Surfaces\n\n\n**Philosophy:** layered\n\n## Elevation\n\n\n### Borders\n\n\n**Philosophy:** flat\n\n## Imagery\n\n\n**Visual language:** minimal\n**Photography:** unknown\n**Iconography:** unknown\n\n## Layout\n\n### Layout values\n\n\n### Container\n\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** airy\n\n## Responsive Behavior\n\n### Breakpoints\n\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n\n## Iteration Guide\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n## Agent Prompt Guide\n\n\n## Similar Brands\n\n\n## Quick Start\n\n\n## Evidence\n\n- `web_1` — analyzed, weight 100: https://example.com\n\n<!-- Generated from the normalized DesignSystem model. -->"
+    },
+    "exports": {
+      "css_variables": "/* Design Scraper export: CSS Variables */\n/* Primitive values are deduplicated from the normalized model. */\n/* Semantic variables preserve token roles and evidence metadata. */\n:root {\n  --ds-color-primitive-1: #112233; /* role: primary; status: detected; confidence: 0.90; source: web_1; value: #112233 */\n\n  /* Semantic roles */\n  --ds-color-brand-primary: var(--ds-color-primitive-1); /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "tailwind": "/* Tailwind-compatible export generated from the normalized design system. */\n/* This does not imply that the analyzed site uses Tailwind CSS. */\n@theme {\n  --color-brand-primary: #112233; /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "design_tokens": "{\n  \"$schema\": \"https://design-tokens.github.io/community-group/format/\",\n  \"name\": \"Design Scraper tokens\",\n  \"metadata\": {\n    \"format\": \"DTCG-compatible\",\n    \"convention\": \"category.primitive|semantic.token-name\",\n    \"sources\": [\n      \"web_1\"\n    ]\n  },\n  \"tokens\": {\n    \"color\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"brand-primary\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primary\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+    }
+  },
+  {
+    "name": "technical-categories",
+    "raw": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "A calm editorial system."
+      },
+      "colors": {
+        "brand": [
+          {
+            "name": "brand-primary",
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [
+          {
+            "name": "on-dark",
+            "value": "#f4f0e8",
+            "role": "text on dark",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "inferred"
+          }
+        ],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [
+          {
+            "name": "body",
+            "value": "Geist",
+            "role": "body family",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "scale": [
+          {
+            "name": "body",
+            "family": {
+              "name": "body-family",
+              "value": "Geist",
+              "role": "body family",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "size": {
+              "name": "body-size",
+              "value": "1rem",
+              "role": "body size",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "weight": {
+              "name": "body-weight",
+              "value": 400,
+              "role": "body weight",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "line_height": {
+              "name": "body-leading",
+              "value": "1.5",
+              "role": "body leading",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "letter_spacing": {
+              "name": "body-tracking",
+              "value": "0",
+              "role": "body tracking",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "use": "body copy"
+          }
+        ],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [
+          {
+            "name": "md",
+            "value": "1rem",
+            "role": "base spacing",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [
+          {
+            "name": "content",
+            "value": "72rem",
+            "role": "content max width",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [
+          {
+            "name": "card",
+            "value": "0 2px 8px #0002",
+            "role": "card shadow",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [
+          {
+            "name": "card",
+            "value": "8px",
+            "role": "card radius",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "sources": [
+      {
+        "label": "web_1",
+        "url": "https://example.com",
+        "weight": 100,
+        "data": {}
+      }
+    ],
+    "normalized": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "A calm editorial system."
+      },
+      "colors": {
+        "brand": [
+          {
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "brand-primary"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [
+          {
+            "value": "#f4f0e8",
+            "role": "text on dark",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "inferred",
+            "name": "on-dark"
+          }
+        ],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [
+          {
+            "value": "Geist",
+            "role": "body family",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "body"
+          }
+        ],
+        "scale": [
+          {
+            "name": "body",
+            "family": {
+              "value": "Geist",
+              "role": "body family",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-family"
+            },
+            "size": {
+              "value": "1rem",
+              "role": "body size",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-size"
+            },
+            "weight": {
+              "value": 400,
+              "role": "body weight",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-weight"
+            },
+            "line_height": {
+              "value": "1.5",
+              "role": "body leading",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-leading"
+            },
+            "letter_spacing": {
+              "value": "0",
+              "role": "body tracking",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-tracking"
+            },
+            "use": "body copy"
+          }
+        ],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [
+          {
+            "value": "1rem",
+            "role": "base spacing",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "md"
+          }
+        ],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [
+          {
+            "value": "72rem",
+            "role": "content max width",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "content"
+          }
+        ],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [
+          {
+            "value": "0 2px 8px #0002",
+            "role": "card shadow",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "card"
+          }
+        ],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [
+          {
+            "value": "8px",
+            "role": "card radius",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "card"
+          }
+        ],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [
+        {
+          "code": "css-variables-unavailable",
+          "message": "No accessible CSS custom properties were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "responsive-evidence-limited",
+          "message": "No responsive media-query evidence was captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "component-evidence-limited",
+          "message": "No component samples were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        }
+      ],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "documents": {
+      "compact": "# Design System — Compact\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** A calm editorial system.\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Quick Color Reference\n\n- `brand-primary`: #112233 — primary\n- `on-dark`: #f4f0e8 — text on dark\n## Tokens — Typography\n\n### Families\n\n- `body`: Geist — body family\n\n### Type Scale\n\n- `body`: family=Geist, size=1rem, weight=400, line-height=1.5, tracking=0 — body copy\n\n### Principles\n\n\n## Core Components\n\n## Key Rules\n\n### Do\n\n\n### Don't\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n<!-- Generated from the normalized DesignSystem model. -->",
+      "extended": "# Design System — Extended\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** A calm editorial system.\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `brand-primary` | `#112233` | primary | detected; 0.90; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `on-dark` | `#f4f0e8` | text on dark | inferred; 0.90; web_1 |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n- `body`: Geist — body family (detected, confidence 0.90; source: web_1)\n\n### Type Scale\n\n- `body`: family=Geist [detected; web_1], size=1rem [detected; web_1], weight=400 [detected; web_1], line-height=1.5 [detected; web_1], tracking=0 [detected; web_1] — body copy\n\n### Principles\n\n\n### Open-source substitutes\n\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** Not enough evidence\n\n- `md`: 1rem — base spacing (detected, confidence 0.90; source: web_1)\n\n**Section padding**\n\n\n**Card padding**\n\n\n**Button padding**\n\n\n### Border radius\n\n- `card`: 8px — card radius (detected, confidence 0.90; source: web_1)\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** cover\n\n## Components\n\n## Do's and Don'ts\n\n### Do\n\n\n### Don't\n\n\n## Surfaces\n\n\n**Philosophy:** layered\n\n## Elevation\n\n- `card`: 0 2px 8px #0002 — card shadow (detected, confidence 0.90; source: web_1)\n\n### Borders\n\n\n**Philosophy:** flat\n\n## Imagery\n\n\n**Visual language:** minimal\n**Photography:** unknown\n**Iconography:** unknown\n\n## Layout\n\n### Layout values\n\n\n### Container\n\n- `content`: 72rem — content max width (detected, confidence 0.90; source: web_1)\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** airy\n\n## Responsive Behavior\n\n### Breakpoints\n\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n\n## Iteration Guide\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n## Agent Prompt Guide\n\n\n## Similar Brands\n\n\n## Quick Start\n\n\n## Evidence\n\n- `web_1` — analyzed, weight 100: https://example.com\n\n<!-- Generated from the normalized DesignSystem model. -->"
+    },
+    "exports": {
+      "css_variables": "/* Design Scraper export: CSS Variables */\n/* Primitive values are deduplicated from the normalized model. */\n/* Semantic variables preserve token roles and evidence metadata. */\n:root {\n  --ds-color-primitive-1: #112233; /* role: primary; status: detected; confidence: 0.90; source: web_1; value: #112233 */\n  --ds-color-primitive-2: #f4f0e8; /* role: text on dark; status: inferred; confidence: 0.90; source: web_1; value: #f4f0e8 */\n  --ds-font-family-primitive-1: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1; value: Geist */\n  --ds-font-size-primitive-1: 1rem; /* role: body size; status: detected; confidence: 0.90; source: web_1; value: 1rem */\n  --ds-font-weight-primitive-1: 400; /* role: body weight; status: detected; confidence: 0.90; source: web_1; value: 400 */\n  --ds-line-height-primitive-1: 1.5; /* role: body leading; status: detected; confidence: 0.90; source: web_1; value: 1.5 */\n  --ds-letter-spacing-primitive-1: 0; /* role: body tracking; status: detected; confidence: 0.90; source: web_1; value: 0 */\n  --ds-spacing-primitive-1: 1rem; /* role: base spacing; status: detected; confidence: 0.90; source: web_1; value: 1rem */\n  --ds-layout-primitive-1: 72rem; /* role: content max width; status: detected; confidence: 0.90; source: web_1; value: 72rem */\n  --ds-shadow-primitive-1: 0 2px 8px #0002; /* role: card shadow; status: detected; confidence: 0.90; source: web_1; value: 0 2px 8px #0002 */\n  --ds-radius-primitive-1: 8px; /* role: card radius; status: detected; confidence: 0.90; source: web_1; value: 8px */\n\n  /* Semantic roles */\n  --ds-color-brand-primary: var(--ds-color-primitive-1); /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n  --ds-color-text-on-dark: var(--ds-color-primitive-2); /* role: text on dark; status: inferred; confidence: 0.90; source: web_1 */\n  --ds-font-family-body: var(--ds-font-family-primitive-1); /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-family-body-family: var(--ds-font-family-primitive-1); /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-size-body: var(--ds-font-size-primitive-1); /* role: body size; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-weight-body: var(--ds-font-weight-primitive-1); /* role: body weight; status: detected; confidence: 0.90; source: web_1 */\n  --ds-line-height-body: var(--ds-line-height-primitive-1); /* role: body leading; status: detected; confidence: 0.90; source: web_1 */\n  --ds-letter-spacing-body: var(--ds-letter-spacing-primitive-1); /* role: body tracking; status: detected; confidence: 0.90; source: web_1 */\n  --ds-spacing-spacing-md: var(--ds-spacing-primitive-1); /* role: base spacing; status: detected; confidence: 0.90; source: web_1 */\n  --ds-layout-container-content: var(--ds-layout-primitive-1); /* role: content max width; status: detected; confidence: 0.90; source: web_1 */\n  --ds-shadow-card: var(--ds-shadow-primitive-1); /* role: card shadow; status: detected; confidence: 0.90; source: web_1 */\n  --ds-radius-card: var(--ds-radius-primitive-1); /* role: card radius; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "tailwind": "/* Tailwind-compatible export generated from the normalized design system. */\n/* This does not imply that the analyzed site uses Tailwind CSS. */\n@theme {\n  --color-brand-primary: #112233; /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n  --color-text-on-dark: #f4f0e8; /* role: text on dark; status: inferred; confidence: 0.90; source: web_1 */\n  --font-body: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --font-body-2: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --text-body: 1rem; /* role: body size; status: detected; confidence: 0.90; source: web_1 */\n  --font-weight-body: 400; /* role: body weight; status: detected; confidence: 0.90; source: web_1 */\n  --leading-body: 1.5; /* role: body leading; status: detected; confidence: 0.90; source: web_1 */\n  --tracking-body: 0; /* role: body tracking; status: detected; confidence: 0.90; source: web_1 */\n  --spacing-spacing-md: 1rem; /* role: base spacing; status: detected; confidence: 0.90; source: web_1 */\n  --container-container-content: 72rem; /* role: content max width; status: detected; confidence: 0.90; source: web_1 */\n  --shadow-card: 0 2px 8px #0002; /* role: card shadow; status: detected; confidence: 0.90; source: web_1 */\n  --radius-card: 8px; /* role: card radius; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "design_tokens": "{\n  \"$schema\": \"https://design-tokens.github.io/community-group/format/\",\n  \"name\": \"Design Scraper tokens\",\n  \"metadata\": {\n    \"format\": \"DTCG-compatible\",\n    \"convention\": \"category.primitive|semantic.token-name\",\n    \"sources\": [\n      \"web_1\"\n    ]\n  },\n  \"tokens\": {\n    \"color\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f0e8\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"brand-primary\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primary\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"text-on-dark\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f0e8\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"text on dark\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      }\n    },\n    \"font-family\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"body-family\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-size\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body size\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-weight\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontWeight\",\n          \"$value\": \"400\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"fontWeight\",\n          \"$value\": \"400\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body weight\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"line-height\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1.5\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1.5\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body leading\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"letter-spacing\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"0\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"0\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body tracking\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"spacing\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"spacing-md\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"base spacing\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"layout\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"72rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"container-content\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"72rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"content max width\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"shadow\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"shadow\",\n          \"$value\": \"0 2px 8px #0002\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"card\": {\n          \"$type\": \"shadow\",\n          \"$value\": \"0 2px 8px #0002\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"card shadow\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"radius\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"card\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"card radius\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+    }
+  },
+  {
+    "name": "unicode-and-escaping",
+    "raw": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "Diseño cálido — café | <script>alert(1)</script>\n\"quoted\""
+      },
+      "colors": {
+        "brand": [
+          {
+            "name": "brand-primary",
+            "value": "#112233",
+            "role": "Primary | secondary\nline",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.125,
+            "status": "detected"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [
+          {
+            "name": "on-dark",
+            "value": "#f4f0e8",
+            "role": "text on dark",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "inferred"
+          }
+        ],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [
+          {
+            "name": "body",
+            "value": "Geist",
+            "role": "body family",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "scale": [
+          {
+            "name": "body",
+            "family": {
+              "name": "body-family",
+              "value": "Geist",
+              "role": "body family",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "size": {
+              "name": "body-size",
+              "value": "1rem",
+              "role": "body size",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "weight": {
+              "name": "body-weight",
+              "value": 400,
+              "role": "body weight",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "line_height": {
+              "name": "body-leading",
+              "value": "1.5",
+              "role": "body leading",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "letter_spacing": {
+              "name": "body-tracking",
+              "value": "0",
+              "role": "body tracking",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "use": "body copy"
+          }
+        ],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [
+          {
+            "name": "md",
+            "value": "1rem",
+            "role": "base spacing",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [
+          {
+            "name": "content",
+            "value": "72rem",
+            "role": "content max width",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [
+          {
+            "name": "card",
+            "value": "0 2px 8px #0002",
+            "role": "card shadow",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [
+          {
+            "name": "card",
+            "value": "8px",
+            "role": "card radius",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "sources": [
+      {
+        "label": "web_1",
+        "url": "https://example.com",
+        "weight": 100,
+        "data": {}
+      }
+    ],
+    "normalized": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "Diseño cálido — café | <script>alert(1)</script>\n\"quoted\""
+      },
+      "colors": {
+        "brand": [
+          {
+            "value": "#112233",
+            "role": "Primary | secondary\nline",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.125,
+            "status": "detected",
+            "name": "brand-primary"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [
+          {
+            "value": "#f4f0e8",
+            "role": "text on dark",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "inferred",
+            "name": "on-dark"
+          }
+        ],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [
+          {
+            "value": "Geist",
+            "role": "body family",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "body"
+          }
+        ],
+        "scale": [
+          {
+            "name": "body",
+            "family": {
+              "value": "Geist",
+              "role": "body family",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-family"
+            },
+            "size": {
+              "value": "1rem",
+              "role": "body size",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-size"
+            },
+            "weight": {
+              "value": 400,
+              "role": "body weight",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-weight"
+            },
+            "line_height": {
+              "value": "1.5",
+              "role": "body leading",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-leading"
+            },
+            "letter_spacing": {
+              "value": "0",
+              "role": "body tracking",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-tracking"
+            },
+            "use": "body copy"
+          }
+        ],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [
+          {
+            "value": "1rem",
+            "role": "base spacing",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "md"
+          }
+        ],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [
+          {
+            "value": "72rem",
+            "role": "content max width",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "content"
+          }
+        ],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [
+          {
+            "value": "0 2px 8px #0002",
+            "role": "card shadow",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "card"
+          }
+        ],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [
+          {
+            "value": "8px",
+            "role": "card radius",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "card"
+          }
+        ],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [
+        {
+          "code": "css-variables-unavailable",
+          "message": "No accessible CSS custom properties were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "responsive-evidence-limited",
+          "message": "No responsive media-query evidence was captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "component-evidence-limited",
+          "message": "No component samples were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        }
+      ],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "documents": {
+      "compact": "# Design System — Compact\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** Diseño cálido — café | <script>alert(1)</script>\n\"quoted\"\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Quick Color Reference\n\n- `brand-primary`: #112233 — Primary | secondary\nline\n- `on-dark`: #f4f0e8 — text on dark\n## Tokens — Typography\n\n### Families\n\n- `body`: Geist — body family\n\n### Type Scale\n\n- `body`: family=Geist, size=1rem, weight=400, line-height=1.5, tracking=0 — body copy\n\n### Principles\n\n\n## Core Components\n\n## Key Rules\n\n### Do\n\n\n### Don't\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n<!-- Generated from the normalized DesignSystem model. -->",
+      "extended": "# Design System — Extended\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** Diseño cálido — café | <script>alert(1)</script>\n\"quoted\"\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `brand-primary` | `#112233` | Primary | secondary\nline | detected; 0.12; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `on-dark` | `#f4f0e8` | text on dark | inferred; 0.90; web_1 |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n- `body`: Geist — body family (detected, confidence 0.90; source: web_1)\n\n### Type Scale\n\n- `body`: family=Geist [detected; web_1], size=1rem [detected; web_1], weight=400 [detected; web_1], line-height=1.5 [detected; web_1], tracking=0 [detected; web_1] — body copy\n\n### Principles\n\n\n### Open-source substitutes\n\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** Not enough evidence\n\n- `md`: 1rem — base spacing (detected, confidence 0.90; source: web_1)\n\n**Section padding**\n\n\n**Card padding**\n\n\n**Button padding**\n\n\n### Border radius\n\n- `card`: 8px — card radius (detected, confidence 0.90; source: web_1)\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** cover\n\n## Components\n\n## Do's and Don'ts\n\n### Do\n\n\n### Don't\n\n\n## Surfaces\n\n\n**Philosophy:** layered\n\n## Elevation\n\n- `card`: 0 2px 8px #0002 — card shadow (detected, confidence 0.90; source: web_1)\n\n### Borders\n\n\n**Philosophy:** flat\n\n## Imagery\n\n\n**Visual language:** minimal\n**Photography:** unknown\n**Iconography:** unknown\n\n## Layout\n\n### Layout values\n\n\n### Container\n\n- `content`: 72rem — content max width (detected, confidence 0.90; source: web_1)\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** airy\n\n## Responsive Behavior\n\n### Breakpoints\n\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n\n## Iteration Guide\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n## Agent Prompt Guide\n\n\n## Similar Brands\n\n\n## Quick Start\n\n\n## Evidence\n\n- `web_1` — analyzed, weight 100: https://example.com\n\n<!-- Generated from the normalized DesignSystem model. -->"
+    },
+    "exports": {
+      "css_variables": "/* Design Scraper export: CSS Variables */\n/* Primitive values are deduplicated from the normalized model. */\n/* Semantic variables preserve token roles and evidence metadata. */\n:root {\n  --ds-color-primitive-1: #112233; /* role: Primary | secondary\nline; status: detected; confidence: 0.12; source: web_1; value: #112233 */\n  --ds-color-primitive-2: #f4f0e8; /* role: text on dark; status: inferred; confidence: 0.90; source: web_1; value: #f4f0e8 */\n  --ds-font-family-primitive-1: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1; value: Geist */\n  --ds-font-size-primitive-1: 1rem; /* role: body size; status: detected; confidence: 0.90; source: web_1; value: 1rem */\n  --ds-font-weight-primitive-1: 400; /* role: body weight; status: detected; confidence: 0.90; source: web_1; value: 400 */\n  --ds-line-height-primitive-1: 1.5; /* role: body leading; status: detected; confidence: 0.90; source: web_1; value: 1.5 */\n  --ds-letter-spacing-primitive-1: 0; /* role: body tracking; status: detected; confidence: 0.90; source: web_1; value: 0 */\n  --ds-spacing-primitive-1: 1rem; /* role: base spacing; status: detected; confidence: 0.90; source: web_1; value: 1rem */\n  --ds-layout-primitive-1: 72rem; /* role: content max width; status: detected; confidence: 0.90; source: web_1; value: 72rem */\n  --ds-shadow-primitive-1: 0 2px 8px #0002; /* role: card shadow; status: detected; confidence: 0.90; source: web_1; value: 0 2px 8px #0002 */\n  --ds-radius-primitive-1: 8px; /* role: card radius; status: detected; confidence: 0.90; source: web_1; value: 8px */\n\n  /* Semantic roles */\n  --ds-color-brand-primary: var(--ds-color-primitive-1); /* role: Primary | secondary\nline; status: detected; confidence: 0.12; source: web_1 */\n  --ds-color-text-on-dark: var(--ds-color-primitive-2); /* role: text on dark; status: inferred; confidence: 0.90; source: web_1 */\n  --ds-font-family-body: var(--ds-font-family-primitive-1); /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-family-body-family: var(--ds-font-family-primitive-1); /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-size-body: var(--ds-font-size-primitive-1); /* role: body size; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-weight-body: var(--ds-font-weight-primitive-1); /* role: body weight; status: detected; confidence: 0.90; source: web_1 */\n  --ds-line-height-body: var(--ds-line-height-primitive-1); /* role: body leading; status: detected; confidence: 0.90; source: web_1 */\n  --ds-letter-spacing-body: var(--ds-letter-spacing-primitive-1); /* role: body tracking; status: detected; confidence: 0.90; source: web_1 */\n  --ds-spacing-spacing-md: var(--ds-spacing-primitive-1); /* role: base spacing; status: detected; confidence: 0.90; source: web_1 */\n  --ds-layout-container-content: var(--ds-layout-primitive-1); /* role: content max width; status: detected; confidence: 0.90; source: web_1 */\n  --ds-shadow-card: var(--ds-shadow-primitive-1); /* role: card shadow; status: detected; confidence: 0.90; source: web_1 */\n  --ds-radius-card: var(--ds-radius-primitive-1); /* role: card radius; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "tailwind": "/* Tailwind-compatible export generated from the normalized design system. */\n/* This does not imply that the analyzed site uses Tailwind CSS. */\n@theme {\n  --color-brand-primary: #112233; /* role: Primary | secondary\nline; status: detected; confidence: 0.12; source: web_1 */\n  --color-text-on-dark: #f4f0e8; /* role: text on dark; status: inferred; confidence: 0.90; source: web_1 */\n  --font-body: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --font-body-2: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --text-body: 1rem; /* role: body size; status: detected; confidence: 0.90; source: web_1 */\n  --font-weight-body: 400; /* role: body weight; status: detected; confidence: 0.90; source: web_1 */\n  --leading-body: 1.5; /* role: body leading; status: detected; confidence: 0.90; source: web_1 */\n  --tracking-body: 0; /* role: body tracking; status: detected; confidence: 0.90; source: web_1 */\n  --spacing-spacing-md: 1rem; /* role: base spacing; status: detected; confidence: 0.90; source: web_1 */\n  --container-container-content: 72rem; /* role: content max width; status: detected; confidence: 0.90; source: web_1 */\n  --shadow-card: 0 2px 8px #0002; /* role: card shadow; status: detected; confidence: 0.90; source: web_1 */\n  --radius-card: 8px; /* role: card radius; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "design_tokens": "{\n  \"$schema\": \"https://design-tokens.github.io/community-group/format/\",\n  \"name\": \"Design Scraper tokens\",\n  \"metadata\": {\n    \"format\": \"DTCG-compatible\",\n    \"convention\": \"category.primitive|semantic.token-name\",\n    \"sources\": [\n      \"web_1\"\n    ]\n  },\n  \"tokens\": {\n    \"color\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.125,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f0e8\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"brand-primary\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"Primary | secondary\\nline\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.125,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"text-on-dark\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f0e8\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"text on dark\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      }\n    },\n    \"font-family\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"body-family\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-size\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body size\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-weight\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontWeight\",\n          \"$value\": \"400\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"fontWeight\",\n          \"$value\": \"400\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body weight\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"line-height\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1.5\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1.5\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body leading\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"letter-spacing\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"0\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"0\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body tracking\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"spacing\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"spacing-md\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"base spacing\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"layout\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"72rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"container-content\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"72rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"content max width\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"shadow\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"shadow\",\n          \"$value\": \"0 2px 8px #0002\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"card\": {\n          \"$type\": \"shadow\",\n          \"$value\": \"0 2px 8px #0002\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"card shadow\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"radius\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"card\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"card radius\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+    }
+  },
+  {
+    "name": "repeated-color-values",
+    "raw": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "A calm editorial system."
+      },
+      "colors": {
+        "brand": [
+          {
+            "name": "brand-primary",
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          },
+          {
+            "name": "second-brand",
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [
+          {
+            "name": "on-dark",
+            "value": "#f4f0e8",
+            "role": "text on dark",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "inferred"
+          }
+        ],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [
+          {
+            "name": "body",
+            "value": "Geist",
+            "role": "body family",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "scale": [
+          {
+            "name": "body",
+            "family": {
+              "name": "body-family",
+              "value": "Geist",
+              "role": "body family",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "size": {
+              "name": "body-size",
+              "value": "1rem",
+              "role": "body size",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "weight": {
+              "name": "body-weight",
+              "value": 400,
+              "role": "body weight",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "line_height": {
+              "name": "body-leading",
+              "value": "1.5",
+              "role": "body leading",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "letter_spacing": {
+              "name": "body-tracking",
+              "value": "0",
+              "role": "body tracking",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected"
+            },
+            "use": "body copy"
+          }
+        ],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [
+          {
+            "name": "md",
+            "value": "1rem",
+            "role": "base spacing",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [
+          {
+            "name": "content",
+            "value": "72rem",
+            "role": "content max width",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [
+          {
+            "name": "card",
+            "value": "0 2px 8px #0002",
+            "role": "card shadow",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [
+          {
+            "name": "card",
+            "value": "8px",
+            "role": "card radius",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected"
+          }
+        ],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "sources": [
+      {
+        "label": "web_1",
+        "url": "https://example.com",
+        "weight": 100,
+        "data": {}
+      }
+    ],
+    "normalized": {
+      "metadata": {
+        "analysis_type": "single"
+      },
+      "overview": {
+        "identity": "Editorial",
+        "tone": [
+          "calm"
+        ],
+        "personality": [
+          "precise"
+        ],
+        "density": "airy",
+        "layout_philosophy": "wide margins",
+        "summary": "A calm editorial system."
+      },
+      "colors": {
+        "brand": [
+          {
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "brand-primary"
+          },
+          {
+            "value": "#112233",
+            "role": "primary",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "second-brand"
+          }
+        ],
+        "accent": [],
+        "surfaces": [],
+        "text": [
+          {
+            "value": "#f4f0e8",
+            "role": "text on dark",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "inferred",
+            "name": "on-dark"
+          }
+        ],
+        "borders": [],
+        "gradients": []
+      },
+      "typography": {
+        "families": [
+          {
+            "value": "Geist",
+            "role": "body family",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "body"
+          }
+        ],
+        "scale": [
+          {
+            "name": "body",
+            "family": {
+              "value": "Geist",
+              "role": "body family",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-family"
+            },
+            "size": {
+              "value": "1rem",
+              "role": "body size",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-size"
+            },
+            "weight": {
+              "value": 400,
+              "role": "body weight",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-weight"
+            },
+            "line_height": {
+              "value": "1.5",
+              "role": "body leading",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-leading"
+            },
+            "letter_spacing": {
+              "value": "0",
+              "role": "body tracking",
+              "source": [
+                "web_1"
+              ],
+              "confidence": 0.9,
+              "status": "detected",
+              "name": "body-tracking"
+            },
+            "use": "body copy"
+          }
+        ],
+        "principles": [],
+        "substitutes": []
+      },
+      "spacing": {
+        "base_unit": null,
+        "tokens": [
+          {
+            "value": "1rem",
+            "role": "base spacing",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "md"
+          }
+        ],
+        "section_padding": [],
+        "card_padding": [],
+        "button_padding": []
+      },
+      "layout": {
+        "values": [],
+        "container": [
+          {
+            "value": "72rem",
+            "role": "content max width",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "content"
+          }
+        ],
+        "grid": [],
+        "whitespace_philosophy": "airy"
+      },
+      "elevation": {
+        "tokens": [
+          {
+            "value": "0 2px 8px #0002",
+            "role": "card shadow",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "card"
+          }
+        ],
+        "borders": [],
+        "philosophy": "flat"
+      },
+      "shapes": {
+        "radii": [
+          {
+            "value": "8px",
+            "role": "card radius",
+            "source": [
+              "web_1"
+            ],
+            "confidence": 0.9,
+            "status": "detected",
+            "name": "card"
+          }
+        ],
+        "image_geometry": [],
+        "aspect_ratios": [],
+        "cropping": "cover"
+      },
+      "components": [],
+      "surfaces": {
+        "levels": [],
+        "philosophy": "layered"
+      },
+      "imagery": {
+        "elements": [],
+        "visual_language": "minimal",
+        "photography": "unknown",
+        "iconography": "unknown"
+      },
+      "responsive": {
+        "breakpoints": [],
+        "touch_targets": [],
+        "changes": [],
+        "image_behavior": []
+      },
+      "guidelines": {
+        "dos": [],
+        "donts": []
+      },
+      "iteration_guide": [],
+      "agent_prompt_guide": [],
+      "similar_brands": [],
+      "quick_start": [],
+      "known_gaps": [
+        {
+          "code": "css-variables-unavailable",
+          "message": "No accessible CSS custom properties were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "responsive-evidence-limited",
+          "message": "No responsive media-query evidence was captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        },
+        {
+          "code": "component-evidence-limited",
+          "message": "No component samples were captured from this source.",
+          "source": [
+            "web_1"
+          ]
+        }
+      ],
+      "evidence": {
+        "sources": [
+          {
+            "label": "web_1",
+            "url": "https://example.com",
+            "weight": 100,
+            "status": "analyzed"
+          }
+        ],
+        "notes": []
+      }
+    },
+    "documents": {
+      "compact": "# Design System — Compact\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** A calm editorial system.\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Quick Color Reference\n\n- `brand-primary`: #112233 — primary\n- `second-brand`: #112233 — primary\n- `on-dark`: #f4f0e8 — text on dark\n## Tokens — Typography\n\n### Families\n\n- `body`: Geist — body family\n\n### Type Scale\n\n- `body`: family=Geist, size=1rem, weight=400, line-height=1.5, tracking=0 — body copy\n\n### Principles\n\n\n## Core Components\n\n## Key Rules\n\n### Do\n\n\n### Don't\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n<!-- Generated from the normalized DesignSystem model. -->",
+      "extended": "# Design System — Extended\n\n## Overview\n\n**Identity:** Editorial\n**Summary:** A calm editorial system.\n**Density:** airy\n**Layout philosophy:** wide margins\n\n### Tone and personality\n\n- calm\n- precise\n\n## Tokens — Colors\n\n### Brand\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `brand-primary` | `#112233` | primary | detected; 0.90; web_1 |\n| `second-brand` | `#112233` | primary | detected; 0.90; web_1 |\n\n### Accent\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Surfaces\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Text\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n| `on-dark` | `#f4f0e8` | text on dark | inferred; 0.90; web_1 |\n\n### Borders\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n### Gradients\n\n| Name | Value | Role | Evidence |\n| --- | --- | --- | --- |\n\n## Tokens — Typography\n\n### Families\n\n- `body`: Geist — body family (detected, confidence 0.90; source: web_1)\n\n### Type Scale\n\n- `body`: family=Geist [detected; web_1], size=1rem [detected; web_1], weight=400 [detected; web_1], line-height=1.5 [detected; web_1], tracking=0 [detected; web_1] — body copy\n\n### Principles\n\n\n### Open-source substitutes\n\n\n## Tokens — Spacing & Shapes\n\n### Spacing\n\n**Base unit:** Not enough evidence\n\n- `md`: 1rem — base spacing (detected, confidence 0.90; source: web_1)\n\n**Section padding**\n\n\n**Card padding**\n\n\n**Button padding**\n\n\n### Border radius\n\n- `card`: 8px — card radius (detected, confidence 0.90; source: web_1)\n\n### Photography geometry\n\n\n### Aspect ratios\n\n\n**Cropping:** cover\n\n## Components\n\n## Do's and Don'ts\n\n### Do\n\n\n### Don't\n\n\n## Surfaces\n\n\n**Philosophy:** layered\n\n## Elevation\n\n- `card`: 0 2px 8px #0002 — card shadow (detected, confidence 0.90; source: web_1)\n\n### Borders\n\n\n**Philosophy:** flat\n\n## Imagery\n\n\n**Visual language:** minimal\n**Photography:** unknown\n**Iconography:** unknown\n\n## Layout\n\n### Layout values\n\n\n### Container\n\n- `content`: 72rem — content max width (detected, confidence 0.90; source: web_1)\n\n### Grid and gutters\n\n\n**Whitespace philosophy:** airy\n\n## Responsive Behavior\n\n### Breakpoints\n\n\n### Touch targets\n\n\n### Layout changes\n\n\n### Image behavior\n\n\n## Iteration Guide\n\n\n## Known Gaps\n\n- `css-variables-unavailable`: No accessible CSS custom properties were captured from this source. (source: web_1)\n- `responsive-evidence-limited`: No responsive media-query evidence was captured from this source. (source: web_1)\n- `component-evidence-limited`: No component samples were captured from this source. (source: web_1)\n\n## Agent Prompt Guide\n\n\n## Similar Brands\n\n\n## Quick Start\n\n\n## Evidence\n\n- `web_1` — analyzed, weight 100: https://example.com\n\n<!-- Generated from the normalized DesignSystem model. -->"
+    },
+    "exports": {
+      "css_variables": "/* Design Scraper export: CSS Variables */\n/* Primitive values are deduplicated from the normalized model. */\n/* Semantic variables preserve token roles and evidence metadata. */\n:root {\n  --ds-color-primitive-1: #112233; /* role: primary; status: detected; confidence: 0.90; source: web_1; value: #112233 */\n  --ds-color-primitive-2: #f4f0e8; /* role: text on dark; status: inferred; confidence: 0.90; source: web_1; value: #f4f0e8 */\n  --ds-font-family-primitive-1: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1; value: Geist */\n  --ds-font-size-primitive-1: 1rem; /* role: body size; status: detected; confidence: 0.90; source: web_1; value: 1rem */\n  --ds-font-weight-primitive-1: 400; /* role: body weight; status: detected; confidence: 0.90; source: web_1; value: 400 */\n  --ds-line-height-primitive-1: 1.5; /* role: body leading; status: detected; confidence: 0.90; source: web_1; value: 1.5 */\n  --ds-letter-spacing-primitive-1: 0; /* role: body tracking; status: detected; confidence: 0.90; source: web_1; value: 0 */\n  --ds-spacing-primitive-1: 1rem; /* role: base spacing; status: detected; confidence: 0.90; source: web_1; value: 1rem */\n  --ds-layout-primitive-1: 72rem; /* role: content max width; status: detected; confidence: 0.90; source: web_1; value: 72rem */\n  --ds-shadow-primitive-1: 0 2px 8px #0002; /* role: card shadow; status: detected; confidence: 0.90; source: web_1; value: 0 2px 8px #0002 */\n  --ds-radius-primitive-1: 8px; /* role: card radius; status: detected; confidence: 0.90; source: web_1; value: 8px */\n\n  /* Semantic roles */\n  --ds-color-brand-primary: var(--ds-color-primitive-1); /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n  --ds-color-brand-second-brand: var(--ds-color-primitive-1); /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n  --ds-color-text-on-dark: var(--ds-color-primitive-2); /* role: text on dark; status: inferred; confidence: 0.90; source: web_1 */\n  --ds-font-family-body: var(--ds-font-family-primitive-1); /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-family-body-family: var(--ds-font-family-primitive-1); /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-size-body: var(--ds-font-size-primitive-1); /* role: body size; status: detected; confidence: 0.90; source: web_1 */\n  --ds-font-weight-body: var(--ds-font-weight-primitive-1); /* role: body weight; status: detected; confidence: 0.90; source: web_1 */\n  --ds-line-height-body: var(--ds-line-height-primitive-1); /* role: body leading; status: detected; confidence: 0.90; source: web_1 */\n  --ds-letter-spacing-body: var(--ds-letter-spacing-primitive-1); /* role: body tracking; status: detected; confidence: 0.90; source: web_1 */\n  --ds-spacing-spacing-md: var(--ds-spacing-primitive-1); /* role: base spacing; status: detected; confidence: 0.90; source: web_1 */\n  --ds-layout-container-content: var(--ds-layout-primitive-1); /* role: content max width; status: detected; confidence: 0.90; source: web_1 */\n  --ds-shadow-card: var(--ds-shadow-primitive-1); /* role: card shadow; status: detected; confidence: 0.90; source: web_1 */\n  --ds-radius-card: var(--ds-radius-primitive-1); /* role: card radius; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "tailwind": "/* Tailwind-compatible export generated from the normalized design system. */\n/* This does not imply that the analyzed site uses Tailwind CSS. */\n@theme {\n  --color-brand-primary: #112233; /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n  --color-brand-second-brand: #112233; /* role: primary; status: detected; confidence: 0.90; source: web_1 */\n  --color-text-on-dark: #f4f0e8; /* role: text on dark; status: inferred; confidence: 0.90; source: web_1 */\n  --font-body: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --font-body-2: Geist; /* role: body family; status: detected; confidence: 0.90; source: web_1 */\n  --text-body: 1rem; /* role: body size; status: detected; confidence: 0.90; source: web_1 */\n  --font-weight-body: 400; /* role: body weight; status: detected; confidence: 0.90; source: web_1 */\n  --leading-body: 1.5; /* role: body leading; status: detected; confidence: 0.90; source: web_1 */\n  --tracking-body: 0; /* role: body tracking; status: detected; confidence: 0.90; source: web_1 */\n  --spacing-spacing-md: 1rem; /* role: base spacing; status: detected; confidence: 0.90; source: web_1 */\n  --container-container-content: 72rem; /* role: content max width; status: detected; confidence: 0.90; source: web_1 */\n  --shadow-card: 0 2px 8px #0002; /* role: card shadow; status: detected; confidence: 0.90; source: web_1 */\n  --radius-card: 8px; /* role: card radius; status: detected; confidence: 0.90; source: web_1 */\n}\n",
+      "design_tokens": "{\n  \"$schema\": \"https://design-tokens.github.io/community-group/format/\",\n  \"name\": \"Design Scraper tokens\",\n  \"metadata\": {\n    \"format\": \"DTCG-compatible\",\n    \"convention\": \"category.primitive|semantic.token-name\",\n    \"sources\": [\n      \"web_1\"\n    ]\n  },\n  \"tokens\": {\n    \"color\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"primitive-2\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f0e8\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"brand-primary\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primary\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"brand-second-brand\": {\n          \"$type\": \"color\",\n          \"$value\": \"#112233\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primary\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"text-on-dark\": {\n          \"$type\": \"color\",\n          \"$value\": \"#f4f0e8\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"text on dark\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"inferred\"\n            }\n          }\n        }\n      }\n    },\n    \"font-family\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        },\n        \"body-family\": {\n          \"$type\": \"fontFamily\",\n          \"$value\": \"Geist\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body family\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-size\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body size\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"font-weight\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"fontWeight\",\n          \"$value\": \"400\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"fontWeight\",\n          \"$value\": \"400\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body weight\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"line-height\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1.5\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1.5\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body leading\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"letter-spacing\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"0\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"body\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"0\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"body tracking\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"spacing\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"spacing-md\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"1rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"base spacing\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"layout\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"72rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"container-content\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"72rem\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"content max width\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"shadow\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"shadow\",\n          \"$value\": \"0 2px 8px #0002\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"card\": {\n          \"$type\": \"shadow\",\n          \"$value\": \"0 2px 8px #0002\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"card shadow\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    },\n    \"radius\": {\n      \"primitive\": {\n        \"primitive-1\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"primitive value from normalized token\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      },\n      \"semantic\": {\n        \"card\": {\n          \"$type\": \"dimension\",\n          \"$value\": \"8px\",\n          \"$extensions\": {\n            \"design-scraper\": {\n              \"role\": \"card radius\",\n              \"source\": [\n                \"web_1\"\n              ],\n              \"confidence\": 0.9,\n              \"status\": \"detected\"\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+    }
+  }
+]

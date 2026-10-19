@@ -1,0 +1,1020 @@
+{
+  "$defs": {
+    "ColorToken": {
+      "properties": {
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "source": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "detected",
+            "inferred",
+            "interpreted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "role",
+        "source",
+        "confidence",
+        "status",
+        "name"
+      ],
+      "title": "ColorToken",
+      "type": "object"
+    },
+    "ColorsSection": {
+      "properties": {
+        "brand": {
+          "items": {
+            "$ref": "#/$defs/ColorToken"
+          },
+          "title": "Brand",
+          "type": "array"
+        },
+        "accent": {
+          "items": {
+            "$ref": "#/$defs/ColorToken"
+          },
+          "title": "Accent",
+          "type": "array"
+        },
+        "surfaces": {
+          "items": {
+            "$ref": "#/$defs/ColorToken"
+          },
+          "title": "Surfaces",
+          "type": "array"
+        },
+        "text": {
+          "items": {
+            "$ref": "#/$defs/ColorToken"
+          },
+          "title": "Text",
+          "type": "array"
+        },
+        "borders": {
+          "items": {
+            "$ref": "#/$defs/ColorToken"
+          },
+          "title": "Borders",
+          "type": "array"
+        },
+        "gradients": {
+          "items": {
+            "$ref": "#/$defs/ColorToken"
+          },
+          "title": "Gradients",
+          "type": "array"
+        }
+      },
+      "required": [
+        "brand",
+        "accent",
+        "surfaces",
+        "text",
+        "borders",
+        "gradients"
+      ],
+      "title": "ColorsSection",
+      "type": "object"
+    },
+    "ComponentSpec": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Values",
+          "type": "array"
+        },
+        "states": {
+          "items": {
+            "$ref": "#/$defs/ComponentState"
+          },
+          "title": "States",
+          "type": "array"
+        },
+        "source": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "detected",
+            "inferred",
+            "interpreted"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "values",
+        "states",
+        "source",
+        "confidence",
+        "status"
+      ],
+      "title": "ComponentSpec",
+      "type": "object"
+    },
+    "ComponentState": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Values",
+          "type": "array"
+        },
+        "observed": {
+          "title": "Observed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "observed"
+      ],
+      "title": "ComponentState",
+      "type": "object"
+    },
+    "DimensionToken": {
+      "properties": {
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "source": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "detected",
+            "inferred",
+            "interpreted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "role",
+        "source",
+        "confidence",
+        "status",
+        "name"
+      ],
+      "title": "DimensionToken",
+      "type": "object"
+    },
+    "ElevationSection": {
+      "properties": {
+        "tokens": {
+          "items": {
+            "$ref": "#/$defs/ShadowToken"
+          },
+          "title": "Tokens",
+          "type": "array"
+        },
+        "borders": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Borders",
+          "type": "array"
+        },
+        "philosophy": {
+          "title": "Philosophy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tokens",
+        "borders",
+        "philosophy"
+      ],
+      "title": "ElevationSection",
+      "type": "object"
+    },
+    "EvidenceSection": {
+      "properties": {
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSource"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "sources",
+        "notes"
+      ],
+      "title": "EvidenceSection",
+      "type": "object"
+    },
+    "EvidenceSource": {
+      "properties": {
+        "label": {
+          "enum": [
+            "web_1",
+            "web_2"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "weight": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Weight",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "analyzed",
+            "excluded"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "url",
+        "weight",
+        "status"
+      ],
+      "title": "EvidenceSource",
+      "type": "object"
+    },
+    "Guidelines": {
+      "properties": {
+        "dos": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dos",
+          "type": "array"
+        },
+        "donts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Donts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "dos",
+        "donts"
+      ],
+      "title": "Guidelines",
+      "type": "object"
+    },
+    "ImagerySection": {
+      "properties": {
+        "elements": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "visual_language": {
+          "title": "Visual Language",
+          "type": "string"
+        },
+        "photography": {
+          "title": "Photography",
+          "type": "string"
+        },
+        "iconography": {
+          "title": "Iconography",
+          "type": "string"
+        }
+      },
+      "required": [
+        "elements",
+        "visual_language",
+        "photography",
+        "iconography"
+      ],
+      "title": "ImagerySection",
+      "type": "object"
+    },
+    "KnownGap": {
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "source": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "source"
+      ],
+      "title": "KnownGap",
+      "type": "object"
+    },
+    "LayoutSection": {
+      "properties": {
+        "values": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Values",
+          "type": "array"
+        },
+        "container": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Container",
+          "type": "array"
+        },
+        "grid": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Grid",
+          "type": "array"
+        },
+        "whitespace_philosophy": {
+          "title": "Whitespace Philosophy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "values",
+        "container",
+        "grid",
+        "whitespace_philosophy"
+      ],
+      "title": "LayoutSection",
+      "type": "object"
+    },
+    "Overview": {
+      "properties": {
+        "identity": {
+          "title": "Identity",
+          "type": "string"
+        },
+        "tone": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tone",
+          "type": "array"
+        },
+        "personality": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Personality",
+          "type": "array"
+        },
+        "density": {
+          "title": "Density",
+          "type": "string"
+        },
+        "layout_philosophy": {
+          "title": "Layout Philosophy",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity",
+        "tone",
+        "personality",
+        "density",
+        "layout_philosophy",
+        "summary"
+      ],
+      "title": "Overview",
+      "type": "object"
+    },
+    "ResponsiveSection": {
+      "properties": {
+        "breakpoints": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Breakpoints",
+          "type": "array"
+        },
+        "touch_targets": {
+          "items": {
+            "$ref": "#/$defs/DimensionToken"
+          },
+          "title": "Touch Targets",
+          "type": "array"
+        },
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Changes",
+          "type": "array"
+        },
+        "image_behavior": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Image Behavior",
+          "type": "array"
+        }
+      },
+      "required": [
+        "breakpoints",
+        "touch_targets",
+        "changes",
+        "image_behavior"
+      ],
+      "title": "ResponsiveSection",
+      "type": "object"
+    },
+    "ShadowToken": {
+      "properties": {
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "source": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "detected",
+            "inferred",
+            "interpreted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "role",
+        "source",
+        "confidence",
+        "status",
+        "name"
+      ],
+      "title": "ShadowToken",
+      "type": "object"
+    },
+    "ShapesSection": {
+      "properties": {
+        "radii": {
+          "items": {
+            "$ref": "#/$defs/DimensionToken"
+          },
+          "title": "Radii",
+          "type": "array"
+        },
+        "image_geometry": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Image Geometry",
+          "type": "array"
+        },
+        "aspect_ratios": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Aspect Ratios",
+          "type": "array"
+        },
+        "cropping": {
+          "title": "Cropping",
+          "type": "string"
+        }
+      },
+      "required": [
+        "radii",
+        "image_geometry",
+        "aspect_ratios",
+        "cropping"
+      ],
+      "title": "ShapesSection",
+      "type": "object"
+    },
+    "SpacingSection": {
+      "properties": {
+        "base_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DimensionToken"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tokens": {
+          "items": {
+            "$ref": "#/$defs/DimensionToken"
+          },
+          "title": "Tokens",
+          "type": "array"
+        },
+        "section_padding": {
+          "items": {
+            "$ref": "#/$defs/DimensionToken"
+          },
+          "title": "Section Padding",
+          "type": "array"
+        },
+        "card_padding": {
+          "items": {
+            "$ref": "#/$defs/DimensionToken"
+          },
+          "title": "Card Padding",
+          "type": "array"
+        },
+        "button_padding": {
+          "items": {
+            "$ref": "#/$defs/DimensionToken"
+          },
+          "title": "Button Padding",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_unit",
+        "tokens",
+        "section_padding",
+        "card_padding",
+        "button_padding"
+      ],
+      "title": "SpacingSection",
+      "type": "object"
+    },
+    "SurfacesSection": {
+      "properties": {
+        "levels": {
+          "items": {
+            "$ref": "#/$defs/ColorToken"
+          },
+          "title": "Levels",
+          "type": "array"
+        },
+        "philosophy": {
+          "title": "Philosophy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "levels",
+        "philosophy"
+      ],
+      "title": "SurfacesSection",
+      "type": "object"
+    },
+    "TokenValue": {
+      "properties": {
+        "value": {
+          "title": "Value"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "source": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "detected",
+            "inferred",
+            "interpreted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "role",
+        "source",
+        "confidence",
+        "status",
+        "name"
+      ],
+      "title": "TokenValue",
+      "type": "object"
+    },
+    "TypographySection": {
+      "properties": {
+        "families": {
+          "items": {
+            "$ref": "#/$defs/TokenValue"
+          },
+          "title": "Families",
+          "type": "array"
+        },
+        "scale": {
+          "items": {
+            "$ref": "#/$defs/TypographySpec"
+          },
+          "title": "Scale",
+          "type": "array"
+        },
+        "principles": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Principles",
+          "type": "array"
+        },
+        "substitutes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Substitutes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "families",
+        "scale",
+        "principles",
+        "substitutes"
+      ],
+      "title": "TypographySection",
+      "type": "object"
+    },
+    "TypographySpec": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TokenValue"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "size": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DimensionToken"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WeightToken"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "line_height": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DimensionToken"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "letter_spacing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DimensionToken"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "use": {
+          "title": "Use",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "family",
+        "size",
+        "weight",
+        "line_height",
+        "letter_spacing",
+        "use"
+      ],
+      "title": "TypographySpec",
+      "type": "object"
+    },
+    "WeightToken": {
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Value"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "source": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "detected",
+            "inferred",
+            "interpreted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "role",
+        "source",
+        "confidence",
+        "status",
+        "name"
+      ],
+      "title": "WeightToken",
+      "type": "object"
+    }
+  },
+  "description": "Normalized source of truth for one analysis or weighted mix.",
+  "properties": {
+    "metadata": {
+      "title": "Metadata",
+      "type": "object"
+    },
+    "overview": {
+      "$ref": "#/$defs/Overview"
+    },
+    "colors": {
+      "$ref": "#/$defs/ColorsSection"
+    },
+    "typography": {
+      "$ref": "#/$defs/TypographySection"
+    },
+    "spacing": {
+      "$ref": "#/$defs/SpacingSection"
+    },
+    "layout": {
+      "$ref": "#/$defs/LayoutSection"
+    },
+    "elevation": {
+      "$ref": "#/$defs/ElevationSection"
+    },
+    "shapes": {
+      "$ref": "#/$defs/ShapesSection"
+    },
+    "components": {
+      "items": {
+        "$ref": "#/$defs/ComponentSpec"
+      },
+      "title": "Components",
+      "type": "array"
+    },
+    "surfaces": {
+      "$ref": "#/$defs/SurfacesSection"
+    },
+    "imagery": {
+      "$ref": "#/$defs/ImagerySection"
+    },
+    "responsive": {
+      "$ref": "#/$defs/ResponsiveSection"
+    },
+    "guidelines": {
+      "$ref": "#/$defs/Guidelines"
+    },
+    "iteration_guide": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Iteration Guide",
+      "type": "array"
+    },
+    "agent_prompt_guide": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Agent Prompt Guide",
+      "type": "array"
+    },
+    "similar_brands": {
+      "items": {
+        "$ref": "#/$defs/TokenValue"
+      },
+      "title": "Similar Brands",
+      "type": "array"
+    },
+    "quick_start": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Quick Start",
+      "type": "array"
+    },
+    "known_gaps": {
+      "items": {
+        "$ref": "#/$defs/KnownGap"
+      },
+      "title": "Known Gaps",
+      "type": "array"
+    },
+    "evidence": {
+      "$ref": "#/$defs/EvidenceSection"
+    }
+  },
+  "required": [
+    "metadata",
+    "overview",
+    "colors",
+    "typography",
+    "spacing",
+    "layout",
+    "elevation",
+    "shapes",
+    "components",
+    "surfaces",
+    "imagery",
+    "responsive",
+    "guidelines",
+    "iteration_guide",
+    "agent_prompt_guide",
+    "similar_brands",
+    "quick_start",
+    "known_gaps",
+    "evidence"
+  ],
+  "title": "DesignSystem",
+  "type": "object"
+}

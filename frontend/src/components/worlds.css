@@ -1,0 +1,46 @@
+/* The studio is an editorial specimen; Mix It is a separate sculptural world. */
+.studio-scene { position: relative; width: 100%; min-width: 0; color: #292929; margin-top: 28px; font-family: 'Geist Variable',sans-serif; }
+.studio-meta { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #292929; font: 500 8px 'Geist Mono Variable',monospace; letter-spacing: .1em; }
+.studio-cross { font-size: 19px; line-height: .8; }
+.studio-specimen { position: relative; height: 219px; overflow: hidden; container-type: inline-size; }
+.studio-rule { position: absolute; left: 0; right: 33%; border-top: 1px solid #29292938; z-index: 1; pointer-events: none; }
+.studio-rule-cap { top: 32px; }.studio-rule-base { bottom: 37px; }
+.studio-rule span { position: absolute; right: 9px; top: -13px; font: 6px 'Geist Mono Variable',monospace; letter-spacing: .09em; color: #5c5c5c; }
+.studio-tick-ruler { position: absolute; top: 32px; bottom: 37px; width: 9px; left: 0; border-right: 1px solid #29292966; background: repeating-linear-gradient(transparent 0 11px,#29292966 11px 12px); }
+.studio-glyph { position: absolute; left: 29px; top: 3px; display: flex; align-items: baseline; font-size: 193px; font-weight: 620; line-height: 1; letter-spacing: -.09em; }
+.studio-glyph-outline { display: inline-block; color: transparent; -webkit-text-stroke: 1px #292929; }
+.studio-detail-column { position: absolute; right: 0; top: 0; bottom: 0; width: 30%; display: flex; flex-direction: column; justify-content: space-evenly; padding-left: 19px; border-left: 1px solid #29292938; }
+.studio-detail-label { display: block; font: 6px 'Geist Mono Variable',monospace; letter-spacing: .08em; margin-bottom: 9px; }
+.studio-detail-column strong { font-weight: 500; font-size: 12px; letter-spacing: -.025em; }
+.studio-tones { display: flex; max-width: 116px; }
+.studio-tones i { width: 20%; height: 18px; background: #292929; }.studio-tones i:nth-child(2) { background: #5b5b5b; }.studio-tones i:nth-child(3) { background: #8f8f8f; }.studio-tones i:nth-child(4) { background: #bdbdbd; }.studio-tones i:nth-child(5) { background: #e6e6e3; border: 1px solid #cececa; }
+.studio-scale-bars { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }.studio-scale-bars i { width: 76%; max-width: 116px; height: 3px; background: #292929; }.studio-scale-bars i:nth-child(2) { width: 48%; }.studio-scale-bars i:nth-child(3) { width: 28%; }
+.studio-scan { position: absolute; top: 17px; bottom: 19px; left: 18px; width: 1px; z-index: 2; background: #44444455; }.studio-scan i { position: absolute; width: 5px; height: 5px; left: -2px; top: -2px; border: 1px solid #292929; background: #f5f5f1; }.studio-scan > span { position: absolute; bottom: 0; left: 5px; font: 6px 'Geist Mono Variable',monospace; letter-spacing: .1em; }
+.studio-bottom { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; padding-top: 11px; border-top: 1px solid #292929; font: 7px 'Geist Mono Variable',monospace; letter-spacing: .035em; }.studio-bottom b { padding-inline: 8px; font-weight: 400; }.studio-bottom > span:last-child { color: #696969; font-size: 7px; }
+
+.mix-world { position: relative; isolation: isolate; width: 100%; aspect-ratio: 1.27; min-width: 0; pointer-events: none; }
+.mix-paint-sculpture { position: absolute; z-index: 2; width: 112%; max-width: none; height: auto; top: 9%; left: -5%; object-fit: contain; user-select: none; transform: rotate(-5deg); }
+.mix-ribbon-back { position: absolute; width: 106%; height: 104%; top: -1%; left: -3%; z-index: 0; overflow: visible; transform: rotate(6deg); }
+.mix-orbit-line { position: absolute; width: 100%; height: 100%; top: 0; left: 0; color: #1e2035; z-index: 1; opacity: .65; }
+.mix-paint-drop { position: absolute; z-index: 3; }
+.mix-paint-drop-one { width: 52px; height: 81px; left: 13%; top: 13%; border-radius: 67% 33% 59% 41% / 71% 29% 71% 29%; background: radial-gradient(ellipse at 31% 22%,#fff2bd,#ffab39 23%,#fd552a 64%,#c63470 95%); box-shadow: inset -4px -5px 8px #b74b5470; transform: rotate(-23deg); }
+.mix-paint-drop-two { width: 43px; height: 65px; right: 8%; bottom: 14%; border-radius: 32% 68% 33% 67% / 35% 25% 75% 65%; background: radial-gradient(ellipse at 30% 25%,#c7f4ff,#7486ff 26%,#4a25c7 75%,#341779); transform: rotate(34deg); }
+.mix-world-note { position: absolute; z-index: 4; right: 12%; bottom: 5%; font: 600 8px 'Geist Mono Variable',monospace; color: #242624; letter-spacing: .12em; transform: rotate(-7deg); }
+@media (max-width: 640px) {
+  .studio-scene { margin-top: 21px; }
+  .studio-specimen { height: 184px; }
+  .studio-glyph { font-size: clamp(112px,44cqw,158px); top: 10px; left: 17px; letter-spacing: -.105em; }
+  .studio-rule-cap { top: 34px; }.studio-rule-base { bottom: 26px; }
+  .studio-tick-ruler { top: 34px; bottom: 26px; width: 6px; }
+  .studio-rule { right: 34%; }.studio-rule span { font-size: 5px; right: 5px; }
+  .studio-detail-column { width: 31%; padding-left: 10px; }
+  .studio-detail-label { font-size: 5px; letter-spacing: .015em; margin-bottom: 7px; }
+  .studio-detail-column strong { font-size: 9px; }.studio-tones i { height: 14px; }
+  .studio-meta { font-size: 6px; padding-bottom: 10px; }.studio-bottom { font-size: 5px; gap: 8px; }.studio-bottom > span:last-child { font-size: 5px; }.studio-bottom b { padding-inline: 4px; }
+  .studio-scan { left: 10px; }.studio-scan > span { font-size: 5px; }
+  .mix-world { aspect-ratio: 1.13; }
+  .mix-paint-sculpture { width: 122%; left: -10%; top: 13%; }
+  .mix-ribbon-back { width: 111%; height: 101%; left: -5%; top: 0; }
+  .mix-paint-drop-one { width: 28px; height: 43px; left: 10%; top: 12%; }.mix-paint-drop-two { width: 25px; height: 39px; right: 5%; bottom: 15%; }
+  .mix-world-note { bottom: 2%; right: 8%; font-size: 5px; }
+}

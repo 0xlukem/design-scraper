@@ -1,0 +1,373 @@
+import SharedBudget from './components/SharedBudget'
+import { AnalysisError, makeIssue, toIssue } from './analysisError'
+import SessionUsage, { type UsageEntry } from './components/SessionUsage'
+import DesignLibrary from './components/DesignLibrary'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { analyzeWebsite, mixWebsites } from './api'
+import MixForm from './components/MixForm'
+import ModeToggle from './components/ModeToggle'
+import ResultPanel from './components/ResultPanel'
+import SingleForm from './components/SingleForm'
+import SiteFooter from './components/SiteFooter'
+import StudioScene from './components/StudioScene'
+import MixWorld from './components/MixWorld'
+import WorldTransition from './components/WorldTransition'
+import HeroReveal from './components/HeroReveal'
+import AllowanceHint from './components/AllowanceHint'
+import { librarySuggestions } from './library'
+import { ArrowDown, ArrowUpRight, Globe, Pause, Play } from '@phosphor-icons/react'
+import ProviderControls from './components/ProviderControls'
+import type { ByokCredentials } from './byok'
+import type {
+  AnalysisResult,
+  AnalysisProgress,
+  AnalysisTelemetry,
+  AppAction,
+  AppMode,
+  AppState,
+  MixBias,
+} from './types'
+
+const initialRequest = {
+  loading: false,
+  error: null,
+  result: null,
+}
+
+const initialState: AppState = {
+  mode: 'single',
+  single: {
+    ...initialRequest,
+    url: '',
+  },
+  mix: {
+    ...initialRequest,
+    url1: '',
+    url2: '',
+    bias: 0,
+  },
+}
+
+function reducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'set-mode':
+      return { ...state, mode: action.mode }
+    case 'set-single-url':
+      return { ...state, single: { ...state.single, url: action.value } }
+    case 'set-mix-url':
+      return {
+        ...state,
+        mix: { ...state.mix, [action.field]: action.value },
+      }
+    case 'set-bias':
+      return { ...state, mix: { ...state.mix, bias: action.value } }
+    case 'request-progress':
+      return { ...state, [action.mode]: { ...state[action.mode], progress: action.progress } }
+    case 'request-start':
+      return {
+        ...state,
+        [action.mode]: {
+          ...state[action.mode],
+          loading: true,
+          startedAt: action.startedAt,
+          progress: undefined,
+          cancelled: false,
+          error: null,
+          result: null,
+        },
+      }
+    case 'request-success':
+      return {
+        ...state,
+        [action.mode]: {
+          ...state[action.mode],
+          loading: false,
+          error: null,
+          result: action.result,
+        },
+      }
+    case 'request-error':
+      return {
+        ...state,
+        [action.mode]: {
+          ...state[action.mode],
+          loading: false,
+          error: action.message,
+          result: null,
+        },
+      }
+    case 'request-cancel':
+      return {
+        ...state,
+        [action.mode]: {
+          ...state[action.mode],
+          loading: false,
+          error: null,
+          cancelled: true,
+        },
+      }
+    default:
+      return state
+  }
+}
+
+const singleSuggestions = librarySuggestions('single', 3).map(example => ({ id: example.id, label: new URL(example.sources[0]).hostname.replace(/^www\./, ''), urls: example.sources }))
+const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: example.id, label: example.name, urls: example.sources }))
+const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
+
+function App() {
+  const [motionPaused, setMotionPaused] = useState(false)
+  // The requested world; the paint transition decides when `state.mode` follows.
+  const [targetMode, setTargetMode] = useState<AppMode>('single')
+  const [allowanceRequested, setAllowanceRequested] = useState(false)
+  const [usageEntries, setUsageEntries] = useState<UsageEntry[]>([])
+  const requestId = useRef(0)
+  const [state, dispatch] = useReducer(reducer, initialState)
+  const controllers = useRef<Partial<Record<AppMode, AbortController>>>({})
+  const providerAccess = useRef<ByokCredentials | null | undefined>(undefined)
+  const [providerReady, setProviderReady] = useState(true)
+  const setProviderAccess = useCallback((value: ByokCredentials | null | undefined) => {
+    if (providerAccess.current?.key !== value?.key || providerAccess.current?.provider !== value?.provider || providerAccess.current !== value && !value) {
+      setKeyStatus('unverified')
+      setKeyError('')
+    }
+    providerAccess.current = value
+    setProviderReady(value !== null)
+  }, [])
+  const [section, setSection] = useState(() => readSection())
+  const [keyStatus, setKeyStatus] = useState<'unverified' | 'checking' | 'verified' | 'error'>('unverified')
+  const [keyError, setKeyError] = useState('')
+  const [settingsRevision, setSettingsRevision] = useState(0)
+  const [retryNow, setRetryNow] = useState(Date.now)
+  const retryAt = Math.max(state.single.error?.retryAt || 0, state.mix.error?.retryAt || 0)
+  const retryRemaining = Math.max(0, Math.ceil((retryAt - retryNow) / 1000))
+  useEffect(() => {
+    setRetryNow(Date.now())
+    if (retryAt <= Date.now()) return
+    const timer = window.setInterval(() => {
+      const now = Date.now()
+      setRetryNow(now)
+      if (now >= retryAt) window.clearInterval(timer)
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [retryAt])
+  const main = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const sync = () => setSection(readSection())
+    window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [])
+  useEffect(() => {
+    main.current?.focus({ preventScroll: true })
+    window.scrollTo?.({ top: 0, behavior: 'instant' })
+  }, [section])
+  useEffect(() => {
+    const brand = state.mode === 'mix' ? 'Mix It' : 'Design Scraper'
+    document.title = section === 'analyze' ? `${brand} · ${state.mode === 'mix' ? 'Two references. Something new.' : 'Design, decoded.'}` : `${section === 'library' ? 'Design library' : 'Activity & costs'} · ${brand}`
+  }, [section, state.mode])
+  const reviewSettings = () => { setSettingsRevision(n => n + 1) }
+
+
+  useEffect(
+    () => () => {
+      controllers.current.single?.abort()
+      controllers.current.mix?.abort()
+      providerAccess.current = undefined
+    },
+    [],
+  )
+
+  const runRequest = async (
+    mode: AppMode,
+    request: (signal: AbortSignal, onProgress: (progress: AnalysisProgress) => void) => Promise<AnalysisResult>,
+  ) => {
+    if (controllers.current.single || controllers.current.mix || Date.now() < retryAt) return
+    const controller = new AbortController()
+    controllers.current[mode] = controller
+    const id = ++requestId.current
+    const startedAt = Date.now()
+    const previousKeyStatus = keyStatus
+    const sources = mode === 'single' ? [state.single.url.trim()] : [state.mix.url1.trim(), state.mix.url2.trim()]
+    if (providerAccess.current) { setKeyStatus('checking'); setKeyError('') }
+    const funding = providerAccess.current ? 'byok' as const : 'demo' as const
+    const provider = providerAccess.current?.provider || 'gemini'
+    let lastTelemetry: AnalysisTelemetry | undefined
+    const recordUsage = (outcome: UsageEntry['outcome'], usage?: AnalysisResult['metadata']['usage'], telemetry?: AnalysisTelemetry, requestSent?: boolean) =>
+      setUsageEntries(entries => [...entries, { id, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || provider, outcome, usage, telemetry, requestSent }])
+    dispatch({ type: 'request-start', mode, startedAt: Date.now() })
+
+    try {
+      if (providerAccess.current === null) throw new AnalysisError(makeIssue('BYOK_SETTINGS_REQUIRED', 'Complete your provider settings and accept the terms before analyzing.', false, null, { funding: 'byok', requestSent: false }))
+      const result = await request(controller.signal, progress => {
+        lastTelemetry = progress.telemetry
+        dispatch({ type: 'request-progress', mode, progress })
+      })
+      if (controllers.current[mode] !== controller) return
+      if (funding === 'byok' && providerAccess.current) setKeyStatus('verified')
+      recordUsage('completed', result.metadata.usage, result.telemetry)
+      dispatch({ type: 'request-success', mode, result })
+    } catch (error) {
+      if (controllers.current[mode] !== controller) return
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        if (funding === 'byok') setKeyStatus(previousKeyStatus === 'verified' ? 'verified' : 'unverified')
+        recordUsage('cancelled', undefined, lastTelemetry ? { ...lastTelemetry, final: false, usage_status: 'unavailable' } : undefined)
+        dispatch({ type: 'request-cancel', mode })
+      } else {
+        const issue = toIssue(error, funding)
+        if (funding === 'byok') {
+          if (/^PROVIDER_/.test(issue.code)) {
+            setKeyStatus('error')
+            setKeyError(issue.code === 'PROVIDER_AUTH_ERROR' ? 'Key rejected. Check your key and provider.' : 'Provider unavailable. Check account limits and model access.')
+          } else setKeyStatus(previousKeyStatus === 'verified' ? 'verified' : 'unverified')
+        }
+        recordUsage('failed', issue.telemetry?.usage, issue.telemetry || lastTelemetry, issue.requestSent)
+        dispatch({ type: 'request-error', mode, message: issue })
+      }
+    } finally {
+      if (controllers.current[mode] === controller) {
+        delete controllers.current[mode]
+      }
+    }
+  }
+
+  const submitSingle = () =>
+    runRequest('single', (signal, onProgress) =>
+      analyzeWebsite(state.single.url.trim(), signal, providerAccess.current || undefined, onProgress),
+    )
+
+  const submitMix = () =>
+    runRequest('mix', (signal, onProgress) =>
+      mixWebsites(
+        state.mix.url1.trim(),
+        state.mix.url2.trim(),
+        state.mix.bias,
+        signal,
+        providerAccess.current || undefined,
+        onProgress,
+      ),
+    )
+
+  const cancel = (mode: AppMode) => controllers.current[mode]?.abort()
+
+  const busy = state.single.loading || state.mix.loading
+  const requestAllowance = useCallback(() => setAllowanceRequested(true), [])
+  const changeMode = (mode: AppMode) => {
+    if (mode === 'mix') new Image().src = sculptureArtwork
+    setTargetMode(mode)
+  }
+  const useSources = (mode: AppMode, sources: string[]) => {
+    setTargetMode(mode)
+    dispatch({ type: 'set-mode', mode })
+    if (mode === 'single') dispatch({ type: 'set-single-url', value: sources[0] })
+    else {
+      dispatch({ type: 'set-mix-url', field: 'url1', value: sources[0] })
+      dispatch({ type: 'set-mix-url', field: 'url2', value: sources[1] })
+      dispatch({ type: 'set-bias', value: 25 })
+    }
+    window.location.hash = '/analyze'
+    requestAnimationFrame(() => document.getElementById(mode === 'single' ? 'single-url' : 'mix-url-1')?.focus())
+  }
+  const switchExperience = (mode: AppMode) => {
+    changeMode(mode)
+    if (section !== 'analyze') window.location.hash = '/analyze'
+    window.scrollTo?.({ top: 0, behavior: 'instant' })
+    main.current?.focus({ preventScroll: true })
+  }
+  return <div data-experience={state.mode} data-motion={motionPaused ? 'paused' : 'playing'} className={`app-shell experience-shell min-h-[100dvh] ${state.mode === 'mix' ? 'theme-wild' : 'theme-sober'}`}>
+    <WorldTransition target={targetMode} current={state.mode} paused={motionPaused} onCovered={mode => dispatch({ type: 'set-mode', mode })} />
+    <header className="site-header">
+      <a href="#main-content" className="skip-link" onClick={e => { e.preventDefault(); main.current?.focus() }}>Skip to content</a>
+      <div className="nav-inner">
+        <a className="brand-link" href="#/analyze" aria-label={state.mode === 'single' ? 'Design Scraper home' : 'Mix It home'} onClick={() => window.scrollTo?.({ top: 0, behavior: 'instant' })}>
+          {state.mode === 'single' ? <><span className="studio-mark" aria-hidden="true"><i /><i /><i /><i /></span><span className="studio-wordmark">design<br />scraper<span className="brand-period">®</span></span></> : <span className="mix-wordmark">mix it<span>.</span></span>}
+        </a>
+        <nav aria-label="Main navigation">
+          {sections.map(item => <a key={item.id} href={`#/${item.id}`} aria-current={section === item.id ? 'page' : undefined}>{item.label}</a>)}
+        </nav>
+        <button type="button" className="motion-toggle" aria-label={motionPaused ? 'Resume animations' : 'Pause animations'} aria-pressed={motionPaused} onClick={() => setMotionPaused(value => !value)}>
+          {motionPaused ? <Play size={15} weight="fill" aria-hidden="true" /> : <Pause size={15} weight="fill" aria-hidden="true" />}
+          <span>{motionPaused ? 'Resume animations' : 'Pause animations'}</span>
+        </button>
+        <button type="button" className="experience-switch" aria-label={state.mode === 'single' ? 'Enter Mix It' : 'Back to Design Scraper'} onClick={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')}>
+          {state.mode === 'single' ? <><span className="portal-dot" aria-hidden="true" /> Mix It <ArrowUpRight size={17} aria-hidden="true" /></> : <><span aria-hidden="true">←</span> Design Scraper</>}
+        </button>
+      </div>
+    </header>
+    <main ref={main} tabIndex={-1} id="main-content" className="workspace-main">
+      {section === 'activity' && <div className="page-intro activity-intro"><span className="section-kicker">Session record / 03</span><h1>Activity &amp; costs</h1><p>A clear view of every experiment.</p><p className="field-help">Review analyses and estimated costs for this session.</p></div>}
+      <div className={section === 'analyze' ? 'analysis-controls' : undefined} hidden={section === 'library'}>
+      {section === 'analyze' && <HeroReveal mode={state.mode} paused={motionPaused}>
+        <div className="section-kicker"><span className="kicker-dot" /> {state.mode === 'single' ? 'A tool for people who notice design' : 'Two references. Zero rules for good taste.'}</div>
+        <h1 className="experience-headline">{state.mode === 'single' ? <>Design,<br /><span>decoded.</span></> : <><span className="mix-line-one">MIX</span><br /><span className="mix-line-two">IT UP.</span></>}</h1>
+        <p className="analysis-description">{state.mode === 'single'
+          ? 'Look beyond the pixels. Turn any website into a design system you can actually work with.'
+          : 'A little from here. A little from there. Pour two websites together and see what happens.'}</p>
+        <div className="hero-actions">
+          <a href="#/library" className="hero-library-link">{state.mode === 'single' ? 'Explore the design library' : 'Borrow some inspiration'} <ArrowUpRight size={18} aria-hidden="true" /></a>
+          <a href="#analysis-form" className="hero-lab-link" onClick={event => {
+            event.preventDefault()
+            document.getElementById('analysis-form')?.scrollIntoView({ block: 'start', behavior: motionPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+            document.getElementById(state.mode === 'single' ? 'single-url' : 'mix-url-1')?.focus({ preventScroll: true })
+          }}>Go to the lab <ArrowDown size={16} aria-hidden="true" /></a>
+        </div>
+        {state.mode === 'single' ? <StudioScene paused={motionPaused} /> : <MixWorld paused={motionPaused} />}
+        <ul className="analysis-capabilities" aria-label="Analysis capabilities">
+          <li><span>01</span> CSS evidence</li><li><span>02</span> AI vision</li><li><span>03</span> Five exports</li>
+        </ul>
+      </HeroReveal>}
+      <div className={section === 'analyze' ? 'reference-box' : undefined}>
+      {section === 'analyze' && <><div className="reference-topline"><span>{state.mode === 'single' ? 'DESIGN SCRAPER / WORKSPACE' : 'THE MIXING DESK'}</span><span>{state.mode === 'single' ? '01—05' : 'MAKE A BEAUTIFUL MESS'}</span></div><ModeToggle mode={state.mode} onChange={changeMode} /></>}
+      {section === 'analyze' && <div className="reference-heading">
+        <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : 'Good things collide.'}</h2></div>
+        <Globe size={24} aria-hidden="true" />
+      </div>}
+      <div hidden={section !== 'analyze'}>
+        <section id="analysis-form" role="tabpanel" aria-labelledby={`mode-${state.mode}`}>
+          {state.mode === 'single' ? <SingleForm url={state.single.url} loading={state.single.loading} disabled={!providerReady || busy || retryRemaining > 0}
+            suggestions={singleSuggestions} onIntent={requestAllowance}
+            onUrlChange={value => dispatch({ type: 'set-single-url', value })} onSubmit={submitSingle} onCancel={() => cancel('single')} />
+            : <MixForm url1={state.mix.url1} url2={state.mix.url2} bias={state.mix.bias} loading={state.mix.loading} disabled={!providerReady || busy || retryRemaining > 0}
+              suggestions={mixSuggestions} onIntent={requestAllowance}
+              onUrlChange={(field, value) => dispatch({ type: 'set-mix-url', field, value })}
+              onBiasChange={(value: MixBias) => dispatch({ type: 'set-bias', value })} onSubmit={submitMix} onCancel={() => cancel('mix')} />}
+          <AllowanceHint requested={allowanceRequested} revision={usageEntries.length} />
+        </section>
+        {retryRemaining > 0 && <p className="form-notice" role="status">New analyses are available in {retryRemaining}s. You can edit your URLs or browse saved designs while you wait.</p>}
+        {!providerReady && <p className="form-notice" role="status">Finish setting up your key, or choose Shared allowance to analyze.</p>}
+        {busy && !state[state.mode].loading && <p role="status" className="form-notice">An analysis is running in the other mode. Switch back to see its progress.</p>}
+        {state[state.mode].cancelled && <p role="status" className="cancellation-note">You stopped waiting. Work already started may still use quota. See Activity &amp; costs for the last available usage.</p>}
+      </div>
+      <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
+      {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
+      </div>
+      </div>
+      <div hidden={section !== 'analyze'}>
+        <div className="analysis-results">
+          {(['single', 'mix'] as const).map(mode => <div key={mode} hidden={state.mode !== mode}>
+            <ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
+              progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0}
+              onRetry={mode === 'single' ? submitSingle : submitMix} onReviewSettings={reviewSettings} />
+          </div>)}
+        </div>
+      </div>
+      <div hidden={section !== 'library'}><DesignLibrary busy={busy} onUseSources={useSources} /></div>
+      <div hidden={section !== 'activity'}>
+        {busy && <p role="status" className="form-notice">An analysis is running. <a href="#/analyze">View progress</a></p>}
+        <SessionUsage entries={usageEntries} />
+        <SharedBudget revision={usageEntries.length} />
+      </div>
+    </main>
+    <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
+  </div>
+}
+
+const sections = [
+  { id: 'analyze', label: 'Analyze' },
+  { id: 'library', label: 'Design library' },
+  { id: 'activity', label: 'Activity & costs' },
+] as const
+function readSection(): 'analyze' | 'library' | 'activity' {
+  const value = window.location.hash.slice(2)
+  return value === 'library' || value === 'activity' ? value : 'analyze'
+}
+export default App
