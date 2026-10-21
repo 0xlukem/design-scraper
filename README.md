@@ -37,7 +37,8 @@ configured pricing show an unavailable estimate.
 
 ## Requirements
 
-- Node.js 22.12 or newer and npm.
+- Node.js 24.22.1 LTS and npm (`nvm use` selects the pinned version).
+  Patched Node.js 22.23.4+ and 26.12.1+ are also supported.
 - Chromium installed through Playwright for browser tests.
 - OpenSSL available on your PATH for the local HTTPS UI tests.
 - A Cloudflare account and Gemini API key only when running real captures and
@@ -101,6 +102,17 @@ Open `http://localhost:5173` directly. Vite proxies
 `/api` to the local Worker at `127.0.0.1:8787`; the default local frontend API URL
 is empty for this purpose. Local quotas
 live in `.wrangler/`, separate from the deployed SQLite state.
+
+Development servers bind to loopback. Do not expose Vite, its preview server or
+the local Worker to the public internet. Tailwind processes repository sources
+at build time; it does not process submitted websites. Its `braces@3.0.3`
+dependency still has an unpatched nested-pattern denial-of-service advisory
+([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)).
+Build only trusted sources and glob configuration. The vulnerable CSS selector
+parser is overridden to the patched `7.1.6` release. Neither package is shipped
+in the static Pages application or the Worker request bundle. Workers runs on
+Cloudflare's managed runtime; `nodejs_compat` does not deploy the local Node.js
+binary. Keep the local build and test runtime patched independently.
 
 Real capture uses the remote Browser Run binding and consumes the account's
 browser allowance; Gemini calls consume provider quota. Local Chromium tests
