@@ -102,6 +102,65 @@ it.each(["not-a-color", "red; color:blue", "</style>"])(
     ).toThrow();
   },
 );
+it.each(["12px", "0px 12px", "8px 16px 8px", "1rem 2rem 1rem 2rem"])(
+  "accepts padding shorthand %s",
+  (v) => {
+    const p = structuredClone(fixtures[0].raw);
+    p.spacing.button_padding = [{ ...p.spacing.tokens[0], name: "button-padding", value: v }];
+    expect(normalize(JSON.stringify(p), fixtures[0].sources as Source[]).spacing.button_padding[0].value).toBe(v);
+  },
+);
+it.each(["1px 2px 3px 4px 5px", "auto", "0px 12px;"])("rejects padding %s", (v) => {
+  const p = structuredClone(fixtures[0].raw);
+  p.spacing.button_padding = [{ ...p.spacing.tokens[0], name: "button-padding", value: v }];
+  expect(() => normalize(JSON.stringify(p), fixtures[0].sources as Source[])).toThrow(
+    expect.objectContaining({ validationReason: "dimension_value" }),
+  );
+});
+it("keeps spacing tokens to a single length", () => {
+  const p = structuredClone(fixtures[0].raw);
+  p.spacing.tokens[0].value = "0px 12px";
+  expect(() => normalize(JSON.stringify(p), fixtures[0].sources as Source[])).toThrow(
+    expect.objectContaining({ validationDetail: { path: "spacing.tokens[0]", value: "0px 12px" } }),
+  );
+});
+it("resolves a color variable through captured declarations and records it", () => {
+  const p = structuredClone(fixtures[0].raw);
+  p.colors.accent[0].value = "var(--brand-accent)";
+  const sources = structuredClone(fixtures[0].sources) as Source[];
+  sources[0].data = { ...sources[0].data, cssVariables: { "--brand-accent": "var(--blue-700)", "--blue-700": "#1f6feb" } };
+  const s = normalize(JSON.stringify(p), sources);
+  expect(s.colors.accent[0].value).toBe("#1f6feb");
+  expect(s.known_gaps).toContainEqual(expect.objectContaining({ code: "color-variables-resolved", message: expect.stringContaining("--brand-accent → #1f6feb") }));
+});
+it("uses the var() fallback when the variable was not captured", () => {
+  const p = structuredClone(fixtures[0].raw);
+  p.colors.accent[0].value = "var(--missing, rgb(1, 2, 3))";
+  expect(normalize(JSON.stringify(p), fixtures[0].sources as Source[]).colors.accent[0].value).toBe("rgb(1, 2, 3)");
+});
+it.each(["var(--missing)", "var(--loop)"])("fails %s with a retryable reason", (v) => {
+  const p = structuredClone(fixtures[0].raw);
+  p.colors.accent[0].value = v;
+  const sources = structuredClone(fixtures[0].sources) as Source[];
+  sources[0].data = { ...sources[0].data, cssVariables: { "--loop": "var(--loop)" } };
+  expect(() => normalize(JSON.stringify(p), sources)).toThrow(
+    expect.objectContaining({ validationReason: "unresolved_color_variable", validationDetail: { path: "colors.accent[0]", value: v } }),
+  );
+});
+it("names the rejected color for operator logs", () => {
+  const p = structuredClone(fixtures[0].raw);
+  p.colors.accent[0].value = "#accent";
+  try {
+    normalize(JSON.stringify(p), fixtures[0].sources as Source[]);
+    expect.unreachable();
+  } catch (error) {
+    expect(error).toMatchObject({
+      code: "AI_FAILED",
+      validationReason: "color_value",
+      validationDetail: { path: "colors.accent[0]", value: "#accent" },
+    });
+  }
+});
 it("validates source requests, defaults and exclusions", () => {
   expect(
     parseInput("/api/mix", {

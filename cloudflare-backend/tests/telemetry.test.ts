@@ -105,3 +105,36 @@ it('retains provider-reported consumption when a response is incomplete', async 
   expect(await response.json()).toMatchObject({ detail: { code: 'AI_FAILED' }, telemetry: { generation_attempts: 1, final: true, usage_status: 'reported', usage: { input_tokens: 10, output_tokens: 20, status: 'exact' }, demo_budget: { conservative: true } } });
   expect(progress.some(p => p.percent === 100)).toBe(false);
 });
+
+const withColor = (value: string) => {
+  const raw = structuredClone(fixtures[0].raw);
+  raw.colors.accent[0].value = value;
+  return Response.json({ output: [{ content: [{ type: 'output_text', text: JSON.stringify(raw) }] }], usage: { input_tokens: 10, output_tokens: 20, total_tokens: 30 } });
+};
+it('regenerates once when a color is an unresolved CSS variable and charges both generations', async () => {
+  const { session, finish } = setup();
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(withColor('var(--missing-color)')).mockImplementation(async () => success()));
+  const response = await session.run(sources(), 'regen', null, false);
+  const body = await response.json() as { telemetry: { usage: { notes: string[] } } };
+  expect(body).toMatchObject({ success: true, telemetry: { provider_calls: 2, generation_attempts: 2, demo_budget: { tokens_charged_or_reserved: 60 } } });
+  expect(body.telemetry.usage.notes.join(' ')).toContain('unresolved CSS variable');
+  expect(finish).toHaveBeenCalledWith('regen', expect.objectContaining({ tokens: 60, success: true }));
+});
+it('does not regenerate beyond the reserved attempts', async () => {
+  const { session, finish } = setup();
+  const fetcher = vi.fn(async () => withColor('var(--missing-color)'));
+  vi.stubGlobal('fetch', fetcher);
+  const response = await session.run(sources(), 'regen-fail', null, false);
+  expect(response.status).toBe(502);
+  expect(await response.json()).toMatchObject({ detail: { code: 'AI_FAILED' }, telemetry: { generation_attempts: 2 } });
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(finish).toHaveBeenCalledWith('regen-fail', expect.objectContaining({ tokens: 60, success: false }));
+});
+it('does not regenerate a BYOK analysis', async () => {
+  const { session } = setup();
+  const fetcher = vi.fn(async () => withColor('var(--missing-color)'));
+  vi.stubGlobal('fetch', fetcher);
+  const response = await session.run(sources(), 'regen-byok', null, false, { provider: 'openai', key: 'fake-private-byok' });
+  expect(response.status).toBe(502);
+  expect(fetcher).toHaveBeenCalledOnce();
+});

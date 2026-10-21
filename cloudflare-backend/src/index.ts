@@ -261,7 +261,7 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
       }
       tokens = null;
       microUsd = null;
-      const result = await analyze(
+      let result = await analyze(
         sources,
         providerEnv,
         c,
@@ -274,7 +274,51 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
       progress('exporting');
       tokens = result.budgetTokens;
       microUsd = result.budgetMicroUsd;
-      const system = normalize(result.raw, sources);
+      let attemptsUsed = result.attempts;
+      let system;
+      try {
+        system = normalize(result.raw, sources);
+      } catch (error) {
+        // A color left as an unresolvable var() reference is a generation slip,
+        // not bad evidence. Spend at most the attempts already reserved for this
+        // analysis (BYOK has one) and charge both generations to the budget.
+        const remaining = c.attempts - attemptsUsed;
+        if ((error as { validationReason?: string }).validationReason !== "unresolved_color_variable" || remaining < 1)
+          throw error;
+        console.log(JSON.stringify({
+          event: "analysis_regenerating", id, reason: "unresolved_color_variable",
+          validation_detail: (error as { validationDetail?: unknown }).validationDetail || null,
+        }));
+        const first = { tokens, microUsd };
+        tokens = null;
+        microUsd = null;
+        try {
+          result = await analyze(
+            sources,
+            providerEnv,
+            { ...c, attempts: remaining },
+            total,
+            measuredFetch,
+            usage => { reportedUsage = usage; },
+          );
+        } catch (retryError) {
+          if (retryError instanceof ApiError) {
+            retryError.budgetTokens = first.tokens === null || retryError.budgetTokens === undefined
+              ? undefined : first.tokens + retryError.budgetTokens;
+            retryError.budgetMicroUsd = first.microUsd === null || retryError.budgetMicroUsd === undefined
+              ? undefined : first.microUsd + retryError.budgetMicroUsd;
+          }
+          throw retryError;
+        }
+        attemptsUsed += result.attempts;
+        result.usage.notes.push(
+          "An earlier generation was discarded because a color referenced an unresolved CSS variable. Usage describes the final response; the shared budget is charged for both.",
+        );
+        reportedUsage = result.usage;
+        tokens = first.tokens === null || result.budgetTokens === null ? null : first.tokens + result.budgetTokens;
+        microUsd = first.microUsd === null || result.budgetMicroUsd === null ? null : first.microUsd + result.budgetMicroUsd;
+        system = normalize(result.raw, sources);
+      }
       providerSuccess = true;
       const documents = renderDocuments(system);
       const exports = renderExports(system);
@@ -317,7 +361,7 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
           browser_wall_ms: browserMs,
           requests: metrics.reduce((sum, m) => sum + Number(m.requests), 0),
           sources: sources.filter((s) => s.weight).length,
-          attempts: result.attempts,
+          attempts: attemptsUsed,
           tokens: result.usage.total_tokens,
           counted_subrequests: subrequests + relayBudget.calls + 1,
           relay_internal_calls: relayBudget.calls,
@@ -385,6 +429,9 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
             err instanceof ApiError ? err.diagnostic || null : null,
           validation_reason:
             (err as { validationReason?: string })?.validationReason || null,
+          validation_detail:
+            (err as { validationDetail?: { path: string; value: string } })
+              ?.validationDetail || null,
           counted_subrequests: subrequests + relayBudget.calls + 1,
           relay_internal_calls: relayBudget.calls,
           browser_control_calls: browserControlCalls,

@@ -10,18 +10,52 @@ export interface Source {
   screenshot?: string;
   data: Record<string, unknown>;
 }
-const fail = (reason = "shape") => {
+// validationDetail names the rejected field and a bounded copy of its value for
+// operator logs only; it never reaches the API response.
+const fail = (reason = "shape", detail?: { path: string; value: unknown }) => {
   const error = new ApiError(
     "AI_FAILED",
     "The AI provider returned an invalid design system.",
     502,
     true,
   );
-  Object.assign(error, { validationReason: reason });
+  Object.assign(error, {
+    validationReason: reason,
+    ...(detail && {
+      validationDetail: {
+        path: detail.path,
+        value: (typeof detail.value === "string" ? detail.value : JSON.stringify(detail.value) ?? String(detail.value)).slice(0, 160),
+      },
+    }),
+  });
   throw error;
 };
 const dimension =
   /^-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc)?$/i;
+// Padding tokens may use the CSS shorthand: one to four lengths ("0px 12px").
+const paddingShorthand = new RegExp(
+  `^${dimension.source.slice(1, -1)}(?:\\s+${dimension.source.slice(1, -1)}){0,3}$`,
+  "i",
+);
+
+// Providers sometimes return a CSS variable reference instead of the color it
+// names. Follow it through the declarations captured from the token's own
+// sources; an unresolved reference fails with a reason the caller may retry.
+const variableReference = /^var\(\s*(--[\w-]+)\s*(?:,\s*([^]*?))?\s*\)$/;
+function resolveColorVariable(value: string, variables: Record<string, unknown>[]): string | null {
+  let current = value;
+  for (let depth = 0; depth < 8; depth++) {
+    const reference = current.match(variableReference);
+    if (!reference) return cssLikeColor(current) ? current : null;
+    const declared = variables
+      .map((v) => v[reference[1]])
+      .find((v): v is string => typeof v === "string" && v.trim() !== "");
+    const next = declared ?? reference[2];
+    if (next === undefined) return null;
+    current = next.trim();
+  }
+  return null;
+}
 
 // Compare common CSS color representations without changing their stored values.
 // Other syntax requires a literal match; a miss is uncertainty, not absence.
@@ -192,26 +226,39 @@ export function normalize(raw: string, sources: Source[]): DesignSystem {
     )
   )
     fail("source_manifest");
-  const check = (items: Array<{ value: unknown }>, rule: "color" | RegExp) =>
-    items.forEach((t) => {
-      if (typeof t.value !== "string" || !(rule === "color" ? cssLikeColor(t.value.trim()) : rule.test(t.value.trim()))) fail(rule === "color" ? "color_value" : "dimension_value");
+  const resolvedVariables: string[] = [];
+  const check = (items: Array<{ value: unknown; source?: string[] }>, rule: "color" | RegExp, path: string) =>
+    items.forEach((t, i) => {
+      if (rule === "color" && typeof t.value === "string" && variableReference.test(t.value.trim())) {
+        const reference = t.value.trim();
+        const scoped = sources.filter((x) => !t.source?.length || t.source.includes(x.label));
+        const resolved = resolveColorVariable(
+          reference,
+          scoped.map((x) => (x.data.cssVariables as Record<string, unknown>) || {}),
+        );
+        if (!resolved) fail("unresolved_color_variable", { path: `${path}[${i}]`, value: reference });
+        t.value = resolved;
+        resolvedVariables.push(`${reference.match(variableReference)![1]} → ${resolved}`);
+      }
+      if (typeof t.value !== "string" || !(rule === "color" ? cssLikeColor(t.value.trim()) : rule.test(t.value.trim())))
+        fail(rule === "color" ? "color_value" : "dimension_value", { path: `${path}[${i}]`, value: t.value });
       t.value = (t.value as string).trim();
     });
-  for (const items of Object.values(s.colors)) check(items, "color");
-  check(s.surfaces.levels, "color");
-  for (const items of [
-    s.spacing.tokens,
-    s.spacing.section_padding,
-    s.spacing.card_padding,
-    s.spacing.button_padding,
-    s.shapes.radii,
-    s.responsive.touch_targets,
-    ...s.typography.scale.map((t) =>
+  for (const [group, items] of Object.entries(s.colors)) check(items, "color", `colors.${group}`);
+  check(s.surfaces.levels, "color", "surfaces.levels");
+  for (const [path, items] of [
+    ["spacing.tokens", s.spacing.tokens],
+    ["shapes.radii", s.shapes.radii],
+    ["responsive.touch_targets", s.responsive.touch_targets],
+    ...s.typography.scale.map((t, i) => [
+      `typography.scale[${i}]`,
       [t.size, t.line_height, t.letter_spacing].filter((t) => t !== null),
-    ),
-  ])
-    check(items, dimension);
-  if (s.spacing.base_unit) check([s.spacing.base_unit], dimension);
+    ] as const),
+  ] as const)
+    check(items, dimension, path);
+  for (const kind of ["section", "card", "button"] as const)
+    check(s.spacing[`${kind}_padding`], paddingShorthand, `spacing.${kind}_padding`);
+  if (s.spacing.base_unit) check([s.spacing.base_unit], dimension, "spacing.base_unit");
   for (const t of s.typography.scale) {
     const w = t.weight?.value;
     if (
@@ -311,6 +358,11 @@ export function normalize(raw: string, sources: Source[]): DesignSystem {
   delete s.metadata.measurement_counts;
   delete s.metadata.measurement_scope;
   delete s.metadata.measurement_locators;
+  if (resolvedVariables.length) s.known_gaps.push({
+    code: 'color-variables-resolved',
+    message: `The provider returned ${resolvedVariables.length} color(s) as CSS variable references; each was replaced by its captured declaration (${resolvedVariables.slice(0, 6).join('; ')}${resolvedVariables.length > 6 ? '; …' : ''}). A theme or scope override of the same variable may differ.`,
+    source: sources.filter(s => s.weight > 0).map(s => s.label),
+  });
   if (omittedStateProperties) s.known_gaps.push({
     code: 'model-state-properties-absent',
     message: `The provider returned ${omittedStateProperties} null state-property entries. They were omitted and the affected states are not verified; no interaction measurements were invented.`,
