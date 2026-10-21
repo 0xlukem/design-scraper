@@ -10,6 +10,12 @@ export interface LibraryExample {
   date: string
   mode: AppMode
   sources: string[]
+  /** Local artwork from the reference site's public branding, with provenance. */
+  cover: {
+    src: string
+    alt: string
+    sourceUrls: string[]
+  }
   initials: string
   /** Four representative colors from the saved design, darkest to lightest. */
   palette: string[]

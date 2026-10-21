@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties } from 'react'
+import { useRef, useState } from 'react'
 import type { AnalysisResult, AppMode } from '../types'
 import { downloadFile, downloadFormats, savedContent } from '../download'
 import { formatLibraryDate, libraryExamples, type LibraryExample } from '../library'
@@ -21,9 +21,8 @@ function DesignCard({ example, onOpen }: { example: LibraryExample; onOpen: () =
     } catch { setNotice('Download unavailable. Try again.') }
     finally { setBusy(false) }
   }
-  const style = { '--cover-tone': example.tone, '--swatch-1': example.palette[0], '--swatch-2': example.palette[1], '--swatch-3': example.palette[2], '--swatch-4': example.palette[3] } as CSSProperties
-  return <article className={`design-card design-card-${example.id}`} style={style}>
-    <div className="library-cover" aria-hidden="true"><div className="cover-orbit" /><span className="cover-type">{example.initials}</span><div className="cover-palette"><i /><i /><i /><i /></div><span className="cover-label">{example.mode === 'mix' ? 'THE COMBINATION' : 'THE DESIGN STUDY'}</span></div>
+  return <article className={`design-card design-card-${example.id}`}>
+    <div className="library-cover"><img src={example.cover.src} alt={example.cover.alt} width={960} height={504} loading="lazy" decoding="async" /></div>
     <div className="card-meta"><span>{example.category}</span><time dateTime={example.date}>{formatLibraryDate(example.date)}</time></div>
     <h2>{example.name}</h2>
     <p>{example.description}</p>

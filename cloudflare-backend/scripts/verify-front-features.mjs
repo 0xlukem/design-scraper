@@ -63,6 +63,10 @@ try {
     const mixed = mode === 'mix';
     const expected = JSON.parse(await readFile(`../frontend/src/examples/${id}.json`, 'utf8'));
     const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
+    const cover = card.locator('.library-cover img');
+    await cover.scrollIntoViewIfNeeded();
+    assert.equal(new URL(await cover.getAttribute('src'), site).origin, new URL(site).origin, 'Cover artwork is served locally');
+    assert.ok(await cover.evaluate(async image => { await image.decode(); return image.naturalWidth > 0 && image.naturalHeight > 0; }), `${id}: brand cover loads and decodes`);
     assert.equal(await card.getByRole('combobox').count(), 0, 'Cards no longer carry a format selector');
     const downloadPromise = page.waitForEvent('download');
     await card.getByRole('button', { name: `Download ${name} design.md`, exact: true }).click();

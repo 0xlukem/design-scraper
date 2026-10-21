@@ -7,9 +7,130 @@
     "date": "2026-09-10",
     "mode": "single",
     "sources": ["https://stripe.com/"],
+    "cover": {
+      "src": "/images/library/stripe.webp",
+      "alt": "Stripe wordmark on its orange and pink brand artwork.",
+      "sourceUrls": [
+        "https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/stripe.37119086.jpg"
+      ]
+    },
     "initials": "S",
     "palette": ["#533afd", "#ff6118", "#061b31", "#e5edf5"],
     "tone": "#d8c2ff"
+  },
+  {
+    "id": "github",
+    "name": "GitHub",
+    "description": "A dark canvas, Mona Sans and ambient gradients from a developer platform.",
+    "category": "Developer platform",
+    "date": "2026-10-21",
+    "mode": "single",
+    "sources": ["https://github.com/"],
+    "cover": {
+      "src": "/images/library/github.webp",
+      "alt": "GitHub Octocat and The future of building happens together artwork.",
+      "sourceUrls": [
+        "https://images.ctfassets.net/8aevphvgewt8/4pe4eOtUJ0ARpZRE4fNekf/f52b1f9c52f059a33170229883731ed0/GH-Homepage-Universe-img.png"
+      ]
+    },
+    "initials": "GH",
+    "palette": ["#0d1117", "#08872b", "#1f6feb", "#f0f6fc"],
+    "tone": "#a2daff"
+  },
+  {
+    "id": "tailwindcss",
+    "name": "Tailwind CSS",
+    "description": "Light surfaces, Inter and Plex Mono, with accents declared in lab().",
+    "category": "CSS framework",
+    "date": "2026-10-21",
+    "mode": "single",
+    "sources": ["https://tailwindcss.com/"],
+    "cover": {
+      "src": "/images/library/tailwindcss.webp",
+      "alt": "Tailwind CSS logo and framework artwork.",
+      "sourceUrls": [
+        "https://tailwindcss.com/opengraph-image.jpg?opengraph-image.0jwfhnd690..4.jpg"
+      ]
+    },
+    "initials": "Tw",
+    "palette": ["#030712", "#f6339a", "#00a6f4", "#ffffff"],
+    "tone": "#ffb8dc"
+  },
+  {
+    "id": "supabase",
+    "name": "Supabase",
+    "description": "Emerald oklch accents with Inter and Manrope on a crisp light canvas.",
+    "category": "Developer platform",
+    "date": "2026-10-21",
+    "mode": "single",
+    "sources": ["https://supabase.com/"],
+    "cover": {
+      "src": "/images/library/supabase.webp",
+      "alt": "Supabase logo with Build in a weekend, scale to millions.",
+      "sourceUrls": [
+        "https://supabase.com/images/og/supabase-og.png"
+      ]
+    },
+    "initials": "Sb",
+    "palette": ["#030303", "#0e7e4e", "#6b35dc", "#fdfdfd"],
+    "tone": "#8ef0bf"
+  },
+  {
+    "id": "apple",
+    "name": "Apple",
+    "description": "SF Pro type, Apple blue links and alternating light and black sections.",
+    "category": "Consumer tech",
+    "date": "2026-10-21",
+    "mode": "single",
+    "sources": ["https://www.apple.com/"],
+    "cover": {
+      "src": "/images/library/apple.webp",
+      "alt": "Official Apple logo.",
+      "sourceUrls": [
+        "https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202610011401"
+      ]
+    },
+    "initials": "Ap",
+    "palette": ["#1d1d1f", "#0071e3", "#2997ff", "#f5f5f7"],
+    "tone": "#dcdce4"
+  },
+  {
+    "id": "spotify",
+    "name": "Spotify",
+    "description": "The web player's black canvas, Spotify Mix type and green accents.",
+    "category": "Media",
+    "date": "2026-10-21",
+    "mode": "single",
+    "sources": ["https://open.spotify.com/"],
+    "cover": {
+      "src": "/images/library/spotify.webp",
+      "alt": "Spotify web player displayed on a MacBook.",
+      "sourceUrls": [
+        "https://open.spotifycdn.com/cdn/images/download-page-image-mac.fec937cc.png"
+      ]
+    },
+    "initials": "Sp",
+    "palette": ["#000000", "#1f1f1f", "#169f47", "#f0f0f0"],
+    "tone": "#9e9eff"
+  },
+  {
+    "id": "framer",
+    "name": "Framer",
+    "description": "A black canvas with electric blue and lime accents, GT Walsheim and Inter.",
+    "category": "Design tool",
+    "date": "2026-10-21",
+    "mode": "single",
+    "sources": ["https://www.framer.com/"],
+    "cover": {
+      "src": "/images/library/framer.webp",
+      "alt": "Framer logo surrounded by website designs.",
+      "sourceUrls": [
+        "https://framerusercontent.com/images/vt65Mbfi3w8ymfTyRfbmgM4Tyo.png"
+      ]
+    },
+    "initials": "Fr",
+    "palette": ["#000000", "#6600ff", "#0099ff", "#cbff00"],
+    "tone": "#e4ff8a"
   },
   {
     "id": "milligram",
@@ -19,6 +140,13 @@
     "date": "2026-09-09",
     "mode": "single",
     "sources": ["http://milligram.io/"],
+    "cover": {
+      "src": "/images/library/milligram.webp",
+      "alt": "Milligram wordmark and purple droplet logo.",
+      "sourceUrls": [
+        "https://milligram.io/images/thumbnail.png"
+      ]
+    },
     "initials": "Mm",
     "palette": ["#9b4dca", "#606c76", "#f4f5f6", "#ffffff"],
     "tone": "#ff94d5"
@@ -31,6 +159,14 @@
     "date": "2026-09-09",
     "mode": "mix",
     "sources": ["https://getbootstrap.com/docs/5.3/examples/heroes/", "http://milligram.io/"],
+    "cover": {
+      "src": "/images/library/bootstrap-milligram.webp",
+      "alt": "Bootstrap and Milligram branding side by side.",
+      "sourceUrls": [
+        "https://getbootstrap.com/docs/6.0/assets/brand/bootstrap-social.png",
+        "https://milligram.io/images/thumbnail.png"
+      ]
+    },
     "initials": "B×M",
     "palette": ["#0d6efd", "#9b4dca", "#212529", "#f4f5f6"],
     "tone": "#74e9ee"
@@ -43,6 +179,13 @@
     "date": "2026-09-09",
     "mode": "single",
     "sources": ["https://example.com/"],
+    "cover": {
+      "src": "/images/library/example-domain.webp",
+      "alt": "A capture of the Example Domain reference page.",
+      "sourceUrls": [
+        "https://example.org/"
+      ]
+    },
     "initials": "Aa",
     "palette": ["#38488f", "#000000", "#f0f0f2", "#fdfdff"],
     "tone": "#efff76"
