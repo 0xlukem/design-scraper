@@ -31,14 +31,14 @@
     "miniflare": "5.20260908.0-alpha",
     "playwright": "1.63.0",
     "typescript": "5.9.3",
-    "vitest": "4.1.11",
+    "vitest": "4.1.12",
     "wrangler": "4.130.0"
   },
   "engines": {
     "node": ">=22"
   },
   "overrides": {
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "miniflare": {
       "undici": "7.29.1"
     }
