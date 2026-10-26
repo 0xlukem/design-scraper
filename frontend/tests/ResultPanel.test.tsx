@@ -23,6 +23,22 @@ beforeEach(() => {
 })
 
 describe('ResultPanel experience', () => {
+  it('preserves the chosen view across format and document-length changes', () => {
+    renderResult()
+    for (const name of ['DESIGN.md', 'Tailwind v4', 'CSS Variables', 'Design Tokens', 'DESIGN.md']) {
+      fireEvent.click(screen.getByRole('tab', { name, exact: true }))
+      expect(screen.getByRole('button', { name: 'View design', exact: true })).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByRole('heading', { name: 'Color system' })).toBeVisible()
+    }
+    for (const name of ['Extended', 'Compact', 'Extended']) {
+      fireEvent.click(screen.getByRole('button', { name, exact: true }))
+      expect(screen.getByRole('button', { name: 'View design', exact: true })).toHaveAttribute('aria-pressed', 'true')
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'View code', exact: true }))
+    fireEvent.click(screen.getByRole('tab', { name: 'CSS Variables' }))
+    expect(screen.getByLabelText('CSS Variables raw output')).toBeVisible()
+  })
+
   it('keeps matching gap codes for different sources distinct and attributed', () => {
     const result = structuredClone(resultFixture)
     result.design_system!.known_gaps = [

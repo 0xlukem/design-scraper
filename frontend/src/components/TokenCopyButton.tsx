@@ -28,16 +28,16 @@ export default function TokenCopyButton({ value, label }: TokenCopyButtonProps) 
     <span className="token-copy-action">
       <button
         type="button"
-        className="token-copy-button"
+        className="copy-button token-copy-button"
         onClick={copy}
         aria-label={`${status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed for' : 'Copy'} ${label}`}
       >
         {status === 'copied' ? (
-          <Check size={15} weight="bold" aria-hidden="true" />
+          <Check size={16} weight="bold" aria-hidden="true" />
         ) : status === 'failed' ? (
-          <Warning size={15} weight="bold" aria-hidden="true" />
+          <Warning size={16} weight="bold" aria-hidden="true" />
         ) : (
-          <Copy size={15} weight="bold" aria-hidden="true" />
+          <Copy size={16} weight="bold" aria-hidden="true" />
         )}
         <span>{status === 'copied' ? 'Copied' : status === 'failed' ? 'Failed' : 'Copy'}</span>
       </button>

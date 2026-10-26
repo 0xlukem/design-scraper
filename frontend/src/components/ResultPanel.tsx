@@ -6,7 +6,7 @@ import {
   Eye,
   Scan,
 } from '@phosphor-icons/react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type {
   AnalyzeMetadata,
@@ -119,6 +119,7 @@ export default function ResultPanel({
   onReviewSettings,
 }: ResultPanelProps) {
   const panelId = useId().replace(/:/g, '')
+  const controls = useRef<HTMLDivElement>(null)
   const [selection, setSelection] = useState<{
     result: AnalysisResult | null
     format: OutputFormat
@@ -175,7 +176,7 @@ export default function ResultPanel({
     : selectedOutput.filename
 
   const selectOutput = (format: OutputFormat) => {
-    setSelection({ ...currentSelection, result, format, view: 'raw' })
+    setSelection({ ...currentSelection, result, format })
   }
 
   const handleTabKeyDown = (
@@ -197,7 +198,7 @@ export default function ResultPanel({
 
   return (
     <section className={`result-shell ${mixResult ? 'result-shell-wild' : ''}`}>
-      <div className="result-heading">
+      <div className="result-heading" ref={controls} tabIndex={-1} aria-label="Result controls">
         <div>
           <span className="section-kicker result-ready">Your ingredients, decoded</span>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight">
@@ -233,7 +234,7 @@ export default function ResultPanel({
             <span className="font-mono text-xs font-bold uppercase">
               Source
             </span>
-            <p className="mt-1 break-all text-sm font-semibold">
+            <p className="result-source-title mt-1 text-sm font-semibold">
               {singleMetadata?.title || singleMetadata?.url}
             </p>
           </div>
@@ -272,7 +273,7 @@ export default function ResultPanel({
                   key={variant}
                   type="button"
                   aria-pressed={currentSelection.documentVariant === variant}
-                  onClick={() => setSelection({ ...currentSelection, result, documentVariant: variant, view: 'raw' })}
+                  onClick={() => setSelection({ ...currentSelection, result, documentVariant: variant })}
                 >
                   {variant === 'compact' ? 'Compact' : 'Extended'}
                 </button>
@@ -309,7 +310,10 @@ export default function ResultPanel({
         aria-labelledby={`${panelId}-output-tab-${selectedOutput.id}`}
       >
         {currentSelection.view === 'visual' && result.design_system ? (
-          <VisualInspector system={result.design_system} />
+          <VisualInspector system={result.design_system} onBackToControls={() => {
+            controls.current?.focus({ preventScroll: true })
+            controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+          }} />
         ) : currentSelection.view === 'raw' ? (
           <SyntaxHighlightedCode
             content={selectedOutput.content}

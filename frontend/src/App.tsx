@@ -15,7 +15,7 @@ import WorldTransition from './components/WorldTransition'
 import HeroReveal from './components/HeroReveal'
 import AllowanceHint from './components/AllowanceHint'
 import { librarySuggestions } from './library'
-import { ArrowDown, ArrowUpRight, Globe, Pause, Play } from '@phosphor-icons/react'
+import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
 import ProviderControls from './components/ProviderControls'
 import type { ByokCredentials } from './byok'
 import type {
@@ -116,7 +116,6 @@ const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: exampl
 const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
 
 function App() {
-  const [motionPaused, setMotionPaused] = useState(false)
   // The requested world; the paint transition decides when `state.mode` follows.
   const [targetMode, setTargetMode] = useState<AppMode>('single')
   const [allowanceRequested, setAllowanceRequested] = useState(false)
@@ -255,26 +254,14 @@ function App() {
     if (mode === 'mix') new Image().src = sculptureArtwork
     setTargetMode(mode)
   }
-  const useSources = (mode: AppMode, sources: string[]) => {
-    setTargetMode(mode)
-    dispatch({ type: 'set-mode', mode })
-    if (mode === 'single') dispatch({ type: 'set-single-url', value: sources[0] })
-    else {
-      dispatch({ type: 'set-mix-url', field: 'url1', value: sources[0] })
-      dispatch({ type: 'set-mix-url', field: 'url2', value: sources[1] })
-      dispatch({ type: 'set-bias', value: 25 })
-    }
-    window.location.hash = '/analyze'
-    requestAnimationFrame(() => document.getElementById(mode === 'single' ? 'single-url' : 'mix-url-1')?.focus())
-  }
   const switchExperience = (mode: AppMode) => {
     changeMode(mode)
     if (section !== 'analyze') window.location.hash = '/analyze'
     window.scrollTo?.({ top: 0, behavior: 'instant' })
     main.current?.focus({ preventScroll: true })
   }
-  return <div data-experience={state.mode} data-motion={motionPaused ? 'paused' : 'playing'} className={`app-shell experience-shell min-h-[100dvh] ${state.mode === 'mix' ? 'theme-wild' : 'theme-sober'}`}>
-    <WorldTransition target={targetMode} current={state.mode} paused={motionPaused} onCovered={mode => dispatch({ type: 'set-mode', mode })} />
+  return <div data-experience={state.mode} className={`app-shell experience-shell min-h-[100dvh] ${state.mode === 'mix' ? 'theme-wild' : 'theme-sober'}`}>
+    <WorldTransition target={targetMode} current={state.mode} paused={false} onCovered={mode => dispatch({ type: 'set-mode', mode })} />
     <header className="site-header">
       <a href="#main-content" className="skip-link" onClick={e => { e.preventDefault(); main.current?.focus() }}>Skip to content</a>
       <div className="nav-inner">
@@ -284,19 +271,15 @@ function App() {
         <nav aria-label="Main navigation">
           {sections.map(item => <a key={item.id} href={`#/${item.id}`} aria-current={section === item.id ? 'page' : undefined}>{item.label}</a>)}
         </nav>
-        <button type="button" className="motion-toggle" aria-label={motionPaused ? 'Resume animations' : 'Pause animations'} aria-pressed={motionPaused} onClick={() => setMotionPaused(value => !value)}>
-          {motionPaused ? <Play size={15} weight="fill" aria-hidden="true" /> : <Pause size={15} weight="fill" aria-hidden="true" />}
-          <span>{motionPaused ? 'Resume animations' : 'Pause animations'}</span>
-        </button>
         <button type="button" className="experience-switch" aria-label={state.mode === 'single' ? 'Enter Mix It' : 'Back to Design Scraper'} onClick={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')}>
           {state.mode === 'single' ? <><span className="portal-dot" aria-hidden="true" /> Mix It <ArrowUpRight size={17} aria-hidden="true" /></> : <><span aria-hidden="true">←</span> Design Scraper</>}
         </button>
       </div>
     </header>
     <main ref={main} tabIndex={-1} id="main-content" className="workspace-main">
-      {section === 'activity' && <div className="page-intro activity-intro"><span className="section-kicker">Session record / 03</span><h1>Activity &amp; costs</h1><p>A clear view of every experiment.</p><p className="field-help">Review analyses and estimated costs for this session.</p></div>}
+      {section === 'activity' && <div className="page-intro activity-intro"><span className="section-kicker">API capacity &amp; usage / 03</span><h1>Activity &amp; costs</h1><p>See what’s available. Track what you use.</p><p className="field-help">Site capacity is shared. Your activity lists analyses from this tab.</p></div>}
       <div className={section === 'analyze' ? 'analysis-controls' : undefined} hidden={section === 'library'}>
-      {section === 'analyze' && <HeroReveal mode={state.mode} paused={motionPaused}>
+      {section === 'analyze' && <HeroReveal mode={state.mode} paused={false}>
         <div className="section-kicker"><span className="kicker-dot" /> {state.mode === 'single' ? 'A tool for people who notice design' : 'Two references. Zero rules for good taste.'}</div>
         <h1 className="experience-headline">{state.mode === 'single' ? <>Design,<br /><span>decoded.</span></> : <><span className="mix-line-one">MIX</span><br /><span className="mix-line-two">IT UP.</span></>}</h1>
         <p className="analysis-description">{state.mode === 'single'
@@ -306,11 +289,11 @@ function App() {
           <a href="#/library" className="hero-library-link">{state.mode === 'single' ? 'Explore the design library' : 'Borrow some inspiration'} <ArrowUpRight size={18} aria-hidden="true" /></a>
           <a href="#analysis-form" className="hero-lab-link" onClick={event => {
             event.preventDefault()
-            document.getElementById('analysis-form')?.scrollIntoView({ block: 'start', behavior: motionPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+            document.getElementById('analysis-form')?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
             document.getElementById(state.mode === 'single' ? 'single-url' : 'mix-url-1')?.focus({ preventScroll: true })
           }}>Go to the lab <ArrowDown size={16} aria-hidden="true" /></a>
         </div>
-        {state.mode === 'single' ? <StudioScene paused={motionPaused} /> : <MixWorld paused={motionPaused} />}
+        {state.mode === 'single' ? <StudioScene paused={false} /> : <MixWorld paused={false} />}
         <ul className="analysis-capabilities" aria-label="Analysis capabilities">
           <li><span>01</span> CSS evidence</li><li><span>02</span> AI vision</li><li><span>03</span> Five exports</li>
         </ul>
@@ -350,11 +333,11 @@ function App() {
           </div>)}
         </div>
       </div>
-      <div hidden={section !== 'library'}><DesignLibrary busy={busy} onUseSources={useSources} /></div>
+      <div hidden={section !== 'library'}><DesignLibrary /></div>
       <div hidden={section !== 'activity'}>
         {busy && <p role="status" className="form-notice">An analysis is running. <a href="#/analyze">View progress</a></p>}
+        <SharedBudget revision={usageEntries.length} active={section === 'activity'} />
         <SessionUsage entries={usageEntries} />
-        <SharedBudget revision={usageEntries.length} />
       </div>
     </main>
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />

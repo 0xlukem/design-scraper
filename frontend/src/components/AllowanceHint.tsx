@@ -20,12 +20,12 @@ export default function AllowanceHint({ requested, revision }: { requested: bool
     return () => controller.abort()
   }, [requested, revision])
   if (state === 'idle') return null
-  let text = 'Checking the shared allowance…'
-  if (state === 'unavailable') text = 'Shared allowance could not be checked. You can still try an analysis.'
+  let text = 'Checking site API availability…'
+  if (state === 'unavailable') text = 'Site API availability could not be checked. Open Activity & costs to retry. This does not mean the quota is used up.'
   else if (quota) {
     const minutes = Math.floor(quota.capture.remaining_ms / 60000)
-    if (quota.analyses.remaining <= 0 || quota.capture.remaining_ms <= 0) text = 'No shared analyses left today. Open a saved design, or use your own key for AI while capture limits renew.'
-    else if (!quota.demo_budget_available) text = `${quota.analyses.remaining} of ${quota.analyses.limit} shared analyses left today, but the shared AI budget is spent. Your own key still works.`
+    if (quota.analyses.remaining <= 0 || quota.capture.remaining_ms <= 0) text = 'No shared analyses left today. Browse saved designs while capacity renews. These limits also apply with your own key.'
+    else if (!quota.demo_budget_available) text = `${quota.analyses.remaining} of ${quota.analyses.limit} shared analyses left today. The site’s AI allowance is at capacity; you can use your own API key for AI.`
     else text = `${quota.analyses.remaining} of ${quota.analyses.limit} shared analyses left today · ${minutes} min of capture · ${quota.per_ip.hourly_limit} per visitor each hour.`
   }
   return <p className="allowance-hint" role="status" data-state={state}>{text}</p>

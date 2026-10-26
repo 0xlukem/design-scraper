@@ -121,12 +121,31 @@ export function mixWebsites(
 }
 
 export async function getSharedQuota(signal: AbortSignal): Promise<import('../../cloudflare-backend/src/telemetry-contract').PublicQuota> {
-  const response = await fetch(`${apiBaseUrl}/api/quotas`, { signal, credentials: 'omit', cache: 'no-store', redirect: 'error' })
-  if (!response.ok) throw new Error('Shared allowance could not be loaded.')
-  const payload = await response.json()
-  if (!isPublicQuota(payload)) throw new Error('Shared allowance is unavailable on this server.')
   signal.throwIfAborted()
-  return payload
+  // Local dev/preview serves this public GET through Vite. Production still
+  // uses the configured API origin and its existing CORS policy.
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+  const controller = new AbortController()
+  const cancel = () => controller.abort(signal.reason)
+  signal.addEventListener('abort', cancel, { once: true })
+  const timeout = setTimeout(() => controller.abort(new DOMException('Quota request timed out', 'TimeoutError')), 10000)
+  try {
+    const response = await fetch(`${local ? '' : apiBaseUrl}/api/quotas`, { signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' })
+    if (!response.ok) throw new Error(`The site API could not return its availability (HTTP ${response.status}). Try again.`)
+    let payload: unknown
+    try { payload = await response.json() } catch { throw new Error('The site API returned an unreadable availability response. Try again.') }
+    signal.throwIfAborted()
+    if (!isPublicQuota(payload)) throw new Error('The site API returned incomplete availability data. Try again.')
+    return payload
+  } catch (cause) {
+    signal.throwIfAborted()
+    if (controller.signal.aborted) throw new Error('The site API took too long to respond. Try again.')
+    if (cause instanceof TypeError) throw new Error('Could not connect to the site API. Check your connection and try again.')
+    throw cause
+  } finally {
+    clearTimeout(timeout)
+    signal.removeEventListener('abort', cancel)
+  }
 }
 
 export async function getOwnerBudget(token: string, signal: AbortSignal): Promise<import('../../cloudflare-backend/src/telemetry-contract').BudgetStatus> {

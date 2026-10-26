@@ -36,6 +36,11 @@ it('shows simplified cards: category, month, a primary view action and a single 
   expect(screen.queryByRole('heading', { name: 'Design findings' })).not.toBeInTheDocument()
   fireEvent.click(stripe.getByRole('button', { name: 'View Stripe design' }))
   await screen.findByRole('heading', { name: 'Design findings' })
+  expect(screen.queryByRole('button', { name: 'Use these URLs in the form' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'View GitHub design' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Close design' }))
+  expect(screen.getByRole('button', { name: 'View GitHub design' })).toBeVisible()
+  await waitFor(() => expect(screen.getByRole('button', { name: 'View Stripe design' })).toHaveFocus())
 })
 
 it('offers saved references as suggestions that prefill the form without submitting', async () => {

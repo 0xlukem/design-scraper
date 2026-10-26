@@ -59,20 +59,21 @@ export default function DownloadButton({
       <button
         type="button"
         onClick={handleCopy}
-        className="secondary-button"
+        className="copy-button"
+        aria-label={visibleCopyStatus === 'failed' ? 'Copy failed' : undefined}
         disabled={disabled}
       >
         {visibleCopyStatus === 'copied' ? (
-          <Check size={18} weight="bold" aria-hidden="true" />
+          <Check size={16} weight="bold" aria-hidden="true" />
         ) : visibleCopyStatus === 'failed' ? (
-          <Warning size={18} weight="bold" aria-hidden="true" />
+          <Warning size={16} weight="bold" aria-hidden="true" />
         ) : (
-          <Copy size={18} weight="bold" aria-hidden="true" />
+          <Copy size={16} weight="bold" aria-hidden="true" />
         )}
         {visibleCopyStatus === 'copied'
           ? 'Copied'
           : visibleCopyStatus === 'failed'
-            ? 'Copy failed'
+            ? 'Failed'
             : 'Copy'}
       </button>
       <button
@@ -82,11 +83,11 @@ export default function DownloadButton({
         disabled={disabled}
       >
         {visibleDownloadStatus === 'failed' ? (
-          <Warning size={18} weight="bold" aria-hidden="true" />
+          <Warning size={16} weight="bold" aria-hidden="true" />
         ) : visibleDownloadStatus === 'downloaded' ? (
-          <Check size={18} weight="bold" aria-hidden="true" />
+          <Check size={16} weight="bold" aria-hidden="true" />
         ) : (
-          <DownloadSimple size={18} weight="bold" aria-hidden="true" />
+          <DownloadSimple size={16} weight="bold" aria-hidden="true" />
         )}
         {visibleDownloadStatus === 'failed'
           ? 'Download failed'

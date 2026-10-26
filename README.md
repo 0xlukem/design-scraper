@@ -10,7 +10,6 @@ its colorful experimental counterpart for combining two websites, reached throug
 a GSAP paint transition. Both experiences share saved designs, session activity
 and estimated costs. The typographic study and paint sculpture pause when
 off-screen or in a hidden tab and honor reduced-motion preferences.
-**Pause animations** also provides a manual motion control.
 
 Switching worlds plays a paint transition: the requested world renders only
 once the paint covers the viewport, and the return to Design Scraper drains the
@@ -80,8 +79,8 @@ Fill `GEMINI_API_KEY`, `IP_HASH_SECRET` and `PHASE8_AUTH_TOKEN` in `.dev.vars`.
 Generate independent random values for the latter two, for example with
 `openssl rand -hex 32`. The historical token variable name is retained for
 compatibility with existing Cloudflare Secrets; it protects administrative budget
-diagnostics. Only the optional **Owner budget** view requests it, over HTTPS;
-public analysis never needs it. Never place secrets in `VITE_*`.
+diagnostics through the protected endpoint and operational scripts. The public
+interface never requests it. Never place secrets in `VITE_*`.
 
 Start the API and frontend in separate terminals:
 
@@ -242,20 +241,25 @@ Errors retain their issue code and cause; retry is offered only when the backend
 marks the error retryable and its `Retry-After` deadline has elapsed. Cancel
 stops waiting and does not guarantee remote work or charges have stopped.
 
-**Check shared allowance** reads remaining daily admissions, capture capacity,
-concurrency and per-IP limits without starting an analysis. **Owner budget ·
-administrative access** uses the existing administrative token to display the
-shared demo's daily/lifetime estimated ledger, active reservations and persistent
-call counters. The token is sent only in an Authorization header over HTTPS and
-cleared after submission; nothing is saved to browser storage. Counters display
-their start date because historical calls cannot be reconstructed. BYOK spending
-is excluded from the shared demo ledger.
+**Site API availability** loads the public counter when Activity & costs opens.
+It shows analyses left today, capture time, running analyses, shared AI capacity,
+visitor limits and the daily reset. Refreshing never starts an analysis or uses
+AI credit. Failed refreshes retain clearly labeled last-known values; an unknown
+counter is not displayed as zero. This is site capacity, not a provider account
+balance. A personal API key pays for AI but retains shared admission and capture
+limits. Administrative diagnostics are not part of the public interface.
+
+For a local Pages preview, run `npm run preview` from `frontend/` after the Pages
+build. Vite proxies only `/api/quotas` to the HTTPS API origin declared in the
+build's CSP (or an explicit `VITE_API_URL`). This allows the public counter to
+load from localhost without changing production CORS or forwarding credentials.
+Development still uses the local Worker proxy; production uses the configured
+API origin directly.
 
 The **saved design library** includes reviewed snapshots of Stripe (September 10, 2026),
 Milligram, Example Domain and a Bootstrap/Milligram blend (September 9, 2026). Opening, copying
 and downloading them uses static application assets only, with no analysis API,
 AI or Browser Run calls. Their historical usage is excluded from session totals.
-**Use these URLs in the form** prepares a new request but never submits it.
 These are historical analyses, not current captures or official brand guides.
 
 To add an example, review a saved successful response for public source URLs and
