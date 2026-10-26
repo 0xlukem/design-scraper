@@ -1,84 +1,58 @@
-import { useEffect, useRef, useState } from 'react'
-import { byokAvailable, getOwnerBudget, getSharedQuota } from '../api'
-import type { BudgetStatus, PublicQuota } from '../../../cloudflare-backend/src/telemetry-contract'
-import { estimateLabel } from './SessionUsage'
+import { useEffect, useState } from 'react'
+import { getSharedQuota } from '../api'
+import type { PublicQuota } from '../../../cloudflare-backend/src/telemetry-contract'
+import './site-availability.css'
 
-export default function SharedBudget({ revision }: { revision: number }) {
+export default function SharedBudget({ revision, active }: { revision: number; active: boolean }) {
   const [quota, setQuota] = useState<PublicQuota | null>(null)
-  const [requested, setRequested] = useState(false)
   const [refresh, setRefresh] = useState(0)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [budget, setBudget] = useState<BudgetStatus | null>(null)
-  const [adminError, setAdminError] = useState('')
-  const [adminBusy, setAdminBusy] = useState(false)
-  const tokenInput = useRef<HTMLInputElement>(null)
-  const adminController = useRef<AbortController>()
-  const secure = byokAvailable()
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
+
   useEffect(() => {
-    if (!requested) return
+    if (!active) return
     const controller = new AbortController()
-    setLoading(true); setError(''); setQuota(null)
-    getSharedQuota(controller.signal).then(value => { if (!controller.signal.aborted) setQuota(value) }).catch(() => {
-      if (!controller.signal.aborted) setError('Shared allowance is unavailable. Retry to refresh it.')
+    setLoading(true)
+    setError('')
+    getSharedQuota(controller.signal).then(value => {
+      if (!controller.signal.aborted) { setQuota(value); setUpdatedAt(new Date()) }
+    }).catch(cause => {
+      if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'The site API could not be reached. Try again.')
     }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [requested, refresh, revision])
-  useEffect(() => {
-    const clear = () => {
-      adminController.current?.abort()
-      if (tokenInput.current) tokenInput.current.value = ''
-      setBudget(null); setAdminError(''); setAdminBusy(false)
-    }
-    window.addEventListener('pagehide', clear)
-    return () => { clear(); window.removeEventListener('pagehide', clear) }
-  }, [])
-  async function loadOwner() {
-    if (adminBusy || !tokenInput.current?.value.trim()) return
-    const token = tokenInput.current.value.trim()
-    tokenInput.current.value = ''
-    const controller = new AbortController()
-    adminController.current = controller
-    setAdminBusy(true); setAdminError(''); setBudget(null)
-    try {
-      const value = await getOwnerBudget(token, controller.signal)
-      if (!controller.signal.aborted) setBudget(value)
-    } catch (e) {
-      if (!controller.signal.aborted) setAdminError(e instanceof Error ? e.message : 'Owner budget unavailable.')
-    } finally { if (!controller.signal.aborted) setAdminBusy(false) }
-  }
-  return <section className="session-usage" aria-labelledby="shared-budget-title">
-    <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="eyebrow"></p><h2 id="shared-budget-title" className="mt-2 text-2xl font-semibold">Shared allowance</h2></div>
-      <button className="secondary-button" type="button" disabled={loading} onClick={() => { setRequested(true); setRefresh(n => n + 1) }}>{loading ? 'Refreshing allowance…' : 'Check shared allowance'}</button>
+  }, [active, refresh, revision])
+
+  const exhausted = quota && (quota.analyses.remaining === 0 || quota.capture.remaining_ms === 0)
+  const busy = quota && quota.concurrency.active >= quota.concurrency.limit
+  const status = error ? 'Could not update' : loading ? 'Checking availability…' : !quota ? 'Not checked'
+    : exhausted ? 'Daily capacity reached' : busy ? 'An analysis is running' : !quota.demo_budget_available ? 'Your own key needed' : 'Available'
+  const time = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
+
+  return <section className="session-usage site-availability" aria-labelledby="shared-budget-title">
+    <div className="availability-heading">
+      <div><h2 id="shared-budget-title">Site API availability</h2><p>Available capacity for everyone using this site.</p></div>
+      <button className="secondary-button" type="button" disabled={loading} onClick={() => setRefresh(n => n + 1)}>{loading ? 'Refreshing…' : error ? 'Try again' : 'Refresh availability'}</button>
     </div>
-    <p className="mt-3 text-sm">All analyses share daily limits and available processing capacity. Checking availability does not start an analysis.</p>
-    {error && <p role="status" className="mt-3 text-sm">{error}</p>}
-    {quota && <div className="mt-5" role="status">
-      <div className="usage-totals">
-        <div><span>Daily admissions remaining</span><strong>{quota.analyses.remaining} / {quota.analyses.limit}</strong></div>
-        <div><span>Capture time remaining</span><strong>{(quota.capture.remaining_ms / 60000).toFixed(2)} min</strong></div>
-        <div><span>Active analyses</span><strong>{quota.concurrency.active} / {quota.concurrency.limit}</strong></div>
-      </div>
-      <p className="mt-4 text-sm">Per IP: {quota.per_ip.hourly_limit}/hour and {quota.per_ip.daily_limit}/day. Daily reset: {new Date(quota.resets_at).toLocaleString()}.</p>
-      <p className="mt-2 text-xs">{quota.demo_budget_available ? 'Shared AI budget has capacity.' : 'Shared AI budget is exhausted; BYOK still uses shared capture limits.'} Snapshot includes reservations, not a guarantee of admission. IP usage and provider availability are checked when submitting.</p>
+    <div className="availability-status" role="status" data-state={error ? 'error' : loading ? 'loading' : exhausted || busy || quota && !quota.demo_budget_available ? 'limited' : 'ready'}>
+      <strong>{status}</strong>
+      {error ? <p>{error} {quota ? 'The figures below are from the last successful update.' : 'Availability is unknown; this does not mean the quota is used up.'}</p>
+        : exhausted ? <p>Wait for the daily reset. Your own API key also uses the site’s analysis and capture limits.</p>
+        : busy ? <p>Try again when the current analysis finishes.</p>
+        : quota && !quota.demo_budget_available ? <p>The site’s shared AI allowance cannot cover another analysis. You can use your own key while analysis and capture capacity remain.</p>
+        : <p>Checking this counter does not run an analysis or use AI credit.</p>}
+    </div>
+    <dl className="availability-metrics" aria-label={error && quota ? 'Last known site capacity' : 'Site capacity'} aria-busy={loading}>
+      <div><dt>Analyses left today</dt><dd>{quota ? quota.analyses.remaining : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${quota.analyses.limit} shared analyses` : 'Waiting for the site API'}</dd></div>
+      <div><dt>Capture time left</dt><dd>{quota ? `${Number((quota.capture.remaining_ms / 60000).toFixed(2))} min` : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${Number((quota.capture.limit_ms / 60000).toFixed(2))} minutes today` : 'Waiting for the site API'}</dd></div>
+      <div><dt>Analyses running</dt><dd>{quota ? `${quota.concurrency.active} / ${quota.concurrency.limit}` : '—'}</dd><dd className="availability-metric-note">Shared processing capacity</dd></div>
+      <div><dt>Site AI allowance</dt><dd className="availability-budget">{quota ? quota.demo_budget_available ? 'Available' : 'At capacity' : '—'}</dd><dd className="availability-metric-note">For analyses using the site’s API key</dd></div>
+    </dl>
+    {quota && <div className="availability-details">
+      <p><strong>Daily reset</strong> <time dateTime={quota.resets_at}>{new Date(quota.resets_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}, {time(new Date(quota.resets_at))}</time></p>
+      <p><strong>Per visitor</strong> Up to {quota.per_ip.hourly_limit} analyses/hour and {quota.per_ip.daily_limit}/day.</p>
+      {updatedAt && <p className="availability-updated">Last updated <time dateTime={updatedAt.toISOString()}>{time(updatedAt)}</time>. Counts include reserved capacity and may change before you submit.</p>}
     </div>}
-    <details className="provider-rates"><summary>Owner budget · administrative access</summary>
-      <p className="mt-3 text-sm">Shared spending is protected. Visitor BYOK keys cannot unlock this view.</p>
-      {!secure ? <p className="mt-3 text-sm">Owner diagnostics require an HTTPS page and API.</p> : <>
-        <div className="field-group mt-4"><label className="field-label" htmlFor="owner-token">Administrative token</label><input id="owner-token" ref={tokenInput} className="url-input" type="password" autoComplete="off" spellCheck={false} maxLength={512} disabled={adminBusy} /><p className="field-help">Sent only to the protected budget endpoint. Cleared after submission and on navigation; never saved.</p></div>
-        <button className="secondary-button mt-3" type="button" disabled={adminBusy} onClick={() => void loadOwner()}>{adminBusy ? 'Loading owner budget…' : 'Load owner budget'}</button>
-        {adminError && <p role="alert" className="mt-3 text-sm">{adminError}</p>}
-        {budget && <div className="mt-5">
-          <p className="mb-3 text-xs sm:hidden">Swipe the table to see generation and auxiliary call counts.</p>
-          <div className="table-scroll" tabIndex={0} role="region" aria-label="Administrative budget table"><table className="consumption-table"><caption className="text-left mb-3">Shared allowance ledger · always estimated</caption><thead><tr><th>Period</th><th>Used or reserved</th><th>Limit</th><th>Generation attempts</th><th>Auxiliary calls</th></tr></thead><tbody>
-            <tr><th scope="row">Today · {budget.day} UTC</th><td>{estimateLabel(budget.dailyMicroUsdUsedOrReserved / 1e6)}</td><td>{estimateLabel(budget.dailyMicroUsdLimit / 1e6)}</td><td>{budget.demoCalls.daily.generation}</td><td>{budget.demoCalls.daily.auxiliary}</td></tr>
-            <tr><th scope="row">Accumulated</th><td>{estimateLabel(budget.totalMicroUsdUsedOrReserved / 1e6)}</td><td>{estimateLabel(budget.totalMicroUsdLimit / 1e6)}</td><td>{budget.demoCalls.total.generation}</td><td>{budget.demoCalls.total.auxiliary}</td></tr>
-          </tbody></table></div>
-          <p className="mt-3 text-sm">Active reservations: {estimateLabel(budget.activeReservations.microUsd / 1e6)}, {budget.activeReservations.tokens.toLocaleString()} tokens, {(budget.activeReservations.browserMs / 1000).toFixed(1)} seconds of capture.</p>
-          <p className="mt-2 text-xs">Totals preserve historical usage and conservative amounts retained after uncertain failures; they are not invoices. Call counters begin {new Date(budget.demoCalls.since).toLocaleString()}; earlier calls were not recorded. BYOK provider calls and spending are excluded.</p>
-          <button type="button" className="secondary-button mt-3" onClick={() => setBudget(null)}>Hide owner budget</button>
-        </div>}
-      </>}
-    </details>
+    <p className="availability-key-note"><strong>Using your own API key?</strong> AI usage is charged to your provider account. The site’s analysis and capture limits still apply. Your provider’s balance is not shown here.</p>
   </section>
 }

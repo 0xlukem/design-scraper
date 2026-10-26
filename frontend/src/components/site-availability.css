@@ -1,0 +1,31 @@
+.availability-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.availability-heading h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.8rem); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; }
+.availability-heading p { margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.availability-heading button { flex-shrink: 0; min-height: 44px; font-size: 13px; padding: 12px 18px; }
+.availability-status { margin-top: 24px; padding: 18px 20px; border: 1px solid var(--line); background: var(--surface); }
+.availability-status strong { display: block; font-size: 15px; }
+.availability-status p { margin: 6px 0 0; font-size: 14px; line-height: 1.6; }
+.availability-status[data-state='error'] { border-left: 3px solid var(--ink); }
+.availability-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 28px 0; }
+.availability-metrics > div { min-width: 0; padding-top: 16px; border-top: 1px solid var(--line); }
+.availability-metrics dt { font-size: 14px; font-weight: 550; line-height: 1.5; }
+.availability-metrics dd { margin: 12px 0 8px; font: 500 clamp(1.8rem, 3vw, 2.5rem)/1.2 'Geist Mono Variable', monospace; letter-spacing: -.04em; }
+.availability-metrics dd.availability-budget { font-family: 'Geist Variable', sans-serif; font-size: clamp(1.4rem, 2.2vw, 1.8rem); min-height: 1.67em; }
+.availability-metrics dd.availability-metric-note { margin: 0; color: var(--muted); font: 400 13px/1.5 'Geist Variable', sans-serif; letter-spacing: normal; }
+.availability-details { display: flex; flex-wrap: wrap; gap: 12px 36px; padding-top: 20px; border-top: 1px solid var(--line); }
+.availability-details p { margin: 0; font-size: 14px; line-height: 1.6; }
+.availability-details strong { margin-right: 8px; }
+.availability-details .availability-updated { width: 100%; color: var(--muted); font-size: 13px; }
+.availability-key-note { max-width: 85ch; margin: 24px 0 0; font-size: 14px; line-height: 1.65; }
+@media (max-width: 820px) {
+  .availability-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 540px) {
+  .availability-heading { flex-direction: column; gap: 16px; }
+  .availability-heading button { align-self: flex-start; }
+  .availability-status { padding: 16px; }
+  .availability-metrics { gap: 24px 16px; }
+  .availability-metrics dt { min-height: 3em; }
+  .availability-metrics dd { font-size: 1.75rem; }
+  .availability-metrics dd.availability-budget { font-size: 1.3rem; }
+}

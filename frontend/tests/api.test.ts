@@ -70,5 +70,5 @@ it('turns a null provider catalog into a recoverable settings error', async () =
 
 it('rejects partial quota snapshots rather than displaying NaN or invented capacity', async () => {
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ analyses: {}, capture: {}, concurrency: {}, per_ip: {}, resets_at: 'not-a-date' }))
-  await expect(getSharedQuota(new AbortController().signal)).rejects.toThrow('Shared allowance is unavailable')
+  await expect(getSharedQuota(new AbortController().signal)).rejects.toThrow('incomplete availability data')
 })

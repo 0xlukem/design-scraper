@@ -44,9 +44,10 @@ it('shows zero only for confirmed no-call failures, not disconnected work', () =
 })
 it('reads public quotas without an administrative credential or analysis request', async () => {
   const f = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ day: '2026-09-18', resets_at: '2026-09-19T00:00:00Z', analyses: { used: 2, limit: 20, remaining: 18 }, capture: { used_or_reserved_ms: 120000, limit_ms: 480000, remaining_ms: 360000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true }))
-  render(<SharedBudget revision={0} />)
-  fireEvent.click(screen.getByRole('button', { name: 'Check shared allowance' }))
-  expect(await screen.findByText('18 / 20')).toBeInTheDocument()
+  render(<SharedBudget revision={0} active />)
+  expect(await screen.findByText('18')).toBeInTheDocument()
+  expect(screen.getByText('of 20 shared analyses')).toBeInTheDocument()
+  expect(screen.queryByText(/Owner budget/)).not.toBeInTheDocument()
   expect(f.mock.calls[0][0]).toMatch(/\/api\/quotas$/)
   expect(new Headers(f.mock.calls[0][1]?.headers).has('Authorization')).toBe(false)
 })

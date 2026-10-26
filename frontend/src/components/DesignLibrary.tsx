@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { AnalysisResult, AppMode } from '../types'
+import type { AnalysisResult } from '../types'
 import { downloadFile, downloadFormats, savedContent } from '../download'
 import { formatLibraryDate, libraryExamples, type LibraryExample } from '../library'
 import ResultPanel from './ResultPanel'
@@ -35,7 +35,7 @@ function DesignCard({ example, onOpen }: { example: LibraryExample; onOpen: () =
   </article>
 }
 
-export default function DesignLibrary({ onUseSources, busy = false }: { onUseSources?: (mode: AppMode, sources: string[]) => void; busy?: boolean }) {
+export default function DesignLibrary() {
   const [selected, setSelected] = useState<LibraryExample | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -45,7 +45,10 @@ export default function DesignLibrary({ onUseSources, busy = false }: { onUseSou
   async function open(example: LibraryExample) {
     const current = ++version.current
     setSelected(example); setResult(null); setLoading(true); setError('')
-    requestAnimationFrame(() => { preview.current?.focus(); preview.current?.scrollIntoView({ block: 'start' }) })
+    requestAnimationFrame(() => {
+      preview.current?.focus({ preventScroll: true })
+      preview.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    })
     try {
       const payload = await example.load()
       if (current === version.current) setResult(payload)
@@ -58,14 +61,13 @@ export default function DesignLibrary({ onUseSources, busy = false }: { onUseSou
     requestAnimationFrame(() => document.getElementById(`open-${id}`)?.focus())
   }
   return <section id="design-library" className="design-library" aria-labelledby="library-title">
-    <div className="page-intro library-intro"><span className="section-kicker">A few good starting points</span><h1 id="library-title">Design library</h1><p>Open a reference. Take a closer look. Make something new.</p><p className="field-help">Saved designs from previously analyzed websites. Opening or downloading one needs no key and uses no analysis quota. Each design reflects its analysis date.</p></div>
-    <div className="library-grid">{libraryExamples.map(example => <DesignCard key={example.id} example={example} onOpen={() => void open(example)} />)}</div>
+    <div className="page-intro library-intro" hidden={Boolean(selected)}><span className="section-kicker">A few good starting points</span><h1 id="library-title">Design library</h1><p>Open a reference. Take a closer look. Make something new.</p><p className="field-help">Saved designs from previously analyzed websites. Opening or downloading one needs no key and uses no analysis quota. Each design reflects its analysis date.</p></div>
+    <div className="library-grid" hidden={Boolean(selected)}>{libraryExamples.map(example => <DesignCard key={example.id} example={example} onOpen={() => void open(example)} />)}</div>
     {selected && <div id="saved-design-preview" ref={preview} tabIndex={-1} className="saved-preview" aria-label={`${selected.name} saved design`}>
-      <div className="saved-notice"><p><strong>{selected.name}</strong><br />Analyzed {selected.date}. A saved snapshot, not an official brand guide.</p><button className="secondary-button" type="button" onClick={close}>Close design</button></div>
+      <div className="saved-notice"><div><span className="section-kicker">Design library / saved reference</span><h1>{selected.name}</h1><p>Analyzed {selected.date}. A saved snapshot, not an official brand guide.</p></div><button className="secondary-button" type="button" onClick={close}>Close design</button></div>
       {loading && <p role="status">Opening saved design…</p>}
       {error && <p role="alert">{error} <button type="button" onClick={() => void open(selected)} className="text-button">Try again</button></p>}
       {result && <ResultPanel mode={selected.mode} loading={false} error={null} result={result} historical onRetry={() => {}} />}
-      {onUseSources && <button type="button" className="secondary-button mt-5" disabled={busy} onClick={() => { onUseSources(selected.mode, selected.sources); close() }}>Use these URLs in the form</button>}
     </div>}
   </section>
 }
