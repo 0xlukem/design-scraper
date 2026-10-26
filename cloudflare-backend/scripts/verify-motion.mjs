@@ -23,7 +23,7 @@ async function open(reducedMotion, record = false) {
   const unexpected = await isolateReplayNetwork(context, site);
   // Focusing a URL field reads the shared allowance; nothing else may leave the page.
   await context.route(`${api}/api/**`, async route => {
-    const headers = { 'access-control-allow-origin': site, 'access-control-allow-methods': 'GET, OPTIONS' };
+    const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-methods': 'GET, OPTIONS' };
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     if (route.request().method() === 'GET' && route.request().url().endsWith('/quotas')) return route.fulfill({ headers, json: { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
     return route.fulfill({ status: 404, headers, json: { detail: { code: 'NOT_FOUND', message: 'Not found.', retryable: false } } });

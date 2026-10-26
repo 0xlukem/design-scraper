@@ -4,18 +4,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f5f1" />
-    <link
-      rel="icon"
-      href="/design-scraper.svg"
-    />
-    <meta
-      name="description"
-      content="Design Scraper extracts a website’s visual language into a reusable design system. Enter Mix It to combine two references and explore a new direction."
-    />
-    <title>Design Scraper · Design, decoded.</title>
+    <title>Design Scraper — Take the web apart. Build from what you discover.</title>
+    <meta name="description" content="Extract a website’s visual language, mix two references, and export what you discover. Explore real saved results, use your own provider key, and keep the evidence visible." />
+    <link rel="canonical" href="https://design-scraper.pages.dev/" />
+    <link rel="icon" href="/design-scraper.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Design Scraper" />
+    <meta property="og:title" content="Take the web apart." />
+    <meta property="og:description" content="Extract a website’s visual language, mix two references, and export the system. Start with a saved result or use your own provider key." />
+    <meta property="og:url" content="https://design-scraper.pages.dev/" />
+    <meta property="og:image" content="https://design-scraper.pages.dev/images/design-scraper-social.jpg" />
+    <meta property="og:image:width" content="1185" />
+    <meta property="og:image:height" content="622" />
+    <meta property="og:image:alt" content="Design Scraper. Take the web apart. Colors, typography, evidence and exports." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Design Scraper — Take the web apart." />
+    <meta name="twitter:description" content="Inspect website design evidence and export Markdown, CSS or tokens. Explore saved examples without an analysis request." />
+    <meta name="twitter:image" content="https://design-scraper.pages.dev/images/design-scraper-social.jpg" />
+    <script type="module" src="/src/landing.ts"></script>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+  <body class="direction-a">
+<a class="skip" href="#main-content">Skip to content</a>
+<header class="product-header shell"><a class="brand" href="/" aria-label="Design Scraper home"><img src="/design-scraper.svg" alt="" width="31" height="31"><span>design<br>scraper</span></a><nav aria-label="Main navigation"><a href="#what-you-get">What it does</a><a href="#examples">Saved designs</a></nav><a class="brand-pair" href="#mix-it" aria-label="Meet Mix It">+ mix it.</a></header>
+<main id="main-content" tabindex="-1"><section class="hero" aria-labelledby="hero-title"><div class="hero-heading"><h1 id="hero-title">Take the web<br> apart.</h1><div class="hero-summary"><p>Extract a website’s visual language.<br> Mix two references.<br> Build from what you discover.</p><a class="primary" href="/app/#/analyze">Open Design Scraper <span>↗</span></a></div></div>
+<div class="hero-stage"><div class="motion-controls"><div class="phase-tabs" role="group" aria-label="Sequence stages"><button data-time="0" aria-pressed="true">01 Site</button><button data-time="5.6" aria-pressed="false">02 Extract</button><button data-time="8.8" aria-pressed="false">03 System</button></div><div class="playback"><button id="play" aria-label="Pause animation">Pause Ⅱ</button><button id="replay" aria-label="Replay animation">Replay ↺</button></div><label class="scrub-label"><span class="sr-only">Animation position</span><input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Animation position"></label></div>
+<div class="scene" role="img" aria-describedby="hero-provenance" aria-label="Illustrated extraction from a saved Bootstrap capture: the page separates into observed type, CSS colors and a button, then resolves into an organized design system.">
+<div class="scene-coordinate">REFERENCE → EVIDENCE → SYSTEM</div>
+<div class="canvas">
+<div class="source-window"><div class="address"><span>↗</span> getbootstrap.com / heroes <span class="recorded">SAVED REFERENCE</span></div><img src="/images/landing/bootstrap-capture.jpg" width="1440" height="900" alt="Saved capture of the Bootstrap heroes page"/><div class="scan-line"></div><div class="selection selection-type"><span>TYPE</span></div><div class="selection selection-button"><span>COMPONENT</span></div></div>
+<div class="output-heading"><span>Bootstrap / observed CSS</span><span>01 — 04</span></div>
+<div class="piece type-piece"><div class="piece-label">01 / TYPE</div><div class="glyph">Aa</div><strong>system-ui</strong><div class="type-sizes">16 · 20 · 48 · 56px</div><small>Sizes observed in the capture</small></div>
+<div class="piece color-piece"><div class="piece-label">02 / COLOR VARIABLES</div><div class="color-fan"><i style="--swatch:#0d6efd"><span>#0D6EFD</span></i><i style="--swatch:#6610f2"><span>#6610F2</span></i><i style="--swatch:#d63384"><span>#D63384</span></i><i style="--swatch:#fd7e14"><span>#FD7E14</span></i><i style="--swatch:#ffc107"><span>#FFC107</span></i><i style="--swatch:#0dcaf0"><span>#0DCAF0</span></i></div></div>
+<div class="piece space-piece"><div class="piece-label">03 / SPACING</div><div class="spacing-bars"><i></i><i></i><i></i></div><strong>8px / 24px</strong><small>Padding on the sampled button</small></div>
+<div class="piece component-piece"><div class="piece-label">04 / COMPONENT</div><span class="sample-button">Primary button</span><div class="component-meta"><span>20px type</span><span>8px radius</span></div><small>Static state observed</small></div>
+<div class="export-line"><span>READ IT.</span><span>QUESTION IT.</span><span>MAKE IT YOURS. ↗</span></div>
+</div><span class="scene-corner">+</span></div><p class="provenance" id="hero-provenance">Illustrated sequence using a saved Bootstrap capture and its CSS evidence · 9 Sep 2026. No live analysis.</p></div></section>
+<section class="evidence-section shell section" id="what-you-get" aria-labelledby="evidence-title">
+  <div class="section-heading"><h2 id="evidence-title">See the decisions.<br>Keep the evidence.</h2><p>Move past a screenshot. Inspect the colors, type, spacing and components behind a public website, then take a usable starting point into your next build.</p></div>
+  <div class="evidence-layout">
+    <div class="evidence-copy"><p>CSS measurements and AI vision inform the same result. Detected values, inferred roles and known gaps stay visible, so you can decide what to use and what to check.</p><a class="text-link" href="/app/#/library/stripe">Inspect the Stripe result <span aria-hidden="true">↗</span></a></div>
+    <figure class="evidence-ledger"><figcaption>From the saved Stripe analysis <time datetime="2026-09-10">10 Sep 2026</time></figcaption>
+      <dl><div><dt>Heading size / weight</dt><dd><strong>48px / 300</strong><span>Detected · CSS evidence</span></dd></div><div><dt>Primary brand role</dt><dd><strong><i class="stripe-swatch" aria-hidden="true"></i>#533AFD</strong><span>Inferred · role assigned in this result</span></dd></div><div><dt>What is missing</dt><dd class="gap-value">Footer outside the observed region.<br>Interaction states not exercised.</dd></div></dl>
+    </figure>
+  </div>
+</section>
+
+<section class="examples-section section shell" id="examples" aria-labelledby="examples-title">
+  <div class="section-heading"><h2 id="examples-title">Open a result.<br>Find your starting point.</h2><div><p>Explore the system before submitting a URL. These saved analyses open with their sources, dates and gaps. No key or new analysis quota needed.</p><a class="text-link" href="/app/#/library">Browse all 10 saved designs <span aria-hidden="true">↗</span></a></div></div>
+  <div class="example-index">
+    <a class="example-row" href="/app/#/library/stripe"><span class="example-number" aria-hidden="true">01</span><img src="/images/library/stripe.webp" width="960" height="504" loading="lazy" alt="Stripe reference artwork"><div class="example-name"><h3>Stripe</h3><p>Measured typography from a complex product page.</p></div><div class="example-meta"><span>Single reference</span><time datetime="2026-09-10">10 Sep 2026</time></div><span class="example-open">View design <span aria-hidden="true">↗</span></span></a>
+    <a class="example-row" href="/app/#/library/github"><span class="example-number" aria-hidden="true">02</span><img src="/images/library/github.webp" width="960" height="504" loading="lazy" alt="GitHub reference artwork"><div class="example-name"><h3>GitHub</h3><p>A dark canvas and type from a developer platform.</p></div><div class="example-meta"><span>Single reference</span><time datetime="2026-10-21">21 Oct 2026</time></div><span class="example-open">View design <span aria-hidden="true">↗</span></span></a>
+    <a class="example-row" href="/app/#/library/milligram"><span class="example-number" aria-hidden="true">03</span><img src="/images/library/milligram.webp" width="960" height="504" loading="lazy" alt="Milligram reference artwork"><div class="example-name"><h3>Milligram</h3><p>A compact CSS vocabulary to take apart.</p></div><div class="example-meta"><span>Single reference</span><time datetime="2026-09-09">9 Sep 2026</time></div><span class="example-open">View design <span aria-hidden="true">↗</span></span></a>
+  </div>
+  <p class="section-note">Historical analyses of third-party websites, not official brand guides or endorsements. Opening, copying and exporting a saved result makes no new analysis request.</p>
+</section>
+
+<section class="mix-section" id="mix-it" aria-labelledby="mix-title"><div class="shell mix-layout">
+  <div class="mix-copy"><h2 id="mix-title">Two references.<br>Something new.</h2><p>Meet Mix It. Combine two websites and choose how much each one influences the proposed system. Keep the sources in view as you explore a different direction.</p><a class="text-link" href="/app/#/library/bootstrap-milligram">Inspect a saved mix <span aria-hidden="true">↗</span></a><p class="mix-instruction">To make your own, <a href="/app/#/analyze">open the workspace</a> and choose <strong>Enter Mix It</strong>.</p></div>
+  <figure class="mix-study"><figcaption>Bootstrap × Milligram <time datetime="2026-09-09">9 Sep 2026</time></figcaption><div class="mix-ratio" aria-label="25 percent Bootstrap, 75 percent Milligram"><div><span>Bootstrap</span><strong>25<small>%</small></strong></div><div><span>Milligram</span><strong>75<small>%</small></strong></div></div><div class="mix-result"><div class="mix-palette"><i style="--swatch:#9b4dca" aria-label="Purple #9b4dca"></i><i style="--swatch:#0d6efd" aria-label="Blue #0d6efd"></i><i style="--swatch:#f4f5f6" aria-label="Light surface #f4f5f6"></i><i style="--swatch:#212529" aria-label="Dark surface #212529"></i></div><p><strong>Roboto + a shared color vocabulary.</strong><span>Selected values from this saved result. Missing type sizes remain explicit gaps.</span></p></div></figure>
+</div></section>
+
+<section class="exports-section section shell" aria-labelledby="exports-title"><div class="exports-heading"><h2 id="exports-title">Take the useful part<br>with you.</h2><p>Copy an individual token or export the system in the format your work needs. All five exports come from the same result, without another AI request.</p><a class="text-link" href="/app/#/library/example-domain">Try the exports on Example Domain <span aria-hidden="true">↗</span></a></div><dl class="export-list"><div><dt><span>.md</span>Extended Markdown</dt><dd>Carry the findings, evidence and gaps into a brief or an AI coding conversation.</dd></div><div><dt><span>.md</span>Compact Markdown</dt><dd>Keep a shorter reference close while you prototype.</dd></div><div><dt><span>.css</span>CSS variables</dt><dd>Inspect reusable values and adapt them to your stylesheet.</dd></div><div><dt><span>.css</span>Tailwind-compatible CSS</dt><dd>Start a theme in a Tailwind workflow.</dd></div><div><dt><span>.json</span>Design tokens JSON</dt><dd>Move structured values into your own tools.</dd></div></dl></section>
+
+<section class="key-section section shell" id="your-key" aria-labelledby="key-title"><div class="section-heading"><h2 id="key-title">Your key.<br>Your provider.</h2><p>Use the shared Gemini allowance, or bring your own provider key. Choose the account that funds the AI work, with the model and estimated rates visible before analysis.</p></div><div class="key-layout"><div class="provider-list" aria-label="Supported providers"><span>Gemini</span><span>Claude</span><span>OpenAI</span><span>Grok</span></div><div class="key-detail"><ol class="key-path"><li><b>01</b><span>Held in this tab’s memory.<small>We don’t save your key.</small></span></li><li><b>02</b><span>Sent over HTTPS through our server.<small>Then to your selected provider.</small></span></li><li><b>03</b><span>Billed to your provider account.<small>Shared capture and admission limits still apply.</small></span></li></ol><p>Choose <strong>Use your own key</strong> in the workspace. The key is checked when you run an analysis; entering it does not make a test call.</p><a class="text-link" href="/app/#/analyze">Open Design Scraper <span aria-hidden="true">↗</span></a></div></div></section>
+
+<section class="recovery-section section shell" aria-labelledby="recovery-title"><div class="recovery-copy"><h2 id="recovery-title">A next step.<br>Even when it stops.</h2><p>Some pages block capture. Providers can reject a request. Design Scraper explains the issue and offers a way forward: review the URL, check provider settings, or open a saved design.</p><p>Activity & costs keeps reported usage and estimated cost visible when available. Unknown consumption stays unknown; a retry is a new analysis and may use quota.</p><a class="text-link" href="/app/#/activity">Open Activity & costs <span aria-hidden="true">↗</span></a></div><figure class="recovery-example"><figcaption>Recovery example / capture interrupted</figcaption><span class="error-mark" aria-hidden="true">↳</span><h3>Website capture interrupted</h3><p>Try a lighter public page or a saved design. Required styles, fonts and images must load before AI analysis can begin. Some sites block automated access.</p><div class="recovery-actions"><a href="/app/#/analyze">Review a URL <span aria-hidden="true">↗</span></a><a href="/app/#/library">Open saved designs <span aria-hidden="true">↗</span></a></div><p class="sample-note">An example of the recovery guidance, not an active error.</p></figure></section>
+
+<section class="limits-section section shell" aria-labelledby="limits-title"><h2 id="limits-title">Know what you’re<br>working with.</h2><div class="limit-details"><details><summary>What does a capture establish?</summary><p>Static visual branding from a bounded page region. It does not establish every page, a complete responsive system or unvisited interaction states. Video and audio playback are excluded. AI roles and recipes can be interpretations; review their evidence and known gaps.</p></details><details><summary>What limits apply to a new analysis?</summary><p>Shared daily admission, per-IP, concurrency, capture and AI budgets determine availability. Check the current allowance in the workspace before starting. Your own key funds AI usage, but does not remove shared capture and admission limits.</p></details><details><summary>What will it cost?</summary><p>With your own key, your provider charges your account under its terms. The workspace shows configured models and estimated token rates. Missing pricing is unavailable, not free. Displayed costs are estimates, not invoices.</p></details><details><summary>Can I use a result without running an analysis?</summary><p>Yes. Open any saved design, inspect its evidence, copy values or download an export. That needs no key and makes no new analysis request. Each result reflects its original analysis date.</p></details></div></section>
+
+<section class="closing-section"><div class="shell closing-layout"><h2>Find a reference.<br>Make your next move.</h2><div><p>Start with a public URL, or explore a saved result to see the system before you run your own.</p><a class="primary" href="/app/#/analyze">Open Design Scraper <span aria-hidden="true">↗</span></a><a class="closing-library" href="/app/#/library">Explore the design library <span aria-hidden="true">↗</span></a></div></div></section>
+</main>
+<footer class="site-footer shell"><a class="brand" href="/" aria-label="Design Scraper home"><img src="/design-scraper.svg" alt="" width="31" height="31"><span>design<br>scraper</span></a><p>A project by <a href="https://lucasmalizia.xyz/">Lucas Malizia</a>.</p><nav aria-label="Footer"><a href="https://github.com/0xlukem/design-scraper">Source code ↗</a><a href="/app/#/library">Design library</a><a href="/app/#/analyze">Open the app ↗</a></nav></footer>
+</body></html>

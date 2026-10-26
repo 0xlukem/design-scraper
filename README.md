@@ -15,7 +15,21 @@ Switching worlds plays a paint transition: the requested world renders only
 once the paint covers the viewport, and the return to Design Scraper drains the
 paint to monochrome while it retreats.
 
-[Open the demo](https://design-scraper.pages.dev)
+[Explore Design Scraper](https://design-scraper.pages.dev/) ·
+[Open the app](https://design-scraper.pages.dev/app/#/analyze) ·
+[Browse saved designs](https://design-scraper.pages.dev/app/#/library)
+
+The public landing at `/` is static HTML. The application lives at `/app/`,
+with its existing hash navigation. Saved results can be linked directly, for
+example `/app/#/library/stripe`; opening and exporting them uses no analysis
+quota. These are dated third-party analyses, not official brand guides.
+
+Legacy `/demo/` links also forward to `/app/` with their hash intact.
+
+Only the landing is listed in `sitemap.xml`. The application retains HTTP and HTML
+`noindex, nofollow, noarchive`; `robots.txt` allows crawling so those directives
+can be read. Preview deployment hosts also receive `noindex`. Old root hash
+links forward to the matching application section. Unknown paths return a real 404.
 
 ## Architecture
 
@@ -29,7 +43,7 @@ paint to monochrome while it retreats.
   Values retain their source, confidence and detected/inferred status. Missing
   evidence appears as explicit gaps.
 
-The shared demo uses Gemini. Choose **Use my own key** to use Gemini, Claude,
+The shared allowance uses Gemini. Choose **Use your own key** to use Gemini, Claude,
 OpenAI or Grok through your provider account. The UI shows the configured model
 before analysis. Costs are always estimates, not invoices; models without
 configured pricing show an unavailable estimate.
@@ -66,6 +80,10 @@ errors, keyboard access, responsive layouts and every copy/download format are
 checked without provider calls. If you change the build's API origin, supply the
 same `API_URL` when running the UI test.
 
+The UI suite also verifies the landing's initial HTML, indexing rules, canonical
+and social metadata, responsive breakpoints, saved-result downloads, and old
+hash links. Landing screenshots are saved in `output/playwright/landing-a/`.
+
 ## Run locally
 
 Create the environment files without overwriting existing credentials:
@@ -97,7 +115,9 @@ cd frontend
 npm run dev
 ```
 
-Open `http://localhost:5173` directly. Vite proxies
+Open `http://localhost:5173/` for the landing or
+`http://localhost:5173/app/#/analyze` for the application. The landing and saved
+library can be reviewed with only the frontend running. Vite proxies
 `/api` to the local Worker at `127.0.0.1:8787`; the default local frontend API URL
 is empty for this purpose. Local quotas
 live in `.wrangler/`, separate from the deployed SQLite state.
@@ -150,7 +170,7 @@ See [contract fixtures and verification](#contract-fixtures-and-verification).
 ## Deploy and operate
 
 Deployment configuration lives in
-[`wrangler.jsonc`](cloudflare-backend/wrangler.jsonc). The configured demo runs
+[`wrangler.jsonc`](cloudflare-backend/wrangler.jsonc). The shared service runs
 on Cloudflare Free with these normal ceilings:
 
 | Limit | Value |
@@ -175,12 +195,12 @@ exclusions appear in Known Gaps and do not replace required CSS, fonts or images
 
 ## Use your own key
 
-On the HTTPS demo, choose **Use my own key**, select a provider, paste its API
+On the HTTPS site, choose **Use your own key**, select a provider, paste its API
 key and accept responsibility for your provider's charges and terms. The key
 stays in tab memory and travels over HTTPS to the Worker and selected provider
 only for analysis. The application does not save it to browser storage, cookies,
 logs or a database. Reloading, navigating away, closing the tab, switching
-provider, choosing Shared demo or clicking **Clear key** clears the key.
+provider, choosing Shared allowance or clicking **Clear key** clears the key.
 Page screenshots and extracted evidence are processed under your provider's terms.
 
 BYOK uses one AI attempt per analysis and never falls back to the shared key.
@@ -191,7 +211,7 @@ active request, three attempts/hour and five per UTC day; reloading does not
 reset the server's limits. Cancel stops waiting, but work already started may
 still consume quota.
 
-The local HTTP development UI supports the shared demo. BYOK requires HTTPS on
+The local HTTP development UI supports the shared allowance. BYOK requires HTTPS on
 both the page and API; there is no insecure localhost exception. Local browser
 tests serve the built app over temporary HTTPS with mocked APIs and fake keys.
 

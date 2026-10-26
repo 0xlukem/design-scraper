@@ -14,6 +14,11 @@ export default defineConfig(({ mode, isPreview }) => {
   const publicApi = api && new URL(api).protocol === 'https:' && new URL(api).origin === api && !new URL(api).username ? api : undefined
   return {
     plugins: [react()],
+    build: {
+      rolldownOptions: {
+        input: { landing: 'index.html', app: 'app/index.html', legacy: 'demo/index.html' },
+      },
+    },
     server: {
       host: '127.0.0.1',
       port: 5173,

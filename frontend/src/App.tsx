@@ -350,7 +350,7 @@ const sections = [
   { id: 'activity', label: 'Activity & costs' },
 ] as const
 function readSection(): 'analyze' | 'library' | 'activity' {
-  const value = window.location.hash.slice(2)
+  const value = window.location.hash.slice(2).split('/')[0]
   return value === 'library' || value === 'activity' ? value : 'analyze'
 }
 export default App

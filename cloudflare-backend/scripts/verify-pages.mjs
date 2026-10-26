@@ -6,7 +6,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { isolateReplayNetwork } from "./replay-network.mjs";
 import { readAnalysisResponse } from "./read-analysis-response.mjs";
-const site = process.env.PAGES_URL || "https://design-scraper.pages.dev";
+const site = process.env.PAGES_URL || "https://design-scraper.pages.dev/app/";
 const api = process.env.API_URL || "https://design-scraper-phase8.lucas-malizia27.workers.dev";
 const live = process.argv.includes("--live");
 const kinds = process.argv.includes("--mix-only") ? ["mix"] : ["single", "mix"];
@@ -59,7 +59,7 @@ if (!live) {
   const mix = payload(fixtures.find(f => f.bias === 25));
   await page.route(`${api}/api/**`, async route => {
     const req = route.request();
-    const headers = { "access-control-allow-origin": site, "access-control-allow-headers": "authorization, content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+    const headers = { "access-control-allow-origin": new URL(site).origin, "access-control-allow-headers": "authorization, content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
     if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
     if (req.url().endsWith("/quotas")) return route.fulfill({ headers, json: { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
     if (injectedError) return route.fulfill({ status: injectedError.status, headers, json: { detail: injectedError } });

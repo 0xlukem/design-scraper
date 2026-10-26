@@ -19,7 +19,7 @@ const quota = { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: 
 const catalog = JSON.parse(await readFile('../frontend/src/examples/catalog.json', 'utf8'));
 const sample = JSON.parse(await readFile('../frontend/src/examples/milligram.json', 'utf8'));
 await context.route(`${api}/api/**`, async route => {
-  const headers = { 'access-control-allow-origin': site, 'access-control-expose-headers': 'Retry-After', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, GET, OPTIONS' };
+  const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-expose-headers': 'Retry-After', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, GET, OPTIONS' };
   if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
   if (route.request().url().endsWith('/providers')) return route.fulfill({ headers, json: { providers: ['gemini', 'anthropic', 'openai', 'xai'].map(provider => ({ provider, model: `${provider}-test`, inputPrice: provider === 'gemini' ? 0.75 : null, outputPrice: provider === 'gemini' ? 4.5 : null })) } });
   if (route.request().url().endsWith('/quotas')) { quotaRequests++; return route.fulfill({ headers, json: quota }); }

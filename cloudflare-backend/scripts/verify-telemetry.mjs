@@ -18,7 +18,7 @@ const telemetry = { funding: 'demo', provider: 'gemini', model: 'fixture-model',
 const budget = { day: '2026-09-18', admitted: 2, dailyLimit: 20, ipHourlyLimit: 3, ipDailyLimit: 5, browserMsUsedOrReserved: 150000, browserMsLimit: 480000, tokensUsedOrReserved: 92000, dailyTokenLimit: 1000000, active: 0, costStatus: 'estimated', dailyMicroUsdUsedOrReserved: 185000, totalMicroUsdUsedOrReserved: 1185000, dailyMicroUsdLimit: 1000000, totalMicroUsdLimit: 30000000, activeReservations: { tokens: 92000, microUsd: 105000, browserMs: 75000 }, demoCalls: { since: '2026-09-18T00:00:00Z', daily: { generation: 4, auxiliary: 3 }, total: { generation: 5, auxiliary: 4 } } };
 await context.route(`${api}/api/**`, async route => {
   const r = route.request();
-  const headers = { 'access-control-allow-origin': site, 'access-control-allow-headers': 'Content-Type, Authorization, X-AI-Provider, X-AI-Key', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
+  const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-headers': 'Content-Type, Authorization, X-AI-Provider, X-AI-Key', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
   if (r.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
   requests.push({ path: new URL(r.url()).pathname, authenticated: Boolean(r.headers().authorization) });
   if (r.url().endsWith('/quotas')) return route.fulfill({ headers, json: { day: '2026-09-18', resets_at: '2026-09-19T00:00:00Z', analyses: { used: 2, limit: 20, remaining: 18 }, capture: { remaining_ms: 330000, limit_ms: 480000, used_or_reserved_ms: 150000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
