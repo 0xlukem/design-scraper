@@ -201,5 +201,5 @@ try {
   assert.deepEqual(unexpected,[]);
   assert.deepEqual(errors,[]);
   await writeFile(`${artifacts}/report.json`,JSON.stringify({status:'pass',checks,layouts,analysisRequests:0,mockedQuotaReads:quotaReads,unexpectedNetwork:[],errors,temporalVisualReview:'Requires watching the recordings; tests do not approve choreography'},null,2));
-  console.log(JSON.stringify({status:'pass',checks,apiRequests:0},null,2));
+  console.log(JSON.stringify({status:'pass',checks,analysisRequests:0,mockedQuotaReads:quotaReads},null,2));
 } finally {await browser.close();}
