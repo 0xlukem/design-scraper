@@ -17,6 +17,11 @@ export default defineConfig(({ mode, isPreview, command }) => {
   return {
     plugins: [react(), ...(demo ? [localDemoApi()] : [])],
     ...(demo ? { define: { 'import.meta.env.VITE_API_URL': JSON.stringify('') } } : {}),
+    build: {
+      rolldownOptions: {
+        input: { landing: 'index.html', app: 'app/index.html', legacy: 'demo/index.html' },
+      },
+    },
     server: {
       host: '127.0.0.1',
       port: 5173,

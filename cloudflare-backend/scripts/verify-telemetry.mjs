@@ -17,7 +17,7 @@ const usage = JSON.parse(await readFile('../frontend/src/examples/milligram.json
 const telemetry = { funding: 'demo', provider: 'gemini', model: 'fixture-model', provider_calls: 2, generation_attempts: 1, auxiliary_calls: 1, final: false, usage_status: 'pending', usage: null, demo_budget: null, browser_ms: null, browser_reserved_ms: 75000 };
 await context.route(replayApiPattern(site, api), async route => {
   const r = route.request();
-  const headers = { 'access-control-allow-origin': site, 'access-control-allow-headers': 'Content-Type, Authorization, X-AI-Provider, X-AI-Key', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
+  const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-headers': 'Content-Type, Authorization, X-AI-Provider, X-AI-Key', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
   if (r.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
   requests.push({ path: new URL(r.url()).pathname, authenticated: Boolean(r.headers().authorization) });
   if (r.url().endsWith('/quotas')) return route.fulfill({ headers, json: { day: '2026-09-18', resets_at: '2026-09-19T00:00:00Z', analyses: { used: 2, limit: 20, remaining: 18 }, capture: { remaining_ms: 330000, limit_ms: 480000, used_or_reserved_ms: 150000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
