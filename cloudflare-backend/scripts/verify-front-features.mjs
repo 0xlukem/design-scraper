@@ -66,7 +66,14 @@ try {
     assert.equal(new URL(await cover.getAttribute('src'), site).origin, new URL(site).origin, 'Cover artwork is served locally');
     assert.ok(await cover.evaluate(async image => { await image.decode(); return image.naturalWidth > 0 && image.naturalHeight > 0; }), `${id}: brand cover loads and decodes`);
     assert.equal(await card.getByRole('combobox').count(), 0, 'Cards no longer carry a format selector');
-    assert.equal(await card.getByRole('button', { name: /Download/ }).count(), 0);
+    const quickDownloadPromise = page.waitForEvent('download');
+    await card.getByRole('button', { name: /Download/ }).click();
+    const quickDownload = await quickDownloadPromise;
+    assert.equal(quickDownload.suggestedFilename(), id + '-design.md');
+    assert.equal(await readFile(await quickDownload.path(), 'utf8'), expected.documents.extended);
+    assert.equal(new URL(page.url()).hash, '#/library');
+    assert.equal(analyses, 0, 'Quick downloads never submit an analysis');
+    checks.push(id + ': direct card download matches the saved file without leaving the library');
     await page.getByRole('link', { name: `View ${name} design`, exact: true }).click();
     assert.equal(new URL(page.url()).hash, `#/library/${id}`);
     const preview = page.locator('#saved-design-preview');
