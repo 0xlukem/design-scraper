@@ -22,7 +22,7 @@ async function open(reducedMotion, record = false) {
   });
   const unexpected = await isolateReplayNetwork(context, site);
   // Focusing a URL field reads the shared allowance; nothing else may leave the page.
-  await context.route(`${api}/api/**`, async route => {
+  await context.route("**/api/**", async route => {
     const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-methods': 'GET, OPTIONS' };
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     if (route.request().method() === 'GET' && route.request().url().endsWith('/quotas')) return route.fulfill({ headers, json: { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
@@ -194,32 +194,18 @@ try {
   await moving(page, 'mix');
   checks.push('Single stays minimal with no rainbow asset download; Mix It mounts a distinct animated world');
 
-  await page.getByRole('button', { name: 'Pause animations', exact: true }).click();
-  await still(page, 'mix', 'Manual pause stops actual surreal-world playback');
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await still(page, 'mix', 'OS preference changes must preserve the manual pause');
-  const pausedHeading = await page.locator('.experience-headline').evaluate(async element => {
-    const before = getComputedStyle(element);
-    const snapshot = { opacity: before.opacity, transform: before.transform };
-    await new Promise(resolve => setTimeout(resolve, 180));
-    const after = getComputedStyle(element);
-    return { before: snapshot, after: { opacity: after.opacity, transform: after.transform } };
-  });
-  assert.equal(pausedHeading.before.opacity, '1', 'A manually paused hero must remain visible when OS reduced motion is disabled');
-  assert.deepEqual(pausedHeading.after, pausedHeading.before, 'A manually paused hero must not replay its entrance after an OS preference change');
+  await still(page, 'mix', 'Changing the OS preference stops actual Mix playback');
   await switchWorld(page, 'single');
   await settled(page);
-  await still(page, 'single', 'Pause survives returning to the studio');
+  await still(page, 'single', 'Reduced motion survives switching worlds');
   assert.equal(await page.getByLabel('Website URL').inputValue(), 'https://single.example/');
   await switchWorld(page, 'mix');
   await settled(page);
-  await still(page, 'mix', 'Pause survives re-entering Mix It');
-  assert.equal(await page.locator('.mix-paint-sculpture').evaluate(element => getComputedStyle(element).opacity), '1');
-  await page.getByRole('button', { name: 'Resume animations', exact: true }).click();
+  await still(page, 'mix', 'Reduced motion survives re-entering Mix It');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await moving(page, 'mix');
-  checks.push('Pause/resume freezes actual transforms and keeps both scenes visible across world changes');
-  checks.push('Changing OS motion preference preserves manual pause and full hero visibility');
+  checks.push('Live OS motion preference changes stop and resume actual transforms across worlds');
 
   await captureTransition(page, 'single', '1440');
   await switchWorld(page, 'mix');

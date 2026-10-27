@@ -38,7 +38,7 @@ try {
   assert.equal(response.headers()['x-frame-options'], 'DENY');
   const html = await response.text();
   assert.match(html, /Take the web/);
-  assert.match(html, /Your key\./);
+  assert.match(html, /Start with included use\./);
   assert.doesNotMatch(html, /<div id="root"><\/div>|Open demo|\/demo\//);
   assert.equal(await page.locator('h1').count(), 1);
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), canonical);
@@ -82,7 +82,7 @@ try {
   assert.match(await page.locator('.evidence-ledger').innerText(), /#533AFD.*Inferred/s);
   assert.deepEqual(mix.metadata.weights,{web_1:25,web_2:75});
   assert.match(await page.locator('.mix-ratio').innerText(), /25.*75/s);
-  assert.match(await page.locator('#hero-provenance').innerText(), /saved Bootstrap capture.*9 Sep 2026.*No live analysis/s);
+  assert.match(await page.locator('#hero-provenance').innerText(), /Saved Bootstrap capture.*9 Sep 2026.*not a live analysis/s);
   checks.push('Evidence statuses, historical dates and mix weights agree with saved material');
 
   const widths = [320,360,390,429,430,431,640,759,760,761,768,1024,1049,1050,1051,1099,1100,1101,1265,1440];
@@ -111,7 +111,7 @@ try {
   assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Skip to content');
   await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(()=>document.activeElement.id),'main-content');
-  await page.getByText('What limits apply to a new analysis?',{exact:true}).click();
+  await page.getByText('What limits apply?',{exact:true}).click();
   assert.equal(await page.locator('details').filter({hasText:'What limits apply'}).getAttribute('open'),'');
   checks.push('Responsive boundaries; keyboard skip link, native disclosure and reduced-motion result');
 
@@ -120,7 +120,8 @@ try {
   const staticPage = await noJs.newPage();
   await staticPage.goto(origin);
   assert.equal(await staticPage.getByRole('heading',{level:1}).isVisible(),true);
-  assert.equal(await staticPage.locator('.hero .primary').getAttribute('href'),'/app/#/analyze');
+  assert.equal(await staticPage.locator('.hero .primary').getAttribute('href'),'/app/#/analyze/start');
+  await staticPage.locator('.hero-demo > summary').click();
   assert.equal(await staticPage.locator('.type-piece').isVisible(),true);
   assert.equal(await staticPage.locator('.motion-controls').isVisible(),false);
   assert.ok(await staticPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -158,12 +159,12 @@ try {
   await page.getByRole('button',{name:'View Milligram design',exact:true}).click();
   await preview.getByRole('heading',{name:'Design findings'}).waitFor();
   checks.push('Root hash and legacy /demo/ links preserve all sections; unknown example recovers in the library');
-  for (const href of ['/app/#/library/github','/app/#/library/milligram','/app/#/library/bootstrap-milligram','/app/#/library/example-domain','/app/#/analyze','/app/#/activity']) {
+  for (const href of ['/app/#/library/github','/app/#/library/milligram','/app/#/library/bootstrap-milligram','/app/#/library/example-domain','/app/#/analyze/start','/app/#/library']) {
     await page.goto(origin);
     await page.locator(`a[href="${href}"]`).first().click();
     if(href.includes('/library/')) await preview.getByRole('heading',{name:'Design findings'}).waitFor();
-    else if(href.endsWith('analyze')) await page.getByRole('heading',{name:'One URL. The whole system.'}).waitFor();
-    else await page.getByRole('heading',{name:'Activity & costs',exact:true}).waitFor();
+    else if(href.includes('/analyze')) await page.getByRole('heading',{name:'One URL. The whole system.'}).waitFor();
+    else await page.getByRole('heading',{name:'Design library',exact:true}).waitFor();
   }
   checks.push('Every promoted result and application destination opens without an analysis');
 
@@ -174,6 +175,7 @@ try {
     const motionPage=await motionContext.newPage();
     motionPage.on('pageerror',error=>errors.push(error.message));
     await motionPage.goto(origin);
+    if (width <= 760) await motionPage.locator('.hero-demo > summary').click();
     await motionPage.waitForFunction(()=>document.querySelector('#scrub').value==='1000' && document.querySelector('#play').getAttribute('aria-label')==='Play animation',{},{timeout:18000});
     assert.equal(await motionPage.locator('#play').getAttribute('aria-label'),'Play animation');
     await motionPage.getByRole('button',{name:'Replay animation',exact:true}).click();

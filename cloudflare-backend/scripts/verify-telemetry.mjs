@@ -16,7 +16,7 @@ const reports = '../output/playwright/telemetry'; await mkdir(reports, { recursi
 const usage = JSON.parse(await readFile('../frontend/src/examples/milligram.json', 'utf8')).metadata.usage;
 const telemetry = { funding: 'demo', provider: 'gemini', model: 'fixture-model', provider_calls: 2, generation_attempts: 1, auxiliary_calls: 1, final: false, usage_status: 'pending', usage: null, demo_budget: null, browser_ms: null, browser_reserved_ms: 75000 };
 const budget = { day: '2026-09-18', admitted: 2, dailyLimit: 20, ipHourlyLimit: 3, ipDailyLimit: 5, browserMsUsedOrReserved: 150000, browserMsLimit: 480000, tokensUsedOrReserved: 92000, dailyTokenLimit: 1000000, active: 0, costStatus: 'estimated', dailyMicroUsdUsedOrReserved: 185000, totalMicroUsdUsedOrReserved: 1185000, dailyMicroUsdLimit: 1000000, totalMicroUsdLimit: 30000000, activeReservations: { tokens: 92000, microUsd: 105000, browserMs: 75000 }, demoCalls: { since: '2026-09-18T00:00:00Z', daily: { generation: 4, auxiliary: 3 }, total: { generation: 5, auxiliary: 4 } } };
-await context.route(`${api}/api/**`, async route => {
+await context.route("**/api/**", async route => {
   const r = route.request();
   const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-headers': 'Content-Type, Authorization, X-AI-Provider, X-AI-Key', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
   if (r.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
@@ -41,29 +41,17 @@ const checks = [];
 try {
   await page.goto(site);
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-  await page.getByRole('button', { name: 'Check shared allowance' }).click();
-  await page.getByText('18 / 20', { exact: true }).waitFor();
+  await page.getByText('18', { exact: true }).waitFor();
   assert.ok(requests.every(r => !r.authenticated));
-  checks.push('Public quota without credential, analysis, or protected budget');
-  await page.getByText('Owner budget · administrative access', { exact: true }).click();
-  await page.getByLabel('Administrative token').fill('fake-invalid-token');
-  await page.getByRole('button', { name: 'Load owner budget' }).click();
-  await page.getByRole('alert').filter({ hasText: 'Administrative authentication was rejected.' }).waitFor();
-  assert.equal(await page.getByLabel('Administrative token').inputValue(), '');
-  await page.getByLabel('Administrative token').fill('fake-owner-token');
-  await page.getByRole('button', { name: 'Load owner budget' }).click();
-  await page.getByText('Shared allowance ledger · always estimated', { exact: true }).waitFor();
-  await page.getByText('US$1.18500', { exact: true }).waitFor();
-  assert.equal(await page.getByLabel('Administrative token').inputValue(), '');
-  assert.ok(requests.filter(r => r.authenticated).every(r => r.path === '/api/diagnostics/budget'));
-  checks.push('Owner authentication, global day/lifetime ledger and call counters; token cleared');
+  assert.equal(await page.getByLabel('Administrative token').count(), 0);
+  checks.push('Public capacity loads without credentials or administrative controls');
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).fill('https://example.com');
   await page.getByRole('button', { name: /Analyze design/ }).click();
   await page.getByRole('heading', { name: 'Design findings' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
-  await spending.getByText('Run details', { exact: true }).click();
+  await spending.locator('summary').filter({ hasText: 'Run details' }).click();
   await spending.getByLabel('Analysis telemetry').waitFor();
   assert.match(await spending.getByLabel('Analysis telemetry').innerText(), /Provider calls: 2.*Generation attempts: 1.*Auxiliary calls: 1/);
   checks.push('NDJSON result and measured provider/generation/auxiliary calls in spending table');
@@ -71,15 +59,12 @@ try {
     await page.setViewportSize({ width, height: 1000 });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await page.getByRole('region', { name: 'Shared allowance', exact: true }).screenshot({ path: `${reports}/budget-${width}.png` });
-    checks.push(`Shared and administrative budget at ${width}px, no page overflow`);
+    await page.getByRole('region', { name: 'Site API availability', exact: true }).screenshot({ path: `${reports}/budget-${width}.png` });
+    checks.push(`Site capacity at ${width}px, no page overflow`);
   }
-  await page.getByLabel('Administrative token').fill('fake-unsent-token');
-  await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
-  assert.equal(await page.getByLabel('Administrative token').inputValue(), '');
-  assert.equal(await page.getByText('Shared allowance ledger · always estimated', { exact: true }).count(), 0);
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
-  checks.push('Pagehide clears admin input/results and browser storage stays empty');
+  assert.ok(requests.every(r => r.path !== '/api/diagnostics/budget' && !r.authenticated));
+  checks.push('No administrative requests or browser persistence');
   assert.deepEqual(errors, []); assert.deepEqual(unexpected, []);
   await writeFile('reports/telemetry-replay.json', JSON.stringify({ checks, errors, unexpectedNetwork: unexpected, requests }, null, 2));
   console.log(JSON.stringify({ mode: 'telemetry-replay', checks: checks.length, errors }));

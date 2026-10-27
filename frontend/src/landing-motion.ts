@@ -30,6 +30,7 @@ export function initLandingMotion() {
   }
 
   function build() {
+    if (!scene.clientWidth) return;
     const previous = timeline?.time() ?? 0;
     const wasPlaying = timeline && !timeline.paused();
     timeline?.kill();
@@ -115,17 +116,21 @@ export function initLandingMotion() {
     else if (!isReduced() && !userPaused && !document.hidden && timeline?.time() < duration) timeline.play();
     controls();
   },{threshold:.12});
+  document.querySelector('.hero-demo')?.addEventListener('toggle', () => {
+    if ((document.querySelector('.hero-demo') as HTMLDetailsElement).open) build();
+    else { timeline?.pause(); controls(); }
+  });
   build();
   observer.observe(scene);
   document.addEventListener('visibilitychange', () => {
-    if(document.hidden) timeline.pause();
-    else if(inView && !userPaused && !isReduced() && timeline.time()<duration) timeline.play();
+    if(document.hidden) timeline?.pause();
+    else if(inView && !userPaused && !isReduced() && timeline?.time()<duration) timeline.play();
     controls();
   });
   window.addEventListener('resize', () => {clearTimeout(resizeTimer);resizeTimer=setTimeout(build,100);});
   reduced.addEventListener('change',build);
   window.addEventListener('pagehide', event => {
-    timeline.pause(); controls(); clearTimeout(resizeTimer);
-    if (!event.persisted) { timeline.kill(); observer.disconnect(); }
+    timeline?.pause(); controls(); clearTimeout(resizeTimer);
+    if (!event.persisted) { timeline?.kill(); observer.disconnect(); }
   });
 }

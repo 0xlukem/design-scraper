@@ -19,7 +19,13 @@ paint to monochrome while it retreats.
 [Open the app](https://design-scraper.pages.dev/app/#/analyze) ·
 [Browse saved designs](https://design-scraper.pages.dev/app/#/library)
 
-The public landing at `/` is static HTML. The application lives at `/app/`,
+The public home at `/` has two entry points: analyze a website or explore saved
+designs. The analysis link (`/app/#/analyze/start`) focuses the URL field without
+submitting. The Bootstrap demonstration opens on demand on mobile. Models & rates
+is available independently of API-key setup and loads the public catalog only
+when opened. The initial content and saved-design links work without JavaScript.
+
+The application lives at `/app/`,
 with its existing hash navigation. Saved results can be linked directly, for
 example `/app/#/library/stripe`; opening and exporting them uses no analysis
 quota. These are dated third-party analyses, not official brand guides.
@@ -82,7 +88,10 @@ same `API_URL` when running the UI test.
 
 The UI suite also verifies the landing's initial HTML, indexing rules, canonical
 and social metadata, responsive breakpoints, saved-result downloads, and old
-hash links. Landing screenshots are saved in `output/playwright/landing-a/`.
+hash links. Home journey checks cover direct form entry, local URL validation,
+loading and error recovery, saved-reference navigation, and model-catalog loading,
+failure and empty responses. Screenshots are saved in `output/playwright/landing-a/`
+and `output/playwright/home-ux/`. All API responses in these checks are mocked.
 
 ## Run locally
 
@@ -117,7 +126,8 @@ npm run dev
 
 Open `http://localhost:5173/` for the landing or
 `http://localhost:5173/app/#/analyze` for the application. The landing and saved
-library can be reviewed with only the frontend running. Vite proxies
+library can be reviewed with only the frontend running; current model rates
+require the local API. Vite proxies
 `/api` to the local Worker at `127.0.0.1:8787`; the default local frontend API URL
 is empty for this purpose. Local quotas
 live in `.wrangler/`, separate from the deployed SQLite state.

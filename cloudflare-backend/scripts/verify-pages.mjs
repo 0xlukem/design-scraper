@@ -57,7 +57,7 @@ if (!live) {
   });
   const single = payload(fixtures.find(f => f.bias === null));
   const mix = payload(fixtures.find(f => f.bias === 25));
-  await page.route(`${api}/api/**`, async route => {
+  await page.route("**/api/**", async route => {
     const req = route.request();
     const headers = { "access-control-allow-origin": new URL(site).origin, "access-control-allow-headers": "authorization, content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
     if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
@@ -125,7 +125,6 @@ try {
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await assertNoOverflow(`${kind}-home-${width}`);
-      assert.equal(await page.getByRole('button', { name: 'Pause animations', exact: true }).isVisible(), true, `Motion control keeps an accessible name at ${width}px`);
       if (width <= 640) {
         const previousUrl = page.url(), previousCalls = analyses;
         await page.getByRole('link', { name: 'Go to the lab', exact: true }).click();
