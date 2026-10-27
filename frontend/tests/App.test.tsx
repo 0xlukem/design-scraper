@@ -133,7 +133,7 @@ describe('App', () => {
       bias: -25,
     })
     expect(
-      await screen.findByRole('heading', { name: 'Design findings' }),
+      await screen.findByRole('heading', { name: 'one.example + two.example' }),
     ).toBeInTheDocument()
   })
 

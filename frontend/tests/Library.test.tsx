@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../src/App'
+import * as downloads from '../src/download'
 import DesignLibrary from '../src/components/DesignLibrary'
 import catalog from '../src/examples/catalog.json'
 import { formatLibraryDate, libraryExamples, librarySuggestions } from '../src/library'
@@ -17,6 +18,10 @@ it('builds every library card from the catalog with a saved design behind it', a
     const saved = await example.load()
     expect(saved.success).toBe(true)
     if (example.mode === 'mix' && 'mode' in saved.metadata) expect(example.bias).toBe(saved.metadata.bias)
+    const values = Object.values(saved.design_system!.colors).flat().map(token => token.value)
+    example.preview.colors.forEach(value => expect(values).toContain(value))
+    const fonts = [...saved.design_system!.typography.families, ...saved.design_system!.typography.scale.flatMap(spec => spec.family ? [spec.family] : [])].map(token => String(token.value).split(',')[0].trim().replace(/["']/g, ''))
+    example.preview.fonts.forEach(font => expect(fonts).toContain(font))
     expect(saved.documents.extended.length).toBeGreaterThan(100)
   }
   expect(formatLibraryDate('2026-09-10')).toBe('Sep 2026')
@@ -28,7 +33,8 @@ it('opens one focused design via a shareable route and returns to the same card'
   expect(cards).toHaveLength(catalog.length)
   const stripe = within(cards.find(card => within(card).queryByRole('heading', { name: 'Stripe' }))!)
   expect(stripe.getByText('Sep 2026')).toBeInTheDocument()
-  expect(stripe.queryByRole('button', { name: /Download/ })).not.toBeInTheDocument()
+  expect(stripe.getByRole('button', { name: /Download/ })).toBeVisible()
+  expect(stripe.getByText('sohne-var')).toBeVisible()
   fireEvent.click(stripe.getByRole('link', { name: 'View Stripe design' }))
   expect(window.location.hash).toBe('#/library/stripe')
   await screen.findByRole('button', { name: 'Export design', exact: true })
@@ -94,4 +100,16 @@ it('explains when the shared allowance is exhausted or unreachable, and never bl
   fetcher.mockRejectedValue(new TypeError('offline'))
   fireEvent.change(screen.getByLabelText('Website URL'), { target: { value: 'https://example.com/' } })
   expect(screen.getByRole('button', { name: /analyze design/i })).toBeEnabled()
+})
+
+it('downloads the original saved document from its card without running an analysis', async () => {
+  const fetcher = vi.spyOn(globalThis, 'fetch')
+  const download = vi.spyOn(downloads, 'downloadFile').mockImplementation(() => {})
+  render(<DesignLibrary />)
+  fireEvent.click(screen.getByRole('button', { name: 'Download Stripe design.md' }))
+  await screen.findByText('Download prepared.')
+  const saved = await libraryExamples.find(example => example.id === 'stripe')!.load()
+  expect(download).toHaveBeenCalledWith(saved.documents!.extended, 'stripe-design.md', 'text/markdown;charset=utf-8')
+  expect(fetcher).not.toHaveBeenCalled()
+  expect(screen.getByRole('link', { name: 'View GitHub design' })).toBeVisible()
 })

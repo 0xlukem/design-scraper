@@ -7,3 +7,16 @@
 .library-loading-title { font-size: 32px; font-weight: 600; margin-bottom: 20px; }
 .saved-preview .result-heading h1 { font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -.05em; }
 @media(max-width: 540px) { .library-detail-nav { gap: 16px; } .saved-preview .result-heading { flex-wrap: wrap; } }
+
+.workspace-main .library-intro h1 { font-size: clamp(2rem, 3.4vw, 2.75rem); line-height: 1.15; }
+.library-preview-facts { display: flex; align-items: center; gap: 14px; margin: 0 0 22px; min-height: 32px; }
+.library-palette { display: flex; gap: 3px; flex-shrink: 0; }
+.library-palette span { width: 22px; height: 26px; border: 1px solid var(--line); }
+.design-card .library-preview-facts p { font-size: 13px; margin: 0; overflow-wrap: anywhere; }
+.design-card .library-domains { margin-bottom: 14px; }
+.design-card .library-mix-weights { font-size: 12px; color: var(--muted); margin: -6px 0 20px; }
+.library-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto; }
+.library-card-actions .action-button { width: auto; min-width: 0; }
+.library-card-actions .text-button { font-size: 13px; }
+.design-card .library-download-status { font-size: 12px; color: var(--muted); margin: 12px 0 0; }
+.saved-preview .result-heading h1 { font-size: clamp(1.65rem, 3vw, 2.5rem); }
