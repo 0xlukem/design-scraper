@@ -16,6 +16,7 @@ it('builds every library card from the catalog with a saved design behind it', a
     expect(example.sources.length).toBe(example.mode === 'mix' ? 2 : 1)
     const saved = await example.load()
     expect(saved.success).toBe(true)
+    if (example.mode === 'mix' && 'mode' in saved.metadata) expect(example.bias).toBe(saved.metadata.bias)
     expect(saved.documents.extended.length).toBeGreaterThan(100)
   }
   expect(formatLibraryDate('2026-09-10')).toBe('Sep 2026')
@@ -79,6 +80,7 @@ it('offers saved references as suggestions that prefill the form without submitt
   fireEvent.click(within(mixGroup).getByRole('button', { name: pair.name }))
   expect(screen.getByLabelText('First website URL')).toHaveValue(pair.sources[0])
   expect(screen.getByLabelText('Second website URL')).toHaveValue(pair.sources[1])
+  expect(screen.getByLabelText('Mix balance')).toHaveValue(String(pair.bias))
   expect(fetcher).toHaveBeenCalledTimes(1)
 })
 

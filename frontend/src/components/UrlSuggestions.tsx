@@ -1,7 +1,9 @@
+import type { MixBias } from '../types'
 export interface UrlSuggestion {
   id: string
   label: string
   urls: string[]
+  bias?: MixBias
 }
 
 /** Prefills a form with URLs from saved designs. It never submits an analysis. */

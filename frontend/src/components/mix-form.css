@@ -1,0 +1,17 @@
+.blend-labels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 18px 0 12px; }
+.blend-labels > span { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.blend-labels > span:last-child { text-align: right; }
+.blend-labels span span { overflow-wrap: anywhere; font-size: 14px; }
+.blend-labels strong { font-size: 24px; font-weight: 600; letter-spacing: -.03em; }
+.blend-proportion { display: flex; height: 12px; overflow: hidden; border: 1px solid var(--ink); }
+.blend-proportion > span:first-child { background: var(--coral); }
+.blend-proportion > span:last-child { background: var(--cyan); }
+.mix-source[data-excluded='true'] { background: transparent; }
+.mix-source[data-excluded='true'] input { opacity: .6; }
+.mix-source .field-label { display: flex; justify-content: space-between; gap: 12px; }
+.mix-source .source-excluded { text-transform: none; font-weight: 400; color: var(--muted); }
+.mix-duplicate { margin-top: 14px; font-size: 14px; }
+.mix-form .blend-control output.blend-labels { white-space: normal; border: 0; padding: 0; background: transparent; }
+.mix-form .blend-slider::-webkit-slider-runnable-track { height: 3px; border: 0; background: var(--line); }
+.mix-form .blend-slider::-moz-range-track { height: 3px; border: 0; background: var(--line); }
+.mix-form .blend-slider::-webkit-slider-thumb { margin-top: -11px; }
