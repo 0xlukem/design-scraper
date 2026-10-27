@@ -17,6 +17,7 @@ it('builds every library card from the catalog with a saved design behind it', a
     expect(example.sources.length).toBe(example.mode === 'mix' ? 2 : 1)
     const saved = await example.load()
     expect(saved.success).toBe(true)
+    if (example.mode === 'mix' && 'mode' in saved.metadata) expect(example.bias).toBe(saved.metadata.bias)
     const values = Object.values(saved.design_system!.colors).flat().map(token => token.value)
     example.preview.colors.forEach(value => expect(values).toContain(value))
     const fonts = [...saved.design_system!.typography.families, ...saved.design_system!.typography.scale.flatMap(spec => spec.family ? [spec.family] : [])].map(token => String(token.value).split(',')[0].trim().replace(/["']/g, ''))
@@ -85,6 +86,7 @@ it('offers saved references as suggestions that prefill the form without submitt
   fireEvent.click(within(mixGroup).getByRole('button', { name: pair.name }))
   expect(screen.getByLabelText('First website URL')).toHaveValue(pair.sources[0])
   expect(screen.getByLabelText('Second website URL')).toHaveValue(pair.sources[1])
+  expect(screen.getByLabelText('Mix balance')).toHaveValue(String(50 - (pair.bias || 0)))
   expect(fetcher).toHaveBeenCalledTimes(1)
 })
 

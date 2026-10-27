@@ -1,6 +1,6 @@
 import catalog from './examples/catalog.json'
 import previews from './library-previews.json'
-import type { AnalysisResult, AppMode } from './types'
+import type { AnalysisResult, AppMode, MixBias } from './types'
 
 export interface LibraryExample {
   id: string
@@ -10,6 +10,7 @@ export interface LibraryExample {
   /** ISO date of the saved analysis. */
   date: string
   mode: AppMode
+  bias?: MixBias
   sources: string[]
   /** Local artwork from the reference site's public branding, with provenance. */
   cover: {

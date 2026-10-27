@@ -117,10 +117,9 @@ describe('App', () => {
       target: { value: 'https://two.example' },
     })
     fireEvent.change(screen.getByLabelText('Mix balance'), {
-      target: { value: '-25' },
+      target: { value: '75' },
     })
-    expect(screen.getByText('Web #1')).toHaveTextContent('75%')
-    expect(screen.getByText('Web #2')).toHaveTextContent('25%')
+    expect(screen.getByLabelText('Mix balance')).toHaveAttribute('aria-valuetext', 'one.example 75 percent, two.example 25 percent')
 
     fireEvent.click(
       screen.getByRole('button', { name: /mix designs/i }),

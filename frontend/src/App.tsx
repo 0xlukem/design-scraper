@@ -21,6 +21,7 @@ import { librarySuggestions, type LibraryExample } from './library'
 import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
 import ProviderControls from './components/ProviderControls'
 import type { ByokCredentials } from './byok'
+import { BIAS_WEIGHTS } from './types'
 import type {
   AnalysisResult,
   AnalysisProgress,
@@ -115,7 +116,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 }
 
 const singleSuggestions = librarySuggestions('single', 3).map(example => ({ id: example.id, label: new URL(example.sources[0]).hostname.replace(/^www\./, ''), urls: example.sources }))
-const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: example.id, label: example.name, urls: example.sources }))
+const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: example.id, label: example.name, urls: example.sources, bias: example.bias }))
 const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
 
 function App() {
@@ -196,7 +197,7 @@ function App() {
     const id = ++requestId.current
     const startedAt = Date.now()
     const previousKeyStatus = keyStatus
-    const sources = mode === 'single' ? [state.single.url.trim()] : [state.mix.url1.trim(), state.mix.url2.trim()]
+    const sources = mode === 'single' ? [state.single.url.trim()] : [state.mix.url1.trim(), state.mix.url2.trim()].filter((_, index) => BIAS_WEIGHTS[state.mix.bias][index] > 0)
     if (providerAccess.current) { setKeyStatus('checking'); setKeyError('') }
     const funding = providerAccess.current ? 'byok' as const : 'demo' as const
     const provider = providerAccess.current?.provider || 'gemini'
@@ -246,7 +247,9 @@ function App() {
 
   const submitMix = () =>
     runRequest('mix', (signal, onProgress) =>
-      mixWebsites(
+      Math.abs(state.mix.bias) === 50
+        ? analyzeWebsite((state.mix.bias === -50 ? state.mix.url1 : state.mix.url2).trim(), signal, providerAccess.current || undefined, onProgress)
+        : mixWebsites(
         state.mix.url1.trim(),
         state.mix.url2.trim(),
         state.mix.bias,
@@ -300,7 +303,7 @@ function App() {
     }
     dispatch({ type: 'set-mode', mode: example.mode }); setTargetMode(example.mode)
     window.location.hash = '/analyze'; setSection('analyze')
-    requestAnimationFrame(() => document.getElementById(example.mode === 'mix' ? 'mix-url-1' : 'single-url')?.focus())
+    requestAnimationFrame(() => document.getElementById(example.mode === 'mix' ? 'mode' in result.metadata && result.metadata.bias === 50 ? 'mix-url-2' : 'mix-url-1' : 'single-url')?.focus())
   }
 
   return <div data-experience={state.mode} className={`app-shell experience-shell min-h-[100dvh] ${state.mode === 'mix' ? 'theme-wild' : 'theme-sober'}`}>
@@ -357,7 +360,7 @@ function App() {
       <div className={section === 'analyze' ? 'reference-box' : 'activity-access'}>
       {section === 'analyze' && <><div className="reference-topline"><span>{state.mode === 'single' ? 'DESIGN SCRAPER / WORKSPACE' : 'THE MIXING DESK'}</span><span>{state.mode === 'single' ? '01—05' : 'MAKE A BEAUTIFUL MESS'}</span></div><ModeToggle mode={state.mode} onChange={changeMode} /></>}
       {section === 'analyze' && <div className="reference-heading">
-        <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : 'Good things collide.'}</h2></div>
+        <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : Math.abs(state.mix.bias) === 50 ? 'YOUR SELECTED SOURCE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : Math.abs(state.mix.bias) === 50 ? 'One source. Its own design.' : 'Good things collide.'}</h2></div>
         <Globe size={24} aria-hidden="true" />
       </div>}
       <div hidden={section !== 'analyze'}>
@@ -377,7 +380,7 @@ function App() {
       </div>
       {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={reviewSettings} />}
       <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
-      {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
+      {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' || Math.abs(state.mix.bias) === 50 ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
       </div>
       </div>
       <div hidden={section !== 'analyze'}>

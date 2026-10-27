@@ -33,7 +33,7 @@ const secureServer = createHttpsServer({ key: await readFile(resolve(certDir, "k
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 await new Promise(resolve => secureServer.listen(0, "127.0.0.1", resolve));
 try {
-  for (const [script, url] of [["verify-pages.mjs", `http://127.0.0.1:${server.address().port}`], ["verify-byok.mjs", `https://127.0.0.1:${secureServer.address().port}`], ["verify-front-features.mjs", `http://127.0.0.1:${server.address().port}`], ["verify-telemetry.mjs", `https://127.0.0.1:${secureServer.address().port}`], ["verify-motion.mjs", `http://127.0.0.1:${server.address().port}`]]) {
+  for (const [script, url] of [["verify-pages.mjs", `http://127.0.0.1:${server.address().port}`], ["verify-byok.mjs", `https://127.0.0.1:${secureServer.address().port}`], ["verify-front-features.mjs", `http://127.0.0.1:${server.address().port}`], ["verify-telemetry.mjs", `https://127.0.0.1:${secureServer.address().port}`], ["verify-mix-flow.mjs", `http://127.0.0.1:${server.address().port}`], ["verify-motion.mjs", `http://127.0.0.1:${server.address().port}`]]) {
     const child = spawn(process.execPath, ["scripts/" + script], { stdio: "inherit", env: { ...process.env, PAGES_URL: url, LOCAL_UI_HTTPS: "true" } });
     process.exitCode = await new Promise((resolve, reject) => {
       child.once("error", reject); child.once("exit", code => resolve(code ?? 1));

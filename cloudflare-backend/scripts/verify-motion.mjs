@@ -190,7 +190,7 @@ try {
   assert.notEqual(await page.locator('[data-experience]').evaluate(element => getComputedStyle(element).getPropertyValue('--paper')), basePaper, 'The two worlds must have distinct surfaces');
   await page.getByLabel('First website URL').fill('https://one.example/');
   await page.getByLabel('Second website URL').fill('https://two.example/');
-  await page.getByLabel('Mix balance').fill('-25');
+  await page.getByLabel('Mix balance').fill('75');
   await moving(page, 'mix');
   checks.push('Single stays minimal with no rainbow asset download; Mix It mounts a distinct animated world');
 
@@ -215,7 +215,7 @@ try {
   assert.equal(await page.locator('.world-transition').getAttribute('data-target'), 'mix');
   assert.equal(await page.getByLabel('First website URL').inputValue(), 'https://one.example/');
   assert.equal(await page.getByLabel('Second website URL').inputValue(), 'https://two.example/');
-  assert.equal(await page.getByLabel('Mix balance').inputValue(), '-25');
+  assert.equal(await page.getByLabel('Mix balance').inputValue(), '75');
   checks.push('Paint covers and reveals in both directions; rapid switching leaves the latest world active and preserves both forms');
 
   await page.getByRole('link', { name: 'Mix It home', exact: true }).click();
