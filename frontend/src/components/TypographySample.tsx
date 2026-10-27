@@ -5,6 +5,8 @@ function value(token: TypographySpec['size']) {
   return typeof token?.value === 'string' || typeof token?.value === 'number' ? String(token.value) : undefined
 }
 
+export function typeLabel(spec: TypographySpec) { return spec.use.match(/\((h[1-6]),/)?.[1].toUpperCase() || spec.name.replace(/^measured-web-\d+-/, '').replace(/[-_]/g, ' ') }
+
 export default function TypographySample({ spec }: { spec: TypographySpec }) {
   const size = value(spec.size)
   const family = value(spec.family)
@@ -24,7 +26,7 @@ export default function TypographySample({ spec }: { spec: TypographySpec }) {
     {canPreview ? <p className="type-specimen" style={style}>Aa — Design</p>
       : <p className="type-unavailable">No visual sample: font family or size was not recorded.</p>}
     <div className="type-metadata">
-      <strong>{spec.use.match(/\((h[1-6]),/)?.[1].toUpperCase() || spec.name.replace(/^measured-web-\d+-/, "").replace(/[-_]/g, " ")}</strong>
+      <strong>{typeLabel(spec)}</strong>
       <dl className="type-metrics">
         <div className="type-family"><dt>Font family</dt><dd>{family ?? 'Not recorded'}</dd></div>
         <div><dt>Size</dt><dd>{size ?? '—'}</dd></div>
