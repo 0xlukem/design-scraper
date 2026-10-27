@@ -121,7 +121,7 @@
 }
 
 /* Programmatic region focus announces navigation without outlining the whole page. */
-.inspector-active-panel:focus { outline: none; }
+.inspector-workspace .inspector-active-panel:focus, .result-shell .result-title:focus { outline: none; }
 .inspector-workspace .component-picker { max-height: 460px; }
 .inspector-workspace .type-scale { gap: 0; }
 .type-entry { border-top: 1px solid var(--line); }
