@@ -49,7 +49,7 @@ try {
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).fill('https://example.com');
   await page.getByRole('button', { name: /Analyze design/ }).click();
-  await page.getByRole('heading', { name: 'Design findings' }).waitFor();
+  await page.getByRole('heading', { name: 'Overview' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
   await spending.locator('summary').filter({ hasText: 'Run details' }).click();

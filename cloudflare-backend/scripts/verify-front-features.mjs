@@ -75,7 +75,7 @@ try {
     checks.push(`${id}: direct design.md download without opening report`);
     await page.getByRole('button', { name: `View ${name} design`, exact: true }).click();
     const preview = page.locator('#saved-design-preview');
-    await preview.getByRole('heading', { name: 'Design findings' }).waitFor();
+    await preview.getByRole('heading', { name: 'Overview' }).waitFor();
     await preview.getByRole('button', { name: 'Export design', exact: true }).click();
     for (const [tab, variant, bytes, filename] of [
       ['DESIGN.md', 'Extended', expected.documents.extended, mixed ? 'mixed-design.md' : 'design.md'],
@@ -140,7 +140,7 @@ try {
   await page.getByRole('tab', { name: /Mix It/ }).click();
   assert.ok(await page.getByRole('button', { name: /mix designs/i }).isDisabled());
   await page.getByRole('tab', { name: /Extract design/ }).click();
-  await page.getByRole('button', { name: 'Stop waiting' }).click();
+  await page.getByRole('button', { name: 'Stop waiting for result' }).click();
   await page.getByText(/You stopped waiting/).waitFor();
   finishSlow?.();
   checks.push('Indeterminate loading, cross-mode duplicate guard, cancellation');
@@ -157,7 +157,7 @@ try {
   assert.equal(analyses, 2, 'No automatic retries');
   responseMode = 'success';
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
-  await page.getByRole('heading', { name: 'Design findings' }).waitFor();
+  await page.getByRole('heading', { name: 'Overview' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
   await spending.getByText('Estimated subtotals', { exact: true }).click();

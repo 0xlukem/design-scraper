@@ -184,6 +184,7 @@ try {
         await page.screenshot({ path: `${artifacts}/${live ? "live" : "replay"}-${provider}-${kind}-${width}-viewport.png`, mask: [page.getByLabel("Provider API key", { exact: true })] });
         await page.screenshot({ path: `${artifacts}/${live ? "live" : "replay"}-${provider}-${kind}-${width}.png`, fullPage: true, mask: [page.getByLabel("Provider API key", { exact: true })] });
       }
+      await page.getByRole("button", { name: "Close export", exact: true }).click();
       await page.setViewportSize({ width: 1440, height: 1000 });
     }
     assert.equal(catalogRequests, catalogBefore, "Output actions must not reload providers");
