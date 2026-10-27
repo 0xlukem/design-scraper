@@ -64,7 +64,8 @@ try {
     const balance = page.getByLabel('Mix balance');
     assert.equal(await balance.inputValue(), '25');
     assert.equal(await balance.evaluate(el => getComputedStyle(el).getPropertyValue('--first-share').trim()), '25%');
-    assert.match(await balance.evaluate(el => getComputedStyle(el).backgroundImage), /25%/);
+    assert.match(await balance.getAttribute('aria-valuetext'), /getbootstrap.com 25 percent, milligram.io 75 percent/);
+    assert.equal(await page.locator('#analysis-form input[type=range]').count(), 1);
     await page.locator('#analysis-form').screenshot({ path: `${artifacts}/mix-form-${width}.png` });
     checks.push(`${width}px: domain labels and true 25/75 proportions without overflow`);
   }
