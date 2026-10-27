@@ -49,8 +49,8 @@ it('keeps detailed measurements available while giving sections a direct keyboar
   expect(measurements.open).toBe(false)
   fireEvent.click(screen.getByRole('link', { name: 'Components', exact: true }))
   expect(screen.getByRole('region', { name: 'Observed components' })).toHaveFocus()
-  fireEvent.click(screen.getByRole('button', { name: 'Export controls' }))
-  expect(screen.getByLabelText('Result controls')).toHaveFocus()
+  fireEvent.click(screen.getByRole('button', { name: 'Open export controls' }))
+  expect(screen.getByRole('button', { name: 'Export design', exact: true })).toHaveFocus()
 })
 
 it('does not present sparse card properties as a reconstructed component', () => {

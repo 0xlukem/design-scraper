@@ -46,7 +46,7 @@ function EvidenceLine({ token }: { token: EvidenceToken }) {
     <div className="token-evidence-line">
       <div className="min-w-0">
         <p className="token-name">{tokenLabel(token)}</p>
-        <p className="token-role">{token.role}</p>
+        {token.name !== token.role && <p className="token-role">{token.role}</p>}
       </div>
       <code className="token-value">{value}</code>
       <EvidenceBadge status={token.status} confidence={token.confidence} />
@@ -71,7 +71,7 @@ function SectionHeading({
       <span className="inspector-index">{index}</span>
       <div>
         <h3 id={id}>{title}</h3>
-        <p>{description}</p>
+        <details className="section-help"><summary>About this section</summary><p>{description}</p></details>
       </div>
     </div>
   )
@@ -170,7 +170,7 @@ export default function VisualInspector({ system, onBackToControls }: VisualInsp
           </select>
           <CaretDown size={16} aria-hidden="true" />
         </label>
-        <button type="button" className="inspector-back" aria-label="Export controls" title="Back to export controls" onClick={onBackToControls}><span>Export controls</span> <ArrowUp size={16} aria-hidden="true" /></button>
+        <button type="button" className="inspector-back" aria-label="Open export controls" title="Export this design" onClick={onBackToControls}><span>Export</span> <ArrowUp size={16} aria-hidden="true" /></button>
       </nav>
       <details className="evidence-guide inspector-details">
         <summary>How to read the evidence labels</summary>
@@ -183,7 +183,6 @@ export default function VisualInspector({ system, onBackToControls }: VisualInsp
       </details>
       <section className="inspector-overview" id={`${id}-overview-section`} tabIndex={-1} aria-labelledby={`${id}-overview-title`}>
         <div>
-          <p className="eyebrow">System overview</p>
           <h3 id={`${id}-overview-title`}>{system.overview.identity}</h3>
         </div>
         <p>{system.overview.summary}</p>

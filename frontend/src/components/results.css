@@ -1,0 +1,11 @@
+.result-exports { margin: 24px 0; padding: 24px; border: 1px solid var(--line); background: var(--surface); }
+.result-exports[hidden] { display: none; }
+.export-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.export-heading h3 { font-size: 18px; font-weight: 600; }
+.result-exports .output-navigation { margin-top: 20px; }
+.result-exports .output-controls { justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.result-exports .technical-preview { max-height: 480px; overflow: auto; }
+.section-help { font-size: 13px; margin-top: 8px; color: var(--muted); }
+.section-help summary { cursor: pointer; }
+.section-help p { max-width: 65ch; margin-top: 8px; }
+@media(max-width: 540px) { .result-exports { padding: 16px; } .result-heading { align-items: flex-start; } .result-heading .action-button { width: auto; min-width: 0; } }

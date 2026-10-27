@@ -76,6 +76,7 @@ try {
     await page.getByRole('button', { name: `View ${name} design`, exact: true }).click();
     const preview = page.locator('#saved-design-preview');
     await preview.getByRole('heading', { name: 'Design findings' }).waitFor();
+    await preview.getByRole('button', { name: 'Export design', exact: true }).click();
     for (const [tab, variant, bytes, filename] of [
       ['DESIGN.md', 'Extended', expected.documents.extended, mixed ? 'mixed-design.md' : 'design.md'],
       ['DESIGN.md', 'Compact', expected.documents.compact, mixed ? 'mixed-design-compact.md' : 'design-compact.md'],
@@ -85,7 +86,6 @@ try {
     ]) {
       await preview.getByRole('tab', { name: tab, exact: true }).click();
         if (variant) await preview.getByRole('button', { name: variant, exact: true }).click();
-      await preview.getByRole('button', { name: 'View code', exact: true }).click();
       await preview.getByRole('button', { name: 'Copy', exact: true }).click();
       await preview.getByRole('button', { name: 'Copied', exact: true }).waitFor();
       assert.equal(await page.evaluate(() => navigator.clipboard.readText()), bytes);
@@ -96,7 +96,7 @@ try {
       assert.equal(await readFile(await download.path(), 'utf8'), bytes);
       checks.push(`${id}: ${variant || tab} clipboard/download matches`);
     }
-    await preview.getByRole('button', { name: 'View design', exact: true }).click();
+    await preview.getByRole('button', { name: 'Close export', exact: true }).click();
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await overflow(`${id}-${width}`);

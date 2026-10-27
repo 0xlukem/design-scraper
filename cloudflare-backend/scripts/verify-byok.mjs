@@ -97,6 +97,7 @@ async function configure(provider = "gemini") {
 }
 async function outputs(payload, kind) {
   const calls = analyses;
+  await page.getByRole("button", { name: "Export design", exact: true }).click();
   for (const [tab, variant, expected, filename] of [
     ["DESIGN.md", "Extended", payload.documents.extended, kind === "mix" ? "mixed-design.md" : "design.md"],
     ["DESIGN.md", "Compact", payload.documents.compact, kind === "mix" ? "mixed-design-compact.md" : "design-compact.md"],
@@ -106,7 +107,6 @@ async function outputs(payload, kind) {
   ]) {
     await page.getByRole("tab", { name: tab, exact: true }).click();
     if (variant) await page.getByRole("button", { name: variant, exact: true }).click();
-    await page.getByRole("button", { name: "View code", exact: true }).click();
     await page.getByRole("button", { name: "Copy", exact: true }).click();
     await page.getByRole("button", { name: "Copied", exact: true }).waitFor();
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), expected);

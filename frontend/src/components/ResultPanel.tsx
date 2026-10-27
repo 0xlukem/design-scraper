@@ -2,8 +2,6 @@ import TelemetrySummary from './TelemetrySummary'
 import AnalysisErrorPanel from './AnalysisErrorPanel'
 import type { AnalysisIssue } from '../analysisError'
 import {
-  Code,
-  Eye,
   Scan,
 } from '@phosphor-icons/react'
 import { useId, useRef, useState } from 'react'
@@ -21,6 +19,7 @@ import LoadingSkeleton from './LoadingSkeleton'
 import SyntaxHighlightedCode from './SyntaxHighlightedCode'
 import UsageSummary from './UsageSummary'
 import VisualInspector from './VisualInspector'
+import './results.css'
 
 interface ResultPanelProps {
   mode: AppMode
@@ -200,19 +199,9 @@ export default function ResultPanel({
     <section className={`result-shell ${mixResult ? 'result-shell-wild' : ''}`}>
       <div className="result-heading" ref={controls} tabIndex={-1} aria-label="Result controls">
         <div>
-          <span className="section-kicker result-ready">Your ingredients, decoded</span>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-            {currentSelection.view === 'visual' ? 'Design findings' : downloadName}
-          </h2>
+          <h2 className="text-3xl font-semibold tracking-tight">Design findings</h2>
         </div>
-        <DownloadButton
-          key={`${selectedOutput.id}-${currentSelection.documentVariant}`}
-          content={selectedOutput.content}
-          filename={downloadName}
-          mimeType={selectedOutput.mimeType}
-          downloadLabel={`Download ${downloadName}`}
-          contentLabel={`${currentSelection.documentVariant === 'compact' && selectedOutput.id === 'markdown' ? 'compact ' : ''}${selectedOutput.label}`}
-        />
+        <button type="button" className="action-button" aria-expanded={currentSelection.view === 'raw'} aria-controls={`${panelId}-exports`} onClick={() => setSelection({ ...currentSelection, result, view: currentSelection.view === 'raw' ? 'visual' : 'raw' })}>Export design</button>
       </div>
 
       {mixResult ? (
@@ -245,7 +234,9 @@ export default function ResultPanel({
           </div>
         </div>
       )}
-      <p className="field-label mt-6">Export format</p>
+      <section id={`${panelId}-exports`} className="result-exports" aria-label="Export design" hidden={currentSelection.view !== 'raw'}>{currentSelection.view === 'raw' && <>
+        <div className="export-heading"><h3>Choose a format</h3><button type="button" className="text-button" onClick={() => { setSelection({ ...currentSelection, result, view: 'visual' }); controls.current?.querySelector('button')?.focus() }}>Close export</button></div>
+
       <div className="output-navigation">
         <div className="output-tabs" role="tablist" aria-label="Design system outputs">
           {outputs.map((output, index) => (
@@ -280,28 +271,13 @@ export default function ResultPanel({
               ))}
             </div>
           ) : (
-            <span className="output-control-note">Single technical export</span>
+            null
           )}
-          <div className="segmented-control" role="group" aria-label="Output view">
-            <button
-              type="button"
-              aria-pressed={currentSelection.view === 'visual'}
-              disabled={!result.design_system}
-              onClick={() => setSelection({ ...currentSelection, result, view: 'visual' })}
-              title={result.design_system ? undefined : 'Visual data is unavailable for this result'}
-            >
-              <Eye size={17} weight="bold" aria-hidden="true" />
-              View design
-            </button>
-            <button
-              type="button"
-              aria-pressed={currentSelection.view === 'raw'}
-              onClick={() => setSelection({ ...currentSelection, result, view: 'raw' })}
-            >
-              <Code size={17} weight="bold" aria-hidden="true" />
-              View code
-            </button>
-          </div>
+          <DownloadButton
+            key={`${selectedOutput.id}-${currentSelection.documentVariant}`}
+            content={selectedOutput.content} filename={downloadName} mimeType={selectedOutput.mimeType}
+            downloadLabel={`Download ${downloadName}`} contentLabel={selectedOutput.label}
+          />
         </div>
       </div>
       <div
@@ -309,19 +285,14 @@ export default function ResultPanel({
         role="tabpanel"
         aria-labelledby={`${panelId}-output-tab-${selectedOutput.id}`}
       >
-        {currentSelection.view === 'visual' && result.design_system ? (
-          <VisualInspector system={result.design_system} onBackToControls={() => {
-            controls.current?.focus({ preventScroll: true })
-            controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
-          }} />
-        ) : currentSelection.view === 'raw' ? (
-          <SyntaxHighlightedCode
-            content={selectedOutput.content}
-            language={selectedOutput.language}
-            label={`${selectedOutput.label} raw output`}
-          />
-        ) : null}
+        <SyntaxHighlightedCode content={selectedOutput.content} language={selectedOutput.language} label={`${selectedOutput.label} raw output`} />
       </div>
+      </>}</section>
+      {result.design_system ? <VisualInspector system={result.design_system} onBackToControls={() => {
+        setSelection({ ...currentSelection, result, view: 'raw' })
+        controls.current?.querySelector('button')?.focus({ preventScroll: true })
+        controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      }} /> : <p className="field-help">Visual evidence is unavailable for this saved response. Its original export is available above.</p>}
       {historical ? <details className="provider-rates"><summary>Original analysis usage</summary><p className="field-help">Historical usage from the saved analysis. Opening or downloading this design adds no usage.</p>
         {result.telemetry && <TelemetrySummary telemetry={result.telemetry} />}
         {result.metadata.usage ? <UsageSummary usage={result.metadata.usage} /> : <p>Usage unavailable.</p>}
