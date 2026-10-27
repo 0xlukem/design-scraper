@@ -38,8 +38,8 @@ it('shows zero only for confirmed no-call failures, not disconnected work', () =
     { id: 1, funding: 'demo', provider: 'gemini', outcome: 'failed', telemetry: { ...telemetry, final: true, usage_status: 'not_called', provider_calls: 0, generation_attempts: 0, auxiliary_calls: 0 } },
     { id: 2, funding: 'byok', provider: 'openai', outcome: 'cancelled', telemetry },
   ]} />)
-  expect(within(screen.getByRole('row', { name: /#1/ })).getByText('US$0.00000')).toBeInTheDocument()
-  expect(within(screen.getByRole('row', { name: /#2/ })).getAllByText('Unknown')).toHaveLength(3)
+  expect(within(screen.getByText('for analysis #1').closest('li')!).getByText('US$0.00000 · covered by Design Scraper')).toBeInTheDocument()
+  expect(within(screen.getByText('for analysis #2').closest('li')!).getAllByText('Unknown')).toHaveLength(4)
   expect(screen.getByText('Last confirmed counters. Remote work may continue; final usage is unknown.')).toBeInTheDocument()
 })
 it('reads public quotas without an administrative credential or analysis request', async () => {
@@ -76,5 +76,5 @@ it('retains last counters on cancellation without claiming final consumption', a
   fireEvent.click(screen.getByRole('button', { name: 'Stop waiting' }))
   await act(async () => { window.location.hash = '/activity'; window.dispatchEvent(new HashChangeEvent('hashchange')) })
   expect(await screen.findByText('Last confirmed counters. Remote work may continue; final usage is unknown.')).toBeInTheDocument()
-  expect(screen.getByRole('row', { name: /#1/ })).toHaveTextContent('Unknown')
+  expect(screen.getByText('for analysis #1').closest('li')!).toHaveTextContent('Unknown')
 })

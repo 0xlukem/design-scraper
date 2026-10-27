@@ -3,7 +3,7 @@ import { getSharedQuota } from '../api'
 import type { PublicQuota } from '../../../cloudflare-backend/src/telemetry-contract'
 import './site-availability.css'
 
-export default function SharedBudget({ revision, active, usingOwnKey = false }: { revision: number; active: boolean; usingOwnKey?: boolean }) {
+export default function SharedBudget({ revision, active, usingOwnKey = false, onUseKey }: { revision: number; active: boolean; usingOwnKey?: boolean; onUseKey?: () => void }) {
   const [quota, setQuota] = useState<PublicQuota | null>(null)
   const [refresh, setRefresh] = useState(0)
   const [error, setError] = useState('')
@@ -31,21 +31,22 @@ export default function SharedBudget({ revision, active, usingOwnKey = false }: 
 
   return <section className="session-usage site-availability" aria-labelledby="shared-budget-title">
     <div className="availability-heading">
-      <div><h2 id="shared-budget-title">Design Scraper</h2></div>
-      <button className="secondary-button" type="button" disabled={loading} onClick={() => setRefresh(n => n + 1)}>{loading ? 'Refreshing…' : error ? 'Try again' : 'Check availability'}</button>
+      <div><h2 id="shared-budget-title">Service availability</h2></div>
+      <button className="text-button" type="button" disabled={loading} onClick={() => setRefresh(n => n + 1)}>{loading ? 'Checking…' : 'Check availability'}</button>
     </div>
     <div className="availability-status" role="status" data-state={error ? 'error' : loading ? 'loading' : exhausted || busy || quota && !quota.demo_budget_available && !usingOwnKey ? 'limited' : 'ready'}>
       <strong>{status}</strong>
-      {error ? <p>{error} {quota ? 'The figures below are from the last successful update.' : 'Availability is unknown; this does not mean the quota is used up.'}</p>
+      {error ? <p>We couldn’t check availability. Try checking again.{quota && ' Limits below are from the last successful update.'}</p>
         : exhausted ? <p>Wait for the daily reset. Your own API key also uses the site’s analysis and capture limits.</p>
         : busy ? <p>Try again when the current analysis finishes.</p>
-        : quota && !quota.demo_budget_available && !usingOwnKey ? <p>The included AI is unavailable. You can use your own key while analysis and capture capacity remain.</p>
+        : quota && !quota.demo_budget_available && !usingOwnKey ? <p>Included AI is at capacity. You can continue with your own key.{onUseKey && <button type="button" className="text-button" onClick={onUseKey}>Set up my API key</button>}</p>
         : null}
     </div>
     <details className="availability-disclosure"><summary>Service limits</summary>
+    {error && <p className="field-help">{error}</p>}
     <dl className="availability-metrics" aria-label={error && quota ? 'Last known site capacity' : 'Site capacity'} aria-busy={loading}>
-      <div><dt>Analyses left today</dt><dd>{quota ? quota.analyses.remaining : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${quota.analyses.limit} analyses site-wide` : 'Waiting for the site API'}</dd></div>
-      <div><dt>Capture time left</dt><dd>{quota ? `${Number((quota.capture.remaining_ms / 60000).toFixed(2))} min` : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${Number((quota.capture.limit_ms / 60000).toFixed(2))} minutes today` : 'Waiting for the site API'}</dd></div>
+      <div><dt>Analyses left today</dt><dd>{quota ? quota.analyses.remaining : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${quota.analyses.limit} analyses site-wide` : 'Not available yet'}</dd></div>
+      <div><dt>Capture time left</dt><dd>{quota ? `${Number((quota.capture.remaining_ms / 60000).toFixed(2))} min` : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${Number((quota.capture.limit_ms / 60000).toFixed(2))} minutes today` : 'Not available yet'}</dd></div>
       <div><dt>Analyses running</dt><dd>{quota ? `${quota.concurrency.active} / ${quota.concurrency.limit}` : '—'}</dd><dd className="availability-metric-note">Shared processing capacity</dd></div>
       <div><dt>Included AI</dt><dd className="availability-budget">{quota ? quota.demo_budget_available ? 'Available' : 'At capacity' : '—'}</dd><dd className="availability-metric-note">Covered by Design Scraper</dd></div>
     </dl>
