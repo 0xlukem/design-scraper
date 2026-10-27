@@ -55,12 +55,12 @@ try {
   await spending.locator('summary').filter({ hasText: 'Run details' }).click();
   await spending.getByLabel('Analysis telemetry').waitFor();
   assert.match(await spending.getByLabel('Analysis telemetry').innerText(), /Provider calls: 2.*Generation attempts: 1.*Auxiliary calls: 1/);
-  checks.push('NDJSON result and measured provider/generation/auxiliary calls in spending table');
+  checks.push('NDJSON result and measured provider/generation/auxiliary calls in activity details');
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await page.getByRole('region', { name: 'Design Scraper', exact: true }).screenshot({ path: `${reports}/budget-${width}.png` });
+    await page.getByRole('region', { name: 'Service availability', exact: true }).screenshot({ path: `${reports}/budget-${width}.png` });
     checks.push(`Site availability at ${width}px, no page overflow`);
   }
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);

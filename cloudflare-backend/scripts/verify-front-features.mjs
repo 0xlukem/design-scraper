@@ -38,7 +38,7 @@ try {
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   await page.getByRole('tab', { name: 'Models & rates', exact: true }).click();
   await page.getByRole('cell', { name: 'gemini-test', exact: true }).waitFor();
-  assert.equal(await page.getByRole('region', { name: 'Models & estimated rates' }).getByText('Unavailable', { exact: true }).count(), 6);
+  assert.equal(await page.getByRole('region', { name: 'Model rates' }).getByText('Unavailable', { exact: true }).count(), 6);
   assert.equal(await page.getByLabel('Provider API key').count(), 0);
   checks.push('Rates are available without a key and preserve unavailable pricing');
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
@@ -107,7 +107,7 @@ try {
   assert.equal(analyses, 0);
   assert.equal(quotaRequests, quotaBeforeLibrary, 'Browsing the library never checks the shared allowance');
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-  await page.getByText('No analyses yet.', { exact: false }).waitFor();
+  await page.getByText('No analyses in this session.', { exact: false }).waitFor();
   checks.push('Gallery: zero analysis requests and no session consumption');
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).waitFor();

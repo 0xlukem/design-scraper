@@ -93,7 +93,7 @@ async function configure(provider = "gemini") {
   assert.equal(await page.getByLabel("Provider API key", { exact: true }).inputValue(), "");
   await page.getByLabel("Provider API key", { exact: true }).fill(key);
   await page.getByRole("checkbox", { name: /I understand and accept/ }).check();
-  await page.getByRole("button", { name: "Use this key", exact: true }).click();
+  await page.getByRole("button", { name: "Save key", exact: true }).click();
 }
 async function outputs(payload, kind) {
   const calls = analyses;
@@ -200,6 +200,7 @@ try {
       checks.push(`${provider}: provider auth error and local attempt limit`);
     }
     await page.getByRole("button", { name: /Use my API key|Manage key/, exact: true }).click();
+    await page.getByText("Usage & key removal", { exact: true }).click();
     await page.getByRole("button", { name: "Clear key", exact: true }).click();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).inputValue(), "");
     assert.equal(await page.getByRole("checkbox", { name: /I understand and accept/ }).isChecked(), false);
@@ -218,6 +219,7 @@ try {
     await page.keyboard.press("Tab");
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).evaluate(e => e === document.activeElement), true);
     assert.ok(await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle !== "none"));
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await page.getByRole("button", { name: "Use Design Scraper", exact: true }).click();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).count(), 0);
     await page.getByRole("button", { name: "Use my API key", exact: true }).click();
