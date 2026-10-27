@@ -119,3 +119,21 @@
  .export-dialog .output-actions { display: flex; flex-wrap: wrap; gap: 12px; }
  .export-dialog .output-actions button { min-width: 0; flex: 1; }
 }
+
+/* Programmatic region focus announces navigation without outlining the whole page. */
+.inspector-active-panel:focus { outline: none; }
+.inspector-workspace .component-picker { max-height: 460px; }
+.inspector-workspace .type-scale { gap: 0; }
+.type-entry { border-top: 1px solid var(--line); }
+.type-entry > summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 56px; cursor: pointer; font-size: 14px; }
+.type-entry > summary::after { content: '+'; font-size: 20px; }
+.type-entry[open] > summary::after { content: '−'; }
+.type-entry > summary strong { font-weight: 550; margin-right: auto; }
+.type-entry > summary span { color: var(--muted); font: 12px/1.4 'Geist Mono Variable', monospace; }
+.inspector-workspace .type-entry .type-sample { border-top: 0; padding: 12px 0 24px; }
+.inspector-workspace .spacing-value { padding: 8px 0; }
+.inspector-workspace .spacing-aliases { margin-top: 2px; }
+@media(max-width: 540px) {
+ .type-entry > summary { gap: 12px; }
+ .type-entry > summary span { text-align: right; }
+}
