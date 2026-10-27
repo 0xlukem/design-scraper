@@ -63,7 +63,7 @@ it('separates funding and unknown costs without reporting a complete subtotal', 
   expect(screen.getByText('Design Scraper / gemini · 2 requests')).toBeInTheDocument()
   expect(screen.getByText('Your API key / openai · 1 requests')).toBeInTheDocument()
   expect(screen.getByText('1 with unknown or incomplete cost · partial subtotal')).toBeInTheDocument()
-  expect(within(screen.getByRole('row', { name: /#3/ })).getAllByText('Unknown')).toHaveLength(3)
+  expect(within(screen.getByText('for analysis #3').closest('li')!).getAllByText('Unknown')).toHaveLength(4)
 })
 
 it('opens a saved design and changes formats with no API calls', async () => {

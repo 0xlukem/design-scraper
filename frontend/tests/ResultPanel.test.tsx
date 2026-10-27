@@ -26,16 +26,18 @@ describe('ResultPanel experience', () => {
   it('opens export on demand, preserves visual evidence and returns focus on close', () => {
     renderResult()
     expect(screen.queryByRole('tab')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Color system' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Overview' })).toBeVisible()
+    screen.getByRole('button', { name: 'Export design', exact: true }).focus()
     fireEvent.click(screen.getByRole('button', { name: 'Export design', exact: true }))
     for (const name of ['DESIGN.md', 'Tailwind v4', 'CSS Variables', 'Design Tokens', 'DESIGN.md']) {
       fireEvent.click(screen.getByRole('tab', { name, exact: true }))
-      expect(screen.getByRole('heading', { name: 'Color system' })).toBeVisible()
+      expect(screen.getByRole('heading', { name: 'Overview' })).toBeVisible()
     }
     fireEvent.click(screen.getByRole('button', { name: 'Compact' }))
     fireEvent.click(screen.getByRole('button', { name: 'Close export' }))
     expect(screen.queryByRole('tab')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Export design', exact: true })).toHaveFocus()
+    screen.getByRole('button', { name: 'Export design', exact: true }).focus()
     fireEvent.click(screen.getByRole('button', { name: 'Export design', exact: true }))
     expect(screen.getByRole('button', { name: 'Compact' })).toHaveAttribute('aria-pressed', 'true')
   })
@@ -49,7 +51,8 @@ describe('ResultPanel experience', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     try {
       render(<ResultPanel mode="single" loading={false} error={null} result={result} onRetry={vi.fn()} />)
-      expect(screen.getByText('Source: web 1')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Evidence & gaps' }))
+      expect(screen.getByText('Source: https://example.com/')).toBeInTheDocument()
       expect(screen.getByText('Source: web 2')).toBeInTheDocument()
       expect(error).not.toHaveBeenCalled()
     } finally { error.mockRestore() }
@@ -62,7 +65,7 @@ describe('ResultPanel experience', () => {
     const inspectors = container.querySelectorAll('.visual-inspector')
     expect(inspectors).toHaveLength(2)
     const regions = [...container.querySelectorAll('.visual-inspector section[aria-labelledby]')]
-    expect(regions).toHaveLength(16)
+    expect(regions).toHaveLength(2)
     const ids = regions.map(region => region.getAttribute('aria-labelledby')!)
     expect(new Set(ids).size).toBe(ids.length)
     regions.forEach((region, index) => {
@@ -78,8 +81,9 @@ describe('ResultPanel experience', () => {
     spec.size = null
     spec.line_height = null
     render(<ResultPanel mode="single" loading={false} error={null} result={result} onRetry={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Typography', exact: true }))
     expect(screen.getByRole('heading', { name: 'Typography' })).toBeInTheDocument()
-    expect(screen.getAllByText(/Aa — Design systems stay coherent/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Aa — Design/).length).toBeGreaterThan(0)
     fireEvent.click(screen.getByRole('button', { name: 'Export design' }))
     expect(screen.getByLabelText('DESIGN.md raw output')).toBeInTheDocument()
   })
@@ -97,22 +101,20 @@ describe('ResultPanel experience', () => {
     expect(screen.getByText(/Consumption depends on the model/)).toBeInTheDocument()
   })
 
-  it('opens as a visual inspector with grouped evidence, observed states, and gaps', () => {
+  it('shows a concise overview and opens each section with accurate evidence labels', () => {
     renderResult()
-
-    expect(screen.getByRole('button', { name: 'Export design', exact: true })).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.getByRole('heading', { name: 'Color system' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Brand' })).toBeInTheDocument()
-    expect(screen.getByText('brand-primary')).toBeInTheDocument()
-    expect(screen.getAllByText('Detected').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: 'Overview' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Colors' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Colors', exact: true }))
+    expect(screen.getByRole('heading', { name: 'Brand' })).toBeVisible()
+    expect(screen.getByText('Brand primary')).toBeVisible()
     expect(screen.getAllByLabelText('92 percent confidence').length).toBeGreaterThan(0)
-    expect(screen.getByRole('heading', { name: 'Typography' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Spacing & shape' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Elevation' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Observed components' })).toBeInTheDocument()
-    expect(screen.getByText('active/pressed')).toBeInTheDocument()
-    expect(screen.getByText('Not observed')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Responsive behavior' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Components', exact: true }))
+    expect(screen.getByText('active/pressed')).toBeVisible()
+    expect(screen.getByText('Not observed')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Responsive', exact: true }))
+    expect(screen.getByRole('heading', { name: 'Detected rules' })).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Evidence & gaps', exact: true }))
     expect(screen.getByText('focus-evidence-limited')).toBeInTheDocument()
   })
 
@@ -158,7 +160,8 @@ describe('ResultPanel experience', () => {
 
   it('copies an individual visual token without changing the selected output', () => {
     renderResult()
-    const brandRow = screen.getByText('brand-primary').closest('.token-evidence-line')
+    fireEvent.click(screen.getByRole('button', { name: 'Colors', exact: true }))
+    const brandRow = screen.getByText('Brand primary').closest('.token-evidence-line')
     expect(brandRow).not.toBeNull()
     fireEvent.click(within(brandRow as HTMLElement).getByRole('button', { name: /copy brand-primary token/i }))
 
@@ -180,4 +183,39 @@ describe('ResultPanel experience', () => {
     expect(screen.getByRole('button', { name: 'Export design', exact: true })).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByLabelText('DESIGN.md raw output')).toBeInTheDocument()
   })
+})
+
+it('keeps interpreted responsive changes out of detected rules and follows token provenance', () => {
+  const result = structuredClone(resultFixture)
+  result.design_system!.responsive.changes[0].status = 'interpreted'
+  render(<ResultPanel mode="single" loading={false} error={null} result={result} onRetry={vi.fn()} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Responsive', exact: true }))
+  expect(screen.queryByRole('heading', { name: 'Detected rules' })).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'AI interpretations' })).toBeVisible()
+  fireEvent.click(screen.getByText('Evidence · AI interpretation'))
+  const token = screen.getByText('Evidence · AI interpretation').closest('.token-evidence-line')!
+  fireEvent.click(within(token as HTMLElement).getByRole('button', { name: 'View source & gaps' }))
+  expect(screen.getByRole('heading', { name: 'Evidence & gaps' })).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Show all sources' })).toBeVisible()
+})
+
+it('copies all five exports byte-for-byte without changing the underlying result', async () => {
+  renderResult()
+  fireEvent.click(screen.getByRole('button', { name: 'Export design', exact: true }))
+  const formats = [
+    ['DESIGN.md', resultFixture.documents!.extended],
+    ['Tailwind v4', resultFixture.exports!.tailwind],
+    ['CSS Variables', resultFixture.exports!.css_variables],
+    ['Design Tokens', resultFixture.exports!.design_tokens],
+  ] as const
+  for (const [name, content] of formats) {
+    fireEvent.click(screen.getByRole('tab', { name, exact: true }))
+    fireEvent.click(screen.getByRole('button', { name: 'Copy', exact: true }))
+    expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(content)
+    await screen.findByRole('button', { name: 'Copied' })
+  }
+  fireEvent.click(screen.getByRole('tab', { name: 'DESIGN.md' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Compact' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Copy', exact: true }))
+  expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(resultFixture.documents!.compact)
 })

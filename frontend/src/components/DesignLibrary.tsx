@@ -73,7 +73,7 @@ export default function DesignLibrary({ active = true, busy = false, onUseRefere
       {!result && <h1 className="library-loading-title">{selected.name}</h1>}
       {!result && !message && <p role="status">Opening saved design…</p>}
       {message && <p role="alert">{message} <button type="button" onClick={() => setRevision(value => value + 1)} className="text-button">Try again</button></p>}
-      {result && <ResultPanel title={selected.name} mode={selected.mode} loading={false} error={null} result={result} historical onRetry={() => {}} />}
+      {result && <ResultPanel active={active} headingLevel="h1" title={selected.name} mode={selected.mode} loading={false} error={null} result={result} historical onRetry={() => {}} />}
     </div>}
   </section>
 }
