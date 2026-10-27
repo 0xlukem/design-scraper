@@ -35,7 +35,7 @@ try {
     const excluded = page.getByLabel(bias === -50 ? 'Second website URL' : 'First website URL');
     await active.fill('https://milligram.io/');
     await excluded.fill('invalid-unused-source');
-    await page.getByLabel('Mix balance').fill(String(bias));
+    await page.getByLabel('Mix balance').fill(String(50 - bias));
     assert.equal(await excluded.isDisabled(), true);
     assert.equal(await excluded.getAttribute('required'), null);
     const before = requests.length;
@@ -44,7 +44,7 @@ try {
     assert.equal(requests.length, before + 1);
     assert.deepEqual(requests.at(-1), { path: '/api/analyze', payload: { url: 'https://milligram.io/' } });
     await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-    const row = page.getByRole('row', { name: /#1/ });
+    const row = page.locator('.session-run').filter({ hasText: '#1' });
     assert.match(await row.innerText(), /milligram.io/);
     assert.doesNotMatch(await row.innerText(), /invalid-unused-source/);
     checks.push(`${bias}: excluded invalid URL cannot block submission; only active URL is sent and recorded`);
@@ -61,8 +61,10 @@ try {
     await page.setViewportSize({ width, height: 1000 });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    const widths = await page.locator('.blend-proportion span').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().width));
-    assert.ok(Math.abs(widths[0] / (widths[0] + widths[1]) - 0.25) < 0.01);
+    const balance = page.getByLabel('Mix balance');
+    assert.equal(await balance.inputValue(), '25');
+    assert.equal(await balance.evaluate(el => getComputedStyle(el).getPropertyValue('--first-share').trim()), '25%');
+    assert.match(await balance.evaluate(el => getComputedStyle(el).backgroundImage), /25%/);
     await page.locator('#analysis-form').screenshot({ path: `${artifacts}/mix-form-${width}.png` });
     checks.push(`${width}px: domain labels and true 25/75 proportions without overflow`);
   }
@@ -70,17 +72,17 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Long domains wrap at 320px');
   await page.getByLabel('First website URL').fill('https://getbootstrap.com/docs/5.3/examples/heroes/');
   const slider = page.getByLabel('Mix balance');
-  await slider.focus(); await page.keyboard.press('ArrowLeft');
-  assert.equal(await slider.inputValue(), '0');
+  await slider.focus(); await page.keyboard.press('ArrowRight');
+  assert.equal(await slider.inputValue(), '50');
   assert.match(await slider.getAttribute('aria-valuetext'), /getbootstrap.com 50 percent, milligram.io 50 percent/);
   checks.push('Keyboard changes and accessible domain/percentage labels agree');
   await page.getByLabel('First website URL').fill('https://example.com');
   await page.getByLabel('Second website URL').fill('https://example.com/');
   assert.equal(await page.getByRole('button', { name: 'Mix designs', exact: true }).isDisabled(), true);
   await page.getByRole('alert').filter({ hasText: 'two different URLs' }).waitFor();
-  await slider.fill('-50');
+  await slider.fill('100');
   assert.equal(await page.getByRole('button', { name: 'Analyze selected source', exact: true }).isEnabled(), true);
-  await slider.fill('0');
+  await slider.fill('50');
   assert.equal(await page.getByLabel('Second website URL').inputValue(), 'https://example.com/');
   assert.equal(requests.length, 2);
   checks.push('Duplicate sources blocked locally; excluded input preserved when returning to a blend');
