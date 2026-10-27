@@ -53,7 +53,7 @@ try {
   await page.getByRole('heading', { name: 'Design findings' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
-  await spending.getByText('Run details', { exact: true }).click();
+  await spending.locator('summary').filter({ hasText: 'Run details' }).click();
   await spending.getByLabel('Analysis telemetry').waitFor();
   assert.match(await spending.getByLabel('Analysis telemetry').innerText(), /Provider calls: 2.*Generation attempts: 1.*Auxiliary calls: 1/);
   checks.push('NDJSON result and measured provider/generation/auxiliary calls in spending table');
@@ -66,6 +66,7 @@ try {
   }
   await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
+  assert.ok(requests.every(r => r.path !== '/api/diagnostics/budget' && !r.authenticated));
   checks.push('Browser storage stays empty');
   assert.deepEqual(errors, []); assert.deepEqual(unexpected, []);
   await writeFile('reports/telemetry-replay.json', JSON.stringify({ checks, errors, unexpectedNetwork: unexpected, requests }, null, 2));

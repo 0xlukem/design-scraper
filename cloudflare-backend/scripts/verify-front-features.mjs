@@ -123,13 +123,14 @@ try {
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).waitFor();
   assert.equal(quotaRequests, 1, 'Opening the form never checks the shared allowance by itself');
+  const quotaBeforeIntent = quotaRequests;
   const chips = page.getByRole('group', { name: 'Try a reference', exact: true });
   const firstSingle = catalog.find(entry => entry.mode === 'single');
   await chips.getByRole('button', { name: new URL(firstSingle.sources[0]).hostname.replace(/^www\./, ''), exact: true }).click();
   assert.equal(await page.getByLabel('Website URL', { exact: true }).inputValue(), firstSingle.sources[0]);
   assert.equal(await page.getByLabel('Website URL', { exact: true }).evaluate(element => element === document.activeElement), true);
   await page.getByText('17 of 20 shared analyses left today', { exact: false }).waitFor();
-  assert.equal(quotaRequests, 2, 'Showing intent checks the allowance exactly once');
+  assert.equal(quotaRequests, quotaBeforeIntent + 1, 'Showing intent checks the allowance exactly once');
   assert.equal(analyses, 0, 'Suggestions never submit an analysis');
   checks.push('Suggestion chips prefill the form, focus it and reveal the remaining shared allowance without submitting');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();

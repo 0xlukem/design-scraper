@@ -46,7 +46,7 @@ await new Promise(resolve => secureServer.listen(0, "127.0.0.1", resolve));
 try {
   const http = `http://127.0.0.1:${server.address().port}`;
   const https = `https://127.0.0.1:${secureServer.address().port}`;
-  for (const [script, url] of [["verify-landing.mjs", http], ["verify-pages.mjs", `${http}/app/`], ["verify-byok.mjs", `${https}/app/`], ["verify-front-features.mjs", `${http}/app/`], ["verify-telemetry.mjs", `${https}/app/`], ["verify-motion.mjs", `${http}/app/`]]) {
+  for (const [script, url] of [["verify-landing.mjs", http], ["verify-home-flow.mjs", http], ["verify-pages.mjs", `${http}/app/`], ["verify-byok.mjs", `${https}/app/`], ["verify-front-features.mjs", `${http}/app/`], ["verify-telemetry.mjs", `${https}/app/`], ["verify-motion.mjs", `${http}/app/`]]) {
     const child = spawn(process.execPath, ["scripts/" + script], { stdio: "inherit", env: { ...process.env, PAGES_URL: url, LOCAL_UI_HTTPS: "true" } });
     process.exitCode = await new Promise((resolve, reject) => {
       child.once("error", reject); child.once("exit", code => resolve(code ?? 1));
