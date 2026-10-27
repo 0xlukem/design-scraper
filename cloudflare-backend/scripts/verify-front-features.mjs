@@ -18,7 +18,7 @@ let analyses = 0, quotaRequests = 0, responseMode = 'success', finishSlow;
 const quota = { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true };
 const catalog = JSON.parse(await readFile('../frontend/src/examples/catalog.json', 'utf8'));
 const sample = JSON.parse(await readFile('../frontend/src/examples/milligram.json', 'utf8'));
-await context.route(`${api}/api/**`, async route => {
+await context.route("**/api/**", async route => {
   const headers = { 'access-control-allow-origin': site, 'access-control-expose-headers': 'Retry-After', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, GET, OPTIONS' };
   if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
   if (route.request().url().endsWith('/providers')) return route.fulfill({ headers, json: { providers: ['gemini', 'anthropic', 'openai', 'xai'].map(provider => ({ provider, model: `${provider}-test`, inputPrice: provider === 'gemini' ? 0.75 : null, outputPrice: provider === 'gemini' ? 4.5 : null })) } });
@@ -35,16 +35,14 @@ async function overflow(label) {
 }
 try {
   await page.goto(site);
-  await page.getByRole('button', { name: 'Use your own key', exact: true }).click();
-  await page.getByText('Models & estimated rates', { exact: true }).click();
+  await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
+  await page.getByRole('tab', { name: 'Models & rates', exact: true }).click();
   await page.getByRole('cell', { name: 'gemini-test', exact: true }).waitFor();
-  assert.equal(await page.getByRole('region', { name: 'Provider rates' }).getByText('Unavailable', { exact: true }).count(), 6);
-  checks.push('Provider rates preserve unavailable pricing');
-  await page.keyboard.press('Escape');
-  assert.equal(await page.getByRole('dialog').count(), 0);
-  assert.equal(await page.getByRole('button', { name: 'Use your own key', exact: true }).evaluate(e => e === document.activeElement), true);
-  await page.getByRole('button', { name: 'Use your own key', exact: true }).click();
-  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  assert.equal(await page.getByRole('region', { name: 'Model rates' }).getByText('Unavailable', { exact: true }).count(), 6);
+  assert.equal(await page.getByLabel('Provider API key').count(), 0);
+  checks.push('Rates are available without a key and preserve unavailable pricing');
+  await page.getByRole('link', { name: 'Analyze', exact: true }).click();
+  const quotaBeforeLibrary = quotaRequests;
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
   await page.reload();
   await page.getByRole('heading', { name: 'Design library', exact: true }).waitFor();
@@ -107,29 +105,20 @@ try {
     await page.getByRole('button', { name: 'Close design' }).click();
   }
   assert.equal(analyses, 0);
-  assert.equal(quotaRequests, 0, 'Browsing the library never checks the shared allowance');
+  assert.equal(quotaRequests, quotaBeforeLibrary, 'Browsing the library never checks the shared allowance');
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-  await page.getByText('No analyses yet.', { exact: false }).waitFor();
+  await page.getByText('No analyses in this session.', { exact: false }).waitFor();
   checks.push('Gallery: zero analysis requests and no session consumption');
-  await page.getByRole('link', { name: 'Design library', exact: true }).click();
-  await page.getByRole('button', { name: 'View Bootstrap × Milligram design', exact: true }).click();
-  await page.locator('#saved-design-preview').getByRole('heading', { name: 'Design findings' }).waitFor();
-  await page.getByRole('button', { name: 'Use these URLs in the form' }).click();
-  await page.getByLabel('First website URL').waitFor();
-  assert.equal(await page.getByLabel('First website URL').inputValue(), 'https://getbootstrap.com/docs/5.3/examples/heroes/');
-  assert.equal(await page.getByLabel('Mix balance').inputValue(), '25');
-  assert.equal(analyses, 0);
-  checks.push('Gallery prepares original URLs and bias without submitting');
-  await page.getByRole('tab', { name: /Extract design/ }).click();
+  await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).waitFor();
-  assert.equal(quotaRequests, 0, 'Opening the form never checks the shared allowance by itself');
+  const quotaBeforeIntent = quotaRequests;
   const chips = page.getByRole('group', { name: 'Try a reference', exact: true });
   const firstSingle = catalog.find(entry => entry.mode === 'single');
   await chips.getByRole('button', { name: new URL(firstSingle.sources[0]).hostname.replace(/^www\./, ''), exact: true }).click();
   assert.equal(await page.getByLabel('Website URL', { exact: true }).inputValue(), firstSingle.sources[0]);
   assert.equal(await page.getByLabel('Website URL', { exact: true }).evaluate(element => element === document.activeElement), true);
   await page.getByText('17 of 20 shared analyses left today', { exact: false }).waitFor();
-  assert.equal(quotaRequests, 1, 'Showing intent checks the allowance exactly once');
+  assert.equal(quotaRequests, quotaBeforeIntent + 1, 'Showing intent checks the allowance exactly once');
   assert.equal(analyses, 0, 'Suggestions never submit an analysis');
   checks.push('Suggestion chips prefill the form, focus it and reveal the remaining shared allowance without submitting');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
@@ -171,7 +160,8 @@ try {
   await page.getByRole('heading', { name: 'Design findings' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
-  await spending.getByText('Shared / gemini · 3 requests', { exact: true }).waitFor();
+  await spending.getByText('Estimated subtotals', { exact: true }).click();
+  await spending.getByText('Design Scraper / gemini · 3 requests', { exact: true }).waitFor();
   assert.ok(await spending.getByText('2 with unknown or incomplete cost · partial subtotal', { exact: true }).count());
   checks.push('Retry-After, unknown failed/cancelled costs, success counted once');
   for (const width of [1440, 768, 390, 320]) {

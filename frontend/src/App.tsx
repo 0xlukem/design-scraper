@@ -1,6 +1,9 @@
 import SharedBudget from './components/SharedBudget'
+import ProviderRates from './components/ProviderRates'
+import './components/activity.css'
 import { AnalysisError, makeIssue, toIssue } from './analysisError'
 import SessionUsage, { type UsageEntry } from './components/SessionUsage'
+import SessionRun from './components/SessionRun'
 import DesignLibrary from './components/DesignLibrary'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { analyzeWebsite, mixWebsites } from './api'
@@ -125,6 +128,8 @@ function App() {
   const controllers = useRef<Partial<Record<AppMode, AbortController>>>({})
   const providerAccess = useRef<ByokCredentials | null | undefined>(undefined)
   const [providerReady, setProviderReady] = useState(true)
+  const [usingOwnKey, setUsingOwnKey] = useState(false)
+  const [activityTab, setActivityTab] = useState<'activity' | 'models'>('activity')
   const setProviderAccess = useCallback((value: ByokCredentials | null | undefined) => {
     if (providerAccess.current?.key !== value?.key || providerAccess.current?.provider !== value?.provider || providerAccess.current !== value && !value) {
       setKeyStatus('unverified')
@@ -132,8 +137,11 @@ function App() {
     }
     providerAccess.current = value
     setProviderReady(value !== null)
+    setUsingOwnKey(value !== undefined)
   }, [])
   const [section, setSection] = useState(() => readSection())
+  const [runId, setRunId] = useState(readRunId)
+  const previousRun = useRef<number | null>(null)
   const [keyStatus, setKeyStatus] = useState<'unverified' | 'checking' | 'verified' | 'error'>('unverified')
   const [keyError, setKeyError] = useState('')
   const [settingsRevision, setSettingsRevision] = useState(0)
@@ -152,14 +160,16 @@ function App() {
   }, [retryAt])
   const main = useRef<HTMLElement>(null)
   useEffect(() => {
-    const sync = () => setSection(readSection())
+    const sync = () => { setSection(readSection()); setRunId(readRunId()) }
     window.addEventListener('hashchange', sync)
     return () => window.removeEventListener('hashchange', sync)
   }, [])
   useEffect(() => {
     main.current?.focus({ preventScroll: true })
     window.scrollTo?.({ top: 0, behavior: 'instant' })
-  }, [section])
+    if (section === 'activity' && runId === null && previousRun.current !== null) document.getElementById(`open-run-${previousRun.current}`)?.focus()
+    previousRun.current = runId
+  }, [section, runId])
   useEffect(() => {
     const brand = state.mode === 'mix' ? 'Mix It' : 'Design Scraper'
     document.title = section === 'analyze' ? `${brand} · ${state.mode === 'mix' ? 'Two references. Something new.' : 'Design, decoded.'}` : `${section === 'library' ? 'Design library' : 'Activity & costs'} · ${brand}`
@@ -191,8 +201,8 @@ function App() {
     const funding = providerAccess.current ? 'byok' as const : 'demo' as const
     const provider = providerAccess.current?.provider || 'gemini'
     let lastTelemetry: AnalysisTelemetry | undefined
-    const recordUsage = (outcome: UsageEntry['outcome'], usage?: AnalysisResult['metadata']['usage'], telemetry?: AnalysisTelemetry, requestSent?: boolean) =>
-      setUsageEntries(entries => [...entries, { id, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || provider, outcome, usage, telemetry, requestSent }])
+    const recordUsage = (outcome: UsageEntry['outcome'], usage?: AnalysisResult['metadata']['usage'], telemetry?: AnalysisTelemetry, requestSent?: boolean, result?: AnalysisResult, issue?: UsageEntry['issue']) =>
+      setUsageEntries(entries => [...entries, { id, mode, bias: mode === 'mix' ? state.mix.bias : undefined, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || provider, outcome, usage, telemetry, requestSent, result, issue }])
     dispatch({ type: 'request-start', mode, startedAt: Date.now() })
 
     try {
@@ -203,7 +213,7 @@ function App() {
       })
       if (controllers.current[mode] !== controller) return
       if (funding === 'byok' && providerAccess.current) setKeyStatus('verified')
-      recordUsage('completed', result.metadata.usage, result.telemetry)
+      recordUsage('completed', result.metadata.usage, result.telemetry, true, result)
       dispatch({ type: 'request-success', mode, result })
     } catch (error) {
       if (controllers.current[mode] !== controller) return
@@ -219,7 +229,7 @@ function App() {
             setKeyError(issue.code === 'PROVIDER_AUTH_ERROR' ? 'Key rejected. Check your key and provider.' : 'Provider unavailable. Check account limits and model access.')
           } else setKeyStatus(previousKeyStatus === 'verified' ? 'verified' : 'unverified')
         }
-        recordUsage('failed', issue.telemetry?.usage, issue.telemetry || lastTelemetry, issue.requestSent)
+        recordUsage('failed', issue.telemetry?.usage, issue.telemetry || lastTelemetry, issue.requestSent, undefined, issue)
         dispatch({ type: 'request-error', mode, message: issue })
       }
     } finally {
@@ -249,6 +259,22 @@ function App() {
   const cancel = (mode: AppMode) => controllers.current[mode]?.abort()
 
   const busy = state.single.loading || state.mix.loading
+  const restoreRun = (entry: UsageEntry, settings = false) => {
+    if (busy) return
+    const mode = entry.mode || 'single'
+    if (mode === 'single') dispatch({ type: 'set-single-url', value: entry.sources?.[0] || '' })
+    else {
+      dispatch({ type: 'set-mix-url', field: 'url1', value: entry.bias === 50 ? '' : entry.sources?.[0] || '' })
+      dispatch({ type: 'set-mix-url', field: 'url2', value: entry.bias === 50 ? entry.sources?.[0] || '' : entry.sources?.[1] || '' })
+      dispatch({ type: 'set-bias', value: entry.bias || 0 })
+    }
+    dispatch({ type: 'set-mode', mode }); setTargetMode(mode)
+    window.location.hash = '/analyze'; setSection('analyze'); setRunId(null)
+    requestAnimationFrame(() => {
+      if (settings) reviewSettings()
+      else document.getElementById(mode === 'single' ? 'single-url' : entry.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()
+    })
+  }
   const requestAllowance = useCallback(() => setAllowanceRequested(true), [])
   const changeMode = (mode: AppMode) => {
     if (mode === 'mix') new Image().src = sculptureArtwork
@@ -276,9 +302,22 @@ function App() {
         </button>
       </div>
     </header>
-    <main ref={main} tabIndex={-1} id="main-content" className="workspace-main">
-      {section === 'activity' && <div className="page-intro activity-intro"><span className="section-kicker">API capacity &amp; usage / 03</span><h1>Activity &amp; costs</h1><p>See what’s available. Track what you use.</p><p className="field-help">Site capacity is shared. Your activity lists analyses from this tab.</p></div>}
-      <div className={section === 'analyze' ? 'analysis-controls' : undefined} hidden={section === 'library'}>
+    <main ref={main} tabIndex={-1} id="main-content" className="workspace-main" data-page={section}>
+      {section === 'activity' && <div className="page-intro activity-intro"><h1>Activity &amp; costs</h1></div>}
+      <div className="activity-content" hidden={section !== 'activity'}>
+        {runId !== null ? <SessionRun entry={usageEntries.find(entry => entry.id === runId)} busy={busy} onRestore={restoreRun} /> : <>
+        {busy && <p role="status" className="form-notice">An analysis is running. <a href="#/analyze">View progress</a></p>}
+        <div className="activity-tabs" role="tablist" aria-label="Activity and model information" onKeyDown={event => {
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+          event.preventDefault()
+          const next = event.key === 'Home' ? 'activity' : event.key === 'End' ? 'models' : activityTab === 'activity' ? 'models' : 'activity'
+          setActivityTab(next); document.getElementById(`activity-tab-${next}`)?.focus()
+        }}>{(['activity', 'models'] as const).map(tab => <button key={tab} id={`activity-tab-${tab}`} type="button" role="tab" aria-selected={activityTab === tab} aria-controls={`activity-panel-${tab}`} tabIndex={activityTab === tab ? 0 : -1} onClick={() => setActivityTab(tab)}>{tab === 'activity' ? 'Activity' : 'Models & rates'}</button>)}</div>
+        <div id="activity-panel-activity" role="tabpanel" aria-labelledby="activity-tab-activity" hidden={activityTab !== 'activity'}><SessionUsage entries={usageEntries} /></div>
+        <div id="activity-panel-models" role="tabpanel" aria-labelledby="activity-tab-models" hidden={activityTab !== 'models'}><ProviderRates active={section === 'activity' && activityTab === 'models'} /></div>
+        </>}
+      </div>
+      <div className={section === 'analyze' ? 'analysis-controls' : 'activity-settings'} hidden={section === 'library' || section === 'activity' && runId !== null}>
       {section === 'analyze' && <HeroReveal mode={state.mode} paused={false}>
         <div className="section-kicker"><span className="kicker-dot" /> {state.mode === 'single' ? 'A tool for people who notice design' : 'Two references. Zero rules for good taste.'}</div>
         <h1 className="experience-headline">{state.mode === 'single' ? <>Design,<br /><span>decoded.</span></> : <><span className="mix-line-one">MIX</span><br /><span className="mix-line-two">IT UP.</span></>}</h1>
@@ -298,7 +337,7 @@ function App() {
           <li><span>01</span> CSS evidence</li><li><span>02</span> AI vision</li><li><span>03</span> Five exports</li>
         </ul>
       </HeroReveal>}
-      <div className={section === 'analyze' ? 'reference-box' : undefined}>
+      <div className={section === 'analyze' ? 'reference-box' : 'activity-access'}>
       {section === 'analyze' && <><div className="reference-topline"><span>{state.mode === 'single' ? 'DESIGN SCRAPER / WORKSPACE' : 'THE MIXING DESK'}</span><span>{state.mode === 'single' ? '01—05' : 'MAKE A BEAUTIFUL MESS'}</span></div><ModeToggle mode={state.mode} onChange={changeMode} /></>}
       {section === 'analyze' && <div className="reference-heading">
         <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : 'Good things collide.'}</h2></div>
@@ -316,10 +355,11 @@ function App() {
           <AllowanceHint requested={allowanceRequested} revision={usageEntries.length} />
         </section>
         {retryRemaining > 0 && <p className="form-notice" role="status">New analyses are available in {retryRemaining}s. You can edit your URLs or browse saved designs while you wait.</p>}
-        {!providerReady && <p className="form-notice" role="status">Finish setting up your key, or choose Shared allowance to analyze.</p>}
+        {!providerReady && <p className="form-notice" role="status">Finish setting up your key, or use Design Scraper to analyze.</p>}
         {busy && !state[state.mode].loading && <p role="status" className="form-notice">An analysis is running in the other mode. Switch back to see its progress.</p>}
         {state[state.mode].cancelled && <p role="status" className="cancellation-note">You stopped waiting. Work already started may still use quota. See Activity &amp; costs for the last available usage.</p>}
       </div>
+      {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={reviewSettings} />}
       <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
       {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
       </div>
@@ -334,11 +374,7 @@ function App() {
         </div>
       </div>
       <div hidden={section !== 'library'}><DesignLibrary /></div>
-      <div hidden={section !== 'activity'}>
-        {busy && <p role="status" className="form-notice">An analysis is running. <a href="#/analyze">View progress</a></p>}
-        <SharedBudget revision={usageEntries.length} active={section === 'activity'} />
-        <SessionUsage entries={usageEntries} />
-      </div>
+
     </main>
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
   </div>
@@ -351,6 +387,10 @@ const sections = [
 ] as const
 function readSection(): 'analyze' | 'library' | 'activity' {
   const value = window.location.hash.slice(2)
-  return value === 'library' || value === 'activity' ? value : 'analyze'
+  return value === 'library' ? 'library' : value === 'activity' || value.startsWith('activity/') ? 'activity' : 'analyze'
+}
+function readRunId() {
+  const match = window.location.hash.match(/^#\/activity\/(\d+)$/)
+  return match ? Number(match[1]) : null
 }
 export default App

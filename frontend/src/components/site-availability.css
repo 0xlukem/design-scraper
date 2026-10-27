@@ -29,3 +29,8 @@
   .availability-metrics dd { font-size: 1.75rem; }
   .availability-metrics dd.availability-budget { font-size: 1.3rem; }
 }
+.site-availability .availability-heading h2 { font-size: 22px; }
+.site-availability .availability-status { border: 0; padding: 0; margin-top: 12px; }
+.availability-disclosure { margin-top: 16px; }
+.availability-disclosure > summary { cursor: pointer; font-size: 14px; }
+.availability-disclosure .availability-key-note { font-size: 13px; color: var(--muted); }
