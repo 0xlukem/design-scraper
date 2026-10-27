@@ -161,6 +161,20 @@ function App() {
     window.scrollTo?.({ top: 0, behavior: 'instant' })
   }, [section])
   useEffect(() => {
+    const focusEntry = () => {
+      if (window.location.hash !== '#/analyze/start') return
+      requestAnimationFrame(() => {
+        if (window.location.hash !== '#/analyze/start') return
+        const input = document.getElementById('single-url')
+        input?.focus({ preventScroll: true })
+        document.getElementById('analysis-form')?.scrollIntoView({ block: 'center', behavior: 'instant' })
+      })
+    }
+    focusEntry()
+    window.addEventListener('hashchange', focusEntry)
+    return () => window.removeEventListener('hashchange', focusEntry)
+  }, [])
+  useEffect(() => {
     const brand = state.mode === 'mix' ? 'Mix It' : 'Design Scraper'
     document.title = section === 'analyze' ? `${brand} · ${state.mode === 'mix' ? 'Two references. Something new.' : 'Design, decoded.'}` : `${section === 'library' ? 'Design library' : 'Activity & costs'} · ${brand}`
   }, [section, state.mode])
@@ -350,7 +364,7 @@ const sections = [
   { id: 'activity', label: 'Activity & costs' },
 ] as const
 function readSection(): 'analyze' | 'library' | 'activity' {
-  const value = window.location.hash.slice(2)
+  const value = window.location.hash.slice(2).split('/')[0]
   return value === 'library' || value === 'activity' ? value : 'analyze'
 }
 export default App
