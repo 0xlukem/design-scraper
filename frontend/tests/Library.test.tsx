@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../src/App'
+import * as downloads from '../src/download'
 import DesignLibrary from '../src/components/DesignLibrary'
 import catalog from '../src/examples/catalog.json'
 import { formatLibraryDate, libraryExamples, librarySuggestions } from '../src/library'
@@ -16,31 +17,51 @@ it('builds every library card from the catalog with a saved design behind it', a
     expect(example.sources.length).toBe(example.mode === 'mix' ? 2 : 1)
     const saved = await example.load()
     expect(saved.success).toBe(true)
+    const values = Object.values(saved.design_system!.colors).flat().map(token => token.value)
+    example.preview.colors.forEach(value => expect(values).toContain(value))
+    const fonts = [...saved.design_system!.typography.families, ...saved.design_system!.typography.scale.flatMap(spec => spec.family ? [spec.family] : [])].map(token => String(token.value).split(',')[0].trim().replace(/["']/g, ''))
+    example.preview.fonts.forEach(font => expect(fonts).toContain(font))
     expect(saved.documents.extended.length).toBeGreaterThan(100)
   }
   expect(formatLibraryDate('2026-09-10')).toBe('Sep 2026')
 })
 
-it('shows simplified cards: category, month, a primary view action and a single design.md download', async () => {
+it('opens one focused design via a shareable route and returns to the same card', async () => {
   render(<DesignLibrary />)
   const cards = screen.getAllByRole('article')
   expect(cards).toHaveLength(catalog.length)
   const stripe = within(cards.find(card => within(card).queryByRole('heading', { name: 'Stripe' }))!)
-  expect(stripe.getByText('SaaS')).toBeInTheDocument()
   expect(stripe.getByText('Sep 2026')).toBeInTheDocument()
-  expect(stripe.queryByRole('combobox')).not.toBeInTheDocument()
-  expect(stripe.getByRole('button', { name: 'View Stripe design' })).toHaveClass('action-button')
-  expect(stripe.getByRole('button', { name: 'Download Stripe design.md' })).toHaveClass('text-button')
-  fireEvent.click(stripe.getByRole('button', { name: 'Download Stripe design.md' }))
-  await waitFor(() => expect(stripe.getByRole('status')).toHaveTextContent('design.md downloaded.'))
-  expect(screen.queryByRole('heading', { name: 'Overview' })).not.toBeInTheDocument()
-  fireEvent.click(stripe.getByRole('button', { name: 'View Stripe design' }))
-  await screen.findByRole('heading', { name: 'Overview' })
-  expect(screen.queryByRole('button', { name: 'Use these URLs in the form' })).not.toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: 'View GitHub design' })).not.toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Close design' }))
-  expect(screen.getByRole('button', { name: 'View GitHub design' })).toBeVisible()
-  await waitFor(() => expect(screen.getByRole('button', { name: 'View Stripe design' })).toHaveFocus())
+  expect(stripe.getByRole('button', { name: /Download/ })).toBeVisible()
+  expect(stripe.getByText('sohne-var')).toBeVisible()
+  fireEvent.click(stripe.getByRole('link', { name: 'View Stripe design' }))
+  expect(window.location.hash).toBe('#/library/stripe')
+  await screen.findByRole('button', { name: 'Export design', exact: true })
+  expect(screen.getByRole('heading', { name: 'Stripe', level: 1 })).toBeVisible()
+  expect(screen.queryByRole('link', { name: 'View GitHub design' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('link', { name: /Back to library/ }))
+  expect(screen.getByRole('link', { name: 'View GitHub design' })).toBeVisible()
+  await waitFor(() => expect(screen.getByRole('link', { name: 'View Stripe design' })).toHaveFocus())
+})
+
+it('opens a deep-linked mix and reuses its actual URLs and weights without an analysis', async () => {
+  window.history.replaceState(null, '', '/#/library/bootstrap-milligram')
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(quota))
+  render(<App />)
+  await screen.findByRole('button', { name: 'Export design', exact: true })
+  fireEvent.click(screen.getByRole('button', { name: 'Use as reference' }))
+  expect(await screen.findByLabelText('First website URL')).toHaveValue('https://getbootstrap.com/docs/5.3/examples/heroes/')
+  expect(screen.getByLabelText('Mix balance')).toHaveValue('25')
+  expect(window.location.hash).toBe('#/analyze')
+  await waitFor(() => expect(screen.getByLabelText('First website URL')).toHaveFocus())
+  expect(fetcher.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true)
+})
+
+it('recovers an invalid design link with the catalog', () => {
+  window.history.replaceState(null, '', '/#/library/missing')
+  render(<App />)
+  expect(screen.getByRole('alert')).toHaveTextContent('was not found')
+  expect(screen.getByRole('link', { name: 'View Stripe design' })).toBeVisible()
 })
 
 it('offers saved references as suggestions that prefill the form without submitting', async () => {
@@ -77,4 +98,16 @@ it('explains when the shared allowance is exhausted or unreachable, and never bl
   fetcher.mockRejectedValue(new TypeError('offline'))
   fireEvent.change(screen.getByLabelText('Website URL'), { target: { value: 'https://example.com/' } })
   expect(screen.getByRole('button', { name: /analyze design/i })).toBeEnabled()
+})
+
+it('downloads the original saved document from its card without running an analysis', async () => {
+  const fetcher = vi.spyOn(globalThis, 'fetch')
+  const download = vi.spyOn(downloads, 'downloadFile').mockImplementation(() => {})
+  render(<DesignLibrary />)
+  fireEvent.click(screen.getByRole('button', { name: 'Download Stripe design.md' }))
+  await screen.findByText('Download prepared.')
+  const saved = await libraryExamples.find(example => example.id === 'stripe')!.load()
+  expect(download).toHaveBeenCalledWith(saved.documents!.extended, 'stripe-design.md', 'text/markdown;charset=utf-8')
+  expect(fetcher).not.toHaveBeenCalled()
+  expect(screen.getByRole('link', { name: 'View GitHub design' })).toBeVisible()
 })

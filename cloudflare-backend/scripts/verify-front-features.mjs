@@ -66,15 +66,19 @@ try {
     assert.equal(new URL(await cover.getAttribute('src'), site).origin, new URL(site).origin, 'Cover artwork is served locally');
     assert.ok(await cover.evaluate(async image => { await image.decode(); return image.naturalWidth > 0 && image.naturalHeight > 0; }), `${id}: brand cover loads and decodes`);
     assert.equal(await card.getByRole('combobox').count(), 0, 'Cards no longer carry a format selector');
-    const downloadPromise = page.waitForEvent('download');
-    await card.getByRole('button', { name: `Download ${name} design.md`, exact: true }).click();
-    const download = await downloadPromise;
-    assert.equal(download.suggestedFilename(), 'design.md');
-    assert.equal(await readFile(await download.path(), 'utf8'), expected.documents.extended);
-    assert.equal(await page.locator('#saved-design-preview').count(), 0);
-    checks.push(`${id}: direct design.md download without opening report`);
-    await page.getByRole('button', { name: `View ${name} design`, exact: true }).click();
+    const quickDownloadPromise = page.waitForEvent('download');
+    await card.getByRole('button', { name: /Download/ }).click();
+    const quickDownload = await quickDownloadPromise;
+    assert.equal(quickDownload.suggestedFilename(), id + '-design.md');
+    assert.equal(await readFile(await quickDownload.path(), 'utf8'), expected.documents.extended);
+    assert.equal(new URL(page.url()).hash, '#/library');
+    assert.equal(analyses, 0, 'Quick downloads never submit an analysis');
+    checks.push(id + ': direct card download matches the saved file without leaving the library');
+    await page.getByRole('link', { name: `View ${name} design`, exact: true }).click();
+    assert.equal(new URL(page.url()).hash, `#/library/${id}`);
     const preview = page.locator('#saved-design-preview');
+    await preview.getByRole('button', { name: 'Export design', exact: true }).waitFor();
+    await preview.getByRole('heading', { name, exact: true, level: 1 }).waitFor();
     await preview.getByRole('heading', { name: 'Overview' }).waitFor();
     await preview.getByRole('button', { name: 'Export design', exact: true }).click();
     for (const [tab, variant, bytes, filename] of [
@@ -100,15 +104,29 @@ try {
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await overflow(`${id}-${width}`);
-      if (id === 'milligram') await page.locator('#design-library').screenshot({ path: `${artifacts}/gallery-${width}.png` });
+      if (id === 'milligram') { await page.locator('#saved-design-preview').evaluate(el => el.scrollIntoView({ block: 'start' })); await page.screenshot({ path: `${artifacts}/gallery-${width}.png` }); }
     }
-    await page.getByRole('button', { name: 'Close design' }).click();
+    await page.getByRole('link', { name: /Back to library/ }).click();
   }
   assert.equal(analyses, 0);
   assert.equal(quotaRequests, quotaBeforeLibrary, 'Browsing the library never checks the shared allowance');
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   await page.getByText('No analyses in this session.', { exact: false }).waitFor();
   checks.push('Gallery: zero analysis requests and no session consumption');
+  await page.getByRole('link', { name: 'Design library', exact: true }).click();
+  await page.getByRole('link', { name: 'View Bootstrap × Milligram design', exact: true }).click();
+  await page.reload();
+  await page.locator('#saved-design-preview').getByRole('button', { name: 'Export design', exact: true }).waitFor();
+  await page.goBack();
+  await page.getByRole('heading', { name: 'Design library', exact: true }).waitFor();
+  await page.goForward();
+  await page.getByRole('button', { name: 'Use as reference' }).click();
+  await page.getByLabel('First website URL').waitFor();
+  assert.equal(await page.getByLabel('First website URL').inputValue(), 'https://getbootstrap.com/docs/5.3/examples/heroes/');
+  assert.equal(await page.getByLabel('Mix balance').inputValue(), '25');
+  assert.equal(analyses, 0);
+  checks.push('Saved-design reload, back/forward and reference reuse preserve URLs and weights without submitting');
+  await page.getByRole('tab', { name: /Extract design/ }).click();
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).waitFor();
   const quotaBeforeIntent = quotaRequests;
@@ -118,7 +136,7 @@ try {
   assert.equal(await page.getByLabel('Website URL', { exact: true }).inputValue(), firstSingle.sources[0]);
   assert.equal(await page.getByLabel('Website URL', { exact: true }).evaluate(element => element === document.activeElement), true);
   await page.getByText('17 of 20 shared analyses left today', { exact: false }).waitFor();
-  assert.equal(quotaRequests, quotaBeforeIntent + 1, 'Showing intent checks the allowance exactly once');
+  assert.equal(quotaRequests, quotaBeforeIntent, 'Reusing a loaded allowance does not duplicate the intent request');
   assert.equal(analyses, 0, 'Suggestions never submit an analysis');
   checks.push('Suggestion chips prefill the form, focus it and reveal the remaining shared allowance without submitting');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();

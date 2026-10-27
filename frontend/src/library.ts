@@ -1,4 +1,5 @@
 import catalog from './examples/catalog.json'
+import previews from './library-previews.json'
 import type { AnalysisResult, AppMode } from './types'
 
 export interface LibraryExample {
@@ -21,16 +22,17 @@ export interface LibraryExample {
   palette: string[]
   /** Cover background used by the Mix It world. */
   tone: string
+  preview: { colors: string[]; fonts: string[]; weights: number[] | null }
   load: () => Promise<AnalysisResult>
 }
 
 // Saved responses stay separate chunks; the catalog only carries their metadata.
 const modules = import.meta.glob<{ default: AnalysisResult }>(['./examples/*.json', '!./examples/catalog.json'])
 
-export const libraryExamples: LibraryExample[] = (catalog as Omit<LibraryExample, 'load'>[]).map(entry => {
+export const libraryExamples: LibraryExample[] = (catalog as Omit<LibraryExample, 'load' | 'preview'>[]).map(entry => {
   const loader = modules[`./examples/${entry.id}.json`]
   if (!loader) throw new Error(`Missing saved design for ${entry.id}`)
-  return { ...entry, load: async () => (await loader()).default }
+  return { ...entry, preview: previews[entry.id as keyof typeof previews], load: async () => (await loader()).default }
 })
 
 export function formatLibraryDate(date: string): string {

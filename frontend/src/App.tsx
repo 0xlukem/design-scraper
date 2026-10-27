@@ -17,7 +17,7 @@ import MixWorld from './components/MixWorld'
 import WorldTransition from './components/WorldTransition'
 import HeroReveal from './components/HeroReveal'
 import AllowanceHint from './components/AllowanceHint'
-import { librarySuggestions } from './library'
+import { librarySuggestions, type LibraryExample } from './library'
 import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
 import ProviderControls from './components/ProviderControls'
 import type { ByokCredentials } from './byok'
@@ -286,6 +286,23 @@ function App() {
     window.scrollTo?.({ top: 0, behavior: 'instant' })
     main.current?.focus({ preventScroll: true })
   }
+  const useReference = (example: LibraryExample, result: AnalysisResult) => {
+    if (busy) return
+    if (example.mode === 'mix' && 'mode' in result.metadata) {
+      const first = result.metadata.sources.find(source => source.slot === 'web_1')
+      const second = result.metadata.sources.find(source => source.slot === 'web_2')
+      if (!first || !second) return
+      dispatch({ type: 'set-mix-url', field: 'url1', value: first.url })
+      dispatch({ type: 'set-mix-url', field: 'url2', value: second.url })
+      dispatch({ type: 'set-bias', value: result.metadata.bias })
+    } else {
+      dispatch({ type: 'set-single-url', value: example.sources[0] })
+    }
+    dispatch({ type: 'set-mode', mode: example.mode }); setTargetMode(example.mode)
+    window.location.hash = '/analyze'; setSection('analyze')
+    requestAnimationFrame(() => document.getElementById(example.mode === 'mix' ? 'mix-url-1' : 'single-url')?.focus())
+  }
+
   return <div data-experience={state.mode} className={`app-shell experience-shell min-h-[100dvh] ${state.mode === 'mix' ? 'theme-wild' : 'theme-sober'}`}>
     <WorldTransition target={targetMode} current={state.mode} paused={false} onCovered={mode => dispatch({ type: 'set-mode', mode })} />
     <header className="site-header">
@@ -374,8 +391,7 @@ function App() {
           </div>)}
         </div>
       </div>
-      <div hidden={section !== 'library'}><DesignLibrary /></div>
-
+      <div hidden={section !== 'library'}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></div>
     </main>
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
   </div>
@@ -388,7 +404,7 @@ const sections = [
 ] as const
 function readSection(): 'analyze' | 'library' | 'activity' {
   const value = window.location.hash.slice(2)
-  return value === 'library' ? 'library' : value === 'activity' || value.startsWith('activity/') ? 'activity' : 'analyze'
+  return value === 'library' || value.startsWith('library/') ? 'library' : value === 'activity' || value.startsWith('activity/') ? 'activity' : 'analyze'
 }
 function readRunId() {
   const match = window.location.hash.match(/^#\/activity\/(\d+)$/)
