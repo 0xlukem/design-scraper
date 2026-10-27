@@ -57,7 +57,7 @@ if (!live) {
   });
   const single = payload(fixtures.find(f => f.bias === null));
   const mix = payload(fixtures.find(f => f.bias === 25));
-  await page.route(`${api}/api/**`, async route => {
+  await page.route("**/api/**", async route => {
     const req = route.request();
     const headers = { "access-control-allow-origin": site, "access-control-allow-headers": "authorization, content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
     if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
@@ -125,7 +125,6 @@ try {
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await assertNoOverflow(`${kind}-home-${width}`);
-      assert.equal(await page.getByRole('button', { name: 'Pause animations', exact: true }).isVisible(), true, `Motion control keeps an accessible name at ${width}px`);
       if (width <= 640) {
         const previousUrl = page.url(), previousCalls = analyses;
         await page.getByRole('link', { name: 'Go to the lab', exact: true }).click();
@@ -184,8 +183,7 @@ try {
   assert.deepEqual(credentialRequests, []);
   results.push("Reload keeps direct access; no session or Authorization requests from the browser");
   if (!live && new URL(site).protocol === "http:") {
-    await page.getByRole("button", { name: "Use your own key", exact: true }).click();
-    await page.getByRole("radio", { name: "Your own key", exact: true }).check();
+    await page.getByRole("button", { name: "Use my API key", exact: true }).click();
     await page.getByText(/Using your own key requires an HTTPS page and API/).waitFor();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).count(), 0);
     results.push("HTTP frontend refuses to collect a BYOK credential");

@@ -68,7 +68,7 @@ export default function UsageSummary({ usage }: UsageSummaryProps) {
       </div>
 
       <p className="usage-summary-note">
-        {usage.funding === 'byok' ? 'Your key · charged to your provider account. ' : usage.funding === 'demo' ? 'Shared allowance budget. ' : ''}
+        {usage.funding === 'byok' ? 'Your API key · your provider’s terms apply. ' : usage.funding === 'demo' ? 'Covered by Design Scraper. ' : ''}
         Provider: <strong>{usage.provider}</strong> · Model:{' '}
         <strong>{usage.model}</strong>. Consumption depends on the model and the
         size of the screenshots. Cost is an estimate, not a billing statement.

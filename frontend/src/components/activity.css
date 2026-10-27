@@ -1,0 +1,55 @@
+.activity-intro { margin-bottom: 32px; }
+.activity-intro h1 { font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
+.activity-access { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); }
+.activity-access .site-availability { margin-top: 0; padding-top: 22px; border: 0; }
+.activity-access .key-access { margin: 0; padding: 20px 0; }
+.activity-tabs { display: flex; gap: 30px; margin: 28px 0; border-bottom: 1px solid var(--line); }
+.activity-tabs button { padding: 12px 0; border-bottom: 2px solid transparent; font-size: 16px; }
+.activity-tabs button[aria-selected='true'] { border-color: var(--ink); font-weight: 600; }
+.activity-section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+.activity-section-heading h2 { font-size: 24px; font-weight: 600; letter-spacing: -.04em; }
+.activity-section-heading > span { font-size: 13px; color: var(--muted); }
+#activity-panel-activity .session-usage { border-top: 0; margin-top: 0; padding-top: 0; }
+.key-inline { background: var(--surface); border: 1px solid var(--line); padding: 24px; margin-top: 20px; }
+.key-inline .dialog-heading { margin-bottom: 24px; }
+.key-inline .provider-fields { margin: 0; }
+.key-inline .provider-notice { margin: 18px 0; }
+.provider-consent { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; font-size: 14px; }
+.provider-consent input { margin-top: 4px; flex-shrink: 0; }
+.provider-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+.provider-actions .action-button { width: auto; }
+.key-access-row { flex-wrap: wrap; }
+.usage-subtotals { margin: 20px 0; font-size: 14px; }
+.usage-subtotals summary { cursor: pointer; }
+.session-table { width: 100%; min-width: 0; }
+.session-table .run-source { max-width: 30ch; overflow-wrap: anywhere; }
+.session-table .run-details { min-width: 0; }
+.model-rates-table { width: 100%; border-collapse: collapse; margin-top: 28px; table-layout: fixed; }
+.model-rates-table th, .model-rates-table td { text-align: left; border-bottom: 1px solid var(--line); padding: 20px 14px 20px 0; overflow-wrap: anywhere; }
+.model-rates-table th { font-weight: 550; }
+.model-rates-table thead th { font-size: 13px; color: var(--muted); }
+.model-rates-table td { font: 13px/1.6 'Geist Mono Variable', monospace; }
+.model-rates-table small { display: block; font: 13px/1.5 'Geist Variable', sans-serif; color: var(--muted); margin-top: 6px; }
+.models-foot { display: flex; justify-content: space-between; align-items: start; gap: 24px; margin-top: 22px; font-size: 14px; }
+.models-foot p { max-width: 70ch; color: var(--muted); }
+.models-foot button { flex-shrink: 0; }
+@media(max-width: 760px) {
+  .session-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .session-table, .session-table tbody { display: block; }
+  .session-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .session-table th, .session-table td { display: block; border: 0; padding: 0; min-width: 0; }
+  .session-table th, .session-table .session-details { grid-column: 1 / -1; }
+  .session-table td[data-label]::before { content: attr(data-label); display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .session-table .run-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media(max-width: 540px) {
+  .activity-section-heading, .models-foot { display: block; }
+  .models-foot button { margin-top: 16px; }
+  .key-inline { padding: 18px; }
+  .key-inline .provider-fields { grid-template-columns: minmax(0, 1fr); }
+  .model-rates-table, .model-rates-table tbody { display: block; }
+  .model-rates-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .model-rates-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .model-rates-table th, .model-rates-table td { display: block; border: 0; padding: 0; }
+  .model-rates-table td[data-label]::before { content: attr(data-label); display: block; font: 12px/1.5 'Geist Variable', sans-serif; color: var(--muted); }
+}

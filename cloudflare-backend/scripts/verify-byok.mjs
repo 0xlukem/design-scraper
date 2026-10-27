@@ -65,7 +65,7 @@ const catalog = [
   { provider: "openai", model: "gpt-4o", inputPrice: null, outputPrice: null },
   { provider: "xai", model: "grok-4.3", inputPrice: null, outputPrice: null },
 ];
-if (!live) await page.route(`${api}/api/**`, async route => {
+if (!live) await page.route("**/api/**", async route => {
   const request = route.request();
   const headers = { "access-control-allow-origin": site, "access-control-allow-headers": "content-type,x-ai-provider,x-ai-key", "access-control-allow-methods": "GET,POST,OPTIONS" };
   if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
@@ -87,14 +87,13 @@ async function noStorage() {
 }
 async function configure(provider = "gemini") {
   selected = provider;
-  if (!await page.getByRole("dialog").isVisible()) await page.getByRole("button", { name: "Use your own key", exact: true }).click();
-  await page.getByRole("radio", { name: "Your own key", exact: true }).check();
+  if (!await page.locator("#provider-settings").isVisible()) await page.getByRole("button", { name: /Use my API key|Manage key/, exact: true }).click();
   await page.getByLabel("AI provider", { exact: true }).selectOption(provider);
   await page.getByText(`Model: ${catalog.find(p => p.provider === provider).model}`, { exact: true }).waitFor();
   assert.equal(await page.getByLabel("Provider API key", { exact: true }).inputValue(), "");
   await page.getByLabel("Provider API key", { exact: true }).fill(key);
   await page.getByRole("checkbox", { name: /I understand and accept/ }).check();
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.getByRole("button", { name: "Use this key", exact: true }).click();
 }
 async function outputs(payload, kind) {
   const calls = analyses;
@@ -125,8 +124,7 @@ try {
   for (const provider of live ? ["gemini"] : catalog.map(p => p.provider)) {
     await page.goto(site);
     await page.getByLabel("Website URL").waitFor();
-    await page.getByRole("button", { name: "Use your own key", exact: true }).click();
-    assert.equal(await page.getByRole("radio", { name: "Shared allowance", exact: true }).isChecked(), true);
+    await page.getByText("Using Design Scraper · Included", { exact: true }).waitFor();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).count(), 0);
     await configure(provider);
     if (live) {
@@ -134,23 +132,23 @@ try {
       const liveCatalog = await catalogResponse.json();
       assert.deepEqual(liveCatalog.providers[0], catalog[0]);
     }
-    assert.match(await page.locator('.key-status').innerText(), /Not verified/);
+    assert.match(await page.locator('.key-status').innerText(), /Ready for next analysis/);
     await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-    await page.getByRole('button', { name: 'Use your own key', exact: true }).click();
+    await page.getByRole('button', { name: /Use my API key|Manage key/, exact: true }).click();
     assert.equal(await page.getByLabel('Provider API key', { exact: true }).inputValue(), key);
     await page.getByRole('button', { name: 'Show key', exact: true }).click();
     assert.equal(await page.getByLabel('Provider API key', { exact: true }).getAttribute('type'), 'text');
     await page.getByRole('button', { name: 'Hide key', exact: true }).click();
     for (const width of provider === 'gemini' ? [1440, 768, 390, 320] : [390]) {
       await page.setViewportSize({ width, height: 844 });
-      assert.ok(await page.getByRole('dialog').evaluate(e => e.scrollWidth <= e.clientWidth + 1));
+      assert.ok(await page.locator('#provider-settings').evaluate(e => e.scrollWidth <= e.clientWidth + 1));
       await page.screenshot({ path: `${artifacts}/key-settings-${provider}-${width}.png`, mask: [page.getByLabel('Provider API key', { exact: true })] });
     }
     await page.keyboard.press('Escape');
-    assert.equal(await page.getByRole('button', { name: 'Use your own key', exact: true }).evaluate(e => e === document.activeElement), true);
+    assert.equal(await page.getByRole('button', { name: /Use my API key|Manage key/, exact: true }).evaluate(e => e === document.activeElement), true);
     await page.getByRole('link', { name: 'Analyze', exact: true }).click();
     await page.setViewportSize({ width: 1440, height: 1000 });
-    checks.push(`${provider}: unverified until analysis, shared key state across views, dialog keyboard and responsive layout`);
+    checks.push(`${provider}: unverified until analysis, shared key state across views, inline editor keyboard and responsive layout`);
     const catalogBefore = catalogRequests;
     for (const kind of ["single", "mix"]) {
       if (kind === "single") await page.getByLabel("Website URL").fill("https://example.com/");
@@ -201,7 +199,7 @@ try {
       assert.equal(analyses, calls);
       checks.push(`${provider}: provider auth error and local attempt limit`);
     }
-    await page.getByRole("button", { name: "Use your own key", exact: true }).click();
+    await page.getByRole("button", { name: /Use my API key|Manage key/, exact: true }).click();
     await page.getByRole("button", { name: "Clear key", exact: true }).click();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).inputValue(), "");
     assert.equal(await page.getByRole("checkbox", { name: /I understand and accept/ }).isChecked(), false);
@@ -214,15 +212,15 @@ try {
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).inputValue(), "");
     await page.reload();
     await configure(provider);
+    await page.getByRole("button", { name: /Use my API key|Manage key/, exact: true }).click();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).getAttribute("autocomplete"), "off");
-    await page.getByRole("button", { name: "Use your own key", exact: true }).click();
     await page.getByLabel("AI provider", { exact: true }).focus();
     await page.keyboard.press("Tab");
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).evaluate(e => e === document.activeElement), true);
     assert.ok(await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle !== "none"));
-    await page.getByRole("radio", { name: "Shared allowance", exact: true }).check();
+    await page.getByRole("button", { name: "Use Design Scraper", exact: true }).click();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).count(), 0);
-    await page.getByRole("radio", { name: "Your own key", exact: true }).check();
+    await page.getByRole("button", { name: "Use my API key", exact: true }).click();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).inputValue(), "");
     await noStorage();
     checks.push(`${provider}: key clearing, provider switch, navigation, reload, demo switch, keyboard, no browser persistence`);
