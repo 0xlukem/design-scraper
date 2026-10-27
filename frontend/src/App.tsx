@@ -360,7 +360,7 @@ function App() {
       <div className={section === 'analyze' ? 'reference-box' : 'activity-access'}>
       {section === 'analyze' && <><div className="reference-topline"><span>{state.mode === 'single' ? 'DESIGN SCRAPER / WORKSPACE' : 'THE MIXING DESK'}</span><span>{state.mode === 'single' ? '01—05' : 'MAKE A BEAUTIFUL MESS'}</span></div><ModeToggle mode={state.mode} onChange={changeMode} /></>}
       {section === 'analyze' && <div className="reference-heading">
-        <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : 'Good things collide.'}</h2></div>
+        <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : Math.abs(state.mix.bias) === 50 ? 'YOUR SELECTED SOURCE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : Math.abs(state.mix.bias) === 50 ? 'One source. Its own design.' : 'Good things collide.'}</h2></div>
         <Globe size={24} aria-hidden="true" />
       </div>}
       <div hidden={section !== 'analyze'}>
@@ -380,7 +380,7 @@ function App() {
       </div>
       {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={reviewSettings} />}
       <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
-      {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
+      {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' || Math.abs(state.mix.bias) === 50 ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
       </div>
       </div>
       <div hidden={section !== 'analyze'}>

@@ -86,7 +86,7 @@ it('offers saved references as suggestions that prefill the form without submitt
   fireEvent.click(within(mixGroup).getByRole('button', { name: pair.name }))
   expect(screen.getByLabelText('First website URL')).toHaveValue(pair.sources[0])
   expect(screen.getByLabelText('Second website URL')).toHaveValue(pair.sources[1])
-  expect(screen.getByLabelText('Mix balance')).toHaveValue(String(pair.bias))
+  expect(screen.getByLabelText('Mix balance')).toHaveValue(String(50 - (pair.bias || 0)))
   expect(fetcher).toHaveBeenCalledTimes(1)
 })
 

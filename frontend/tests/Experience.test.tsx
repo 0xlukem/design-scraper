@@ -28,7 +28,7 @@ it('preserves both forms and their blend balance during rapid world changes with
   fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Enter Mix It', exact: true }))
   fireEvent.change(screen.getByLabelText('First website URL'), { target: { value: 'https://first.example' } })
   fireEvent.change(screen.getByLabelText('Second website URL'), { target: { value: 'https://second.example' } })
-  fireEvent.change(screen.getByLabelText('Mix balance'), { target: { value: '-25' } })
+  fireEvent.change(screen.getByLabelText('Mix balance'), { target: { value: '75' } })
   for (let i = 0; i < 3; i++) {
     fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Back to Design Scraper', exact: true }))
     expect(screen.getByLabelText('Website URL')).toHaveValue('https://single.example')
@@ -36,7 +36,7 @@ it('preserves both forms and their blend balance during rapid world changes with
   }
   expect(screen.getByLabelText('First website URL')).toHaveValue('https://first.example')
   expect(screen.getByLabelText('Second website URL')).toHaveValue('https://second.example')
-  expect(screen.getByLabelText('Mix balance')).toHaveValue('-25')
+  expect(screen.getByLabelText('Mix balance')).toHaveValue('75')
   expect(fetcher).not.toHaveBeenCalled()
 })
 

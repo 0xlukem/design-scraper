@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { MixBias } from '../types'
 import { BIAS_WEIGHTS } from '../types'
 import './mix-form.css'
@@ -19,11 +20,10 @@ export default function BlendSlider({ value, onChange, disabled, urls = ['', '']
       <span><span>{names[0]}</span><strong>{first}%</strong></span>
       <span><span>{names[1]}</span><strong>{second}%</strong></span>
     </output>
-    <div className="blend-proportion" aria-hidden="true"><span style={{ width: `${first}%` }} /><span style={{ width: `${second}%` }} /></div>
-    <input id="mix-bias" type="range" min="-50" max="50" step="25" value={value} disabled={disabled}
+    <input id="mix-bias" type="range" min="0" max="100" step="25" value={first} style={{ '--first-share': `${first}%` } as CSSProperties} disabled={disabled}
       aria-valuetext={`${names[0]} ${first} percent, ${names[1]} ${second} percent`}
-      onChange={event => onChange(Number(event.target.value) as MixBias)} className="blend-slider" list="blend-stops" />
-    <datalist id="blend-stops">{[-50, -25, 0, 25, 50].map(stop => <option key={stop} value={stop} />)}</datalist>
-    {(first === 0 || second === 0) && <p className="field-help">Only {first === 0 ? names[1] : names[0]} will be analyzed. This produces a single-source design.</p>}
+      onChange={event => onChange((50 - Number(event.target.value)) as MixBias)} className="blend-slider" list="blend-stops" />
+    <datalist id="blend-stops">{[0, 25, 50, 75, 100].map(stop => <option key={stop} value={stop} />)}</datalist>
+    {(first === 0 || second === 0) && <p className="field-help">Only {first === 0 ? names[1] : names[0]} will be analyzed.</p>}
   </div>
 }

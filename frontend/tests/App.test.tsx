@@ -117,7 +117,7 @@ describe('App', () => {
       target: { value: 'https://two.example' },
     })
     fireEvent.change(screen.getByLabelText('Mix balance'), {
-      target: { value: '-25' },
+      target: { value: '75' },
     })
     expect(screen.getByLabelText('Mix balance')).toHaveAttribute('aria-valuetext', 'one.example 75 percent, two.example 25 percent')
 
