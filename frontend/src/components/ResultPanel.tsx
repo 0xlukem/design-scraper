@@ -22,6 +22,7 @@ import VisualInspector from './VisualInspector'
 import './results.css'
 
 interface ResultPanelProps {
+  title?: string
   mode: AppMode
   loading: boolean
   error: AnalysisIssue | null
@@ -106,6 +107,7 @@ function outputDefinitions(
 }
 
 export default function ResultPanel({
+  title = 'Design findings',
   mode,
   loading,
   error,
@@ -117,6 +119,7 @@ export default function ResultPanel({
   historical = false,
   onReviewSettings,
 }: ResultPanelProps) {
+  const Heading = historical ? 'h1' : 'h2'
   const panelId = useId().replace(/:/g, '')
   const controls = useRef<HTMLDivElement>(null)
   const [selection, setSelection] = useState<{
@@ -199,7 +202,7 @@ export default function ResultPanel({
     <section className={`result-shell ${mixResult ? 'result-shell-wild' : ''}`}>
       <div className="result-heading" ref={controls} tabIndex={-1} aria-label="Result controls">
         <div>
-          <h2 className="text-3xl font-semibold tracking-tight">Design findings</h2>
+          <Heading className="text-3xl font-semibold tracking-tight">{title}</Heading>
         </div>
         <button type="button" className="action-button" aria-expanded={currentSelection.view === 'raw'} aria-controls={`${panelId}-exports`} onClick={() => setSelection({ ...currentSelection, result, view: currentSelection.view === 'raw' ? 'visual' : 'raw' })}>Export design</button>
       </div>
