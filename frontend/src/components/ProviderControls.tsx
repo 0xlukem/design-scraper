@@ -96,12 +96,13 @@ export default function ProviderControls({ busy, onChange, status = 'unverified'
   const stateText = !ownKey ? 'Using Design Scraper · Included' : keyCleared ? 'Key cleared' : state === 'verified' ? 'Verified' : state === 'checking' ? 'Checking with analysis…' : state === 'error' ? 'Needs attention' : 'Ready for next analysis'
   return <div className="key-access">
     <div className="key-access-row">
-      <span className={`key-status key-status-${state}`} role="status"><span aria-hidden="true" />{stateText}</span>
+      <span className={`key-status key-status-${state}`} role="status"><span aria-hidden="true" />{ownKey && `${providerNames[activeKey.current?.provider || provider]} · Your API key · `}{stateText}</span>
       <button ref={trigger} type="button" className="key-trigger" disabled={busy} aria-expanded={open} aria-controls="provider-settings" onClick={openPanel}>{ownKey ? 'Manage key' : 'Use my API key'}</button>
+      {ownKey && !open && <button type="button" className="text-button" disabled={busy} onClick={useDesignScraper}>Use Design Scraper</button>}
     </div>
     {ownKey && statusError && !open && <p role="alert" className="field-help">{statusError}</p>}
     {open && <section id="provider-settings" className="key-inline" aria-labelledby="provider-heading" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); closePanel() } }}>
-      <div className="dialog-heading"><h2 id="provider-heading">Use your API key</h2><button type="button" className="text-button" onClick={closePanel} aria-label="Close key settings">Close</button></div>
+      <div className="dialog-heading"><h2 id="provider-heading">{ownKey ? 'Edit your API key' : 'Use your API key'}</h2></div>
       {!secure ? <p role="status">Using your own key requires an HTTPS page and API. Use the HTTPS site to enter a key.</p> : <>
         <div className="provider-fields">
           <div className="field-group">
@@ -109,7 +110,7 @@ export default function ProviderControls({ busy, onChange, status = 'unverified'
             <select ref={providerInput} id="ai-provider" className="url-input" value={provider} disabled={busy} onChange={event => { clearDraft(); setProvider(event.target.value as Provider) }}>
               {Object.entries(providerNames).map(([value, name]) => <option key={value} value={value}>{name}</option>)}
             </select>
-            <p className="field-help">Model: {selected?.model || 'Loading…'}</p>
+            <p className="field-help">Model: {selected?.model || (error ? 'Unavailable' : 'Loading…')}</p>
           </div>
           <div className="field-group">
             <label className="field-label" htmlFor="provider-key">Provider API key</label>
@@ -119,13 +120,14 @@ export default function ProviderControls({ busy, onChange, status = 'unverified'
           </div>
         </div>
         {error && <p role="alert">{error} <button type="button" className="text-button" onClick={() => setCatalogRevision(n => n + 1)}>Reload providers</button></p>}
-        <p id="key-privacy" className="provider-notice">Kept only in this tab and cleared on reload or when you leave. Sent over HTTPS through our server to your provider when you analyze; we don’t save it.</p>
+        <p id="key-privacy" className="provider-notice">Kept in this tab until reload or exit. Sent over HTTPS through Design Scraper to your provider only when you analyze. We don’t save it.</p>
         <p className="field-help">{selected?.inputPrice != null && selected.outputPrice != null ? `Estimated rates: US$${selected.inputPrice} input / US$${selected.outputPrice} output per million tokens.` : 'Estimated rates unavailable. Check your provider’s pricing.'}</p>
         {statusError && <p role="alert" className="form-notice">{statusError}</p>}
-        <details className="provider-rates"><summary>Usage details</summary><p className="provider-notice">Your key is checked when the provider accepts an analysis. Site analysis and capture limits still apply. No automatic retries. Stopping waiting may not stop remote work or consumption.</p></details>
+        <details className="provider-rates"><summary>Usage & key removal</summary><p className="provider-notice">Your key is checked with your next analysis. Site analysis and capture limits still apply. No automatic retries. Stopping waiting may not stop remote work or consumption.</p>{ownKey && <div className="key-removal"><p>Remove this key from the tab. Analysis stays paused until you add a key or choose Design Scraper.</p><button type="button" className="text-button" disabled={busy || !activeKey.current && !hasKey} onClick={clearKey}>Clear key</button></div>}</details>
         <label className="provider-consent"><input type="checkbox" checked={accepted} disabled={busy} onChange={event => setAccepted(event.target.checked)} /> I understand and accept my provider’s charges and terms.</label>
-        <div className="provider-actions"><button type="button" className="action-button" disabled={busy || !hasKey || !accepted || !selected || Boolean(error)} onClick={applyKey}>Use this key</button><button type="button" className="text-button" onClick={closePanel}>{ownKey ? 'Keep current key' : 'Keep using Design Scraper'}</button>{ownKey && <><button type="button" className="text-button" disabled={busy} onClick={useDesignScraper}>Use Design Scraper</button><button type="button" className="text-button" disabled={busy || !activeKey.current && !hasKey} onClick={clearKey}>Clear key</button></>}</div>
+        <div className="provider-actions"><button type="button" className="action-button" disabled={busy || !hasKey || !accepted || !selected || Boolean(error)} onClick={applyKey}>Save key</button><button type="button" className="text-button" onClick={closePanel}>Cancel</button></div>
       </>}
+      {!secure && <button type="button" className="text-button" onClick={closePanel}>Close key settings</button>}
     </section>}
   </div>
 }
