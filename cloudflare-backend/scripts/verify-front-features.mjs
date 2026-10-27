@@ -38,7 +38,7 @@ try {
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   await page.getByRole('tab', { name: 'Models & rates', exact: true }).click();
   await page.getByRole('cell', { name: 'gemini-test', exact: true }).waitFor();
-  assert.equal(await page.getByRole('region', { name: 'Models & estimated rates' }).getByText('Unavailable', { exact: true }).count(), 6);
+  assert.equal(await page.getByRole('region', { name: 'Model rates' }).getByText('Unavailable', { exact: true }).count(), 6);
   assert.equal(await page.getByLabel('Provider API key').count(), 0);
   checks.push('Rates are available without a key and preserve unavailable pricing');
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
@@ -72,6 +72,7 @@ try {
     const preview = page.locator('#saved-design-preview');
     await preview.getByRole('button', { name: 'Export design', exact: true }).waitFor();
     await preview.getByRole('heading', { name, exact: true, level: 1 }).waitFor();
+    await preview.getByRole('heading', { name: 'Overview' }).waitFor();
     await preview.getByRole('button', { name: 'Export design', exact: true }).click();
     for (const [tab, variant, bytes, filename] of [
       ['DESIGN.md', 'Extended', expected.documents.extended, mixed ? 'mixed-design.md' : 'design.md'],
@@ -103,7 +104,7 @@ try {
   assert.equal(analyses, 0);
   assert.equal(quotaRequests, quotaBeforeLibrary, 'Browsing the library never checks the shared allowance');
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-  await page.getByText('No analyses yet.', { exact: false }).waitFor();
+  await page.getByText('No analyses in this session.', { exact: false }).waitFor();
   checks.push('Gallery: zero analysis requests and no session consumption');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
   await page.getByRole('link', { name: 'View Bootstrap × Milligram design', exact: true }).click();
@@ -150,7 +151,7 @@ try {
   await page.getByRole('tab', { name: /Mix It/ }).click();
   assert.ok(await page.getByRole('button', { name: /mix designs/i }).isDisabled());
   await page.getByRole('tab', { name: /Extract design/ }).click();
-  await page.getByRole('button', { name: 'Stop waiting' }).click();
+  await page.getByRole('button', { name: 'Stop waiting for result' }).click();
   await page.getByText(/You stopped waiting/).waitFor();
   finishSlow?.();
   checks.push('Indeterminate loading, cross-mode duplicate guard, cancellation');
@@ -167,7 +168,7 @@ try {
   assert.equal(analyses, 2, 'No automatic retries');
   responseMode = 'success';
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
-  await page.getByRole('heading', { name: 'Design findings' }).waitFor();
+  await page.getByRole('heading', { name: 'Overview' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
   await spending.getByText('Estimated subtotals', { exact: true }).click();
