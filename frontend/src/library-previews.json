@@ -1,0 +1,138 @@
+{
+  "stripe": {
+    "colors": [
+      "#533AFD",
+      "#6B59FE",
+      "#FF6118",
+      "#FFFFFF"
+    ],
+    "fonts": [
+      "sohne-var"
+    ],
+    "weights": null
+  },
+  "github": {
+    "colors": [
+      "rgb(8, 135, 43)",
+      "rgb(31, 111, 235)",
+      "rgb(162, 218, 255)",
+      "rgb(13, 17, 23)"
+    ],
+    "fonts": [
+      "Mona Sans VF",
+      "Mona Sans Mono",
+      "Mona Sans"
+    ],
+    "weights": null
+  },
+  "tailwindcss": {
+    "colors": [
+      "lab(1.90334 0.278696 -5.48866)",
+      "lab(56.9303 76.8162 -8.07021)",
+      "lab(63.3038 -18.433 -51.0407)",
+      "rgb(255, 255, 255)"
+    ],
+    "fonts": [
+      "inter",
+      "plexMono"
+    ],
+    "weights": null
+  },
+  "supabase": {
+    "colors": [
+      "oklch(0.525 0.12 157.5)",
+      "rgb(107, 53, 220)",
+      "oklch(0.995 0 337.5)",
+      "oklch(1 0 337.5)"
+    ],
+    "fonts": [
+      "Inter",
+      "Manrope",
+      "Source Code Pro"
+    ],
+    "weights": null
+  },
+  "apple": {
+    "colors": [
+      "rgb(0, 113, 227)",
+      "rgb(41, 151, 255)",
+      "rgb(0, 102, 204)",
+      "rgb(255, 255, 255)"
+    ],
+    "fonts": [
+      "SF Pro Text",
+      "SF Pro Display"
+    ],
+    "weights": null
+  },
+  "spotify": {
+    "colors": [
+      "#127e38",
+      "#169f47",
+      "rgb(158, 158, 255)",
+      "#000000"
+    ],
+    "fonts": [
+      "SpotifyMixUI",
+      "SpotifyMixUITitle"
+    ],
+    "weights": null
+  },
+  "framer": {
+    "colors": [
+      "#0099ff",
+      "#cbff00",
+      "#00bb88",
+      "#6600ff"
+    ],
+    "fonts": [
+      "GT Walsheim Medium",
+      "Inter",
+      "Input Mono Regular",
+      "Inter Variable",
+      "sans-serif"
+    ],
+    "weights": null
+  },
+  "milligram": {
+    "colors": [
+      "rgb(155, 77, 202)",
+      "rgb(84, 133, 182)",
+      "rgb(85, 172, 238)",
+      "rgb(255, 255, 255)"
+    ],
+    "fonts": [
+      "Roboto",
+      "monospace"
+    ],
+    "weights": null
+  },
+  "bootstrap-milligram": {
+    "colors": [
+      "#9b4dca",
+      "#0d6efd",
+      "#5485b2",
+      "#ffffff"
+    ],
+    "fonts": [
+      "Roboto",
+      "monospace"
+    ],
+    "weights": [
+      25,
+      75
+    ]
+  },
+  "example-domain": {
+    "colors": [
+      "rgb(51, 68, 136)",
+      "rgb(238, 238, 238)",
+      "rgb(0, 0, 0)"
+    ],
+    "fonts": [
+      "system-ui",
+      "Times New Roman"
+    ],
+    "weights": null
+  }
+}

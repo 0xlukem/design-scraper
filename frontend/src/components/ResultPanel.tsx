@@ -37,6 +37,7 @@ interface ResultPanelProps {
   cancelled?: boolean
   active?: boolean
   title?: string
+  scrollToResult?: boolean
   headingLevel?: 'h1' | 'h2'
 }
 
@@ -121,7 +122,7 @@ export default function ResultPanel({
   startedAt,
   retryDisabled = false,
   historical = false,
-  onReviewSettings, onReviewUrl, onCancel, cancelled = false, active = true, title, headingLevel: Heading = 'h2',
+  onReviewSettings, onReviewUrl, onCancel, cancelled = false, active = true, title, headingLevel: Heading = 'h2', scrollToResult = !historical,
 }: ResultPanelProps) {
   const panelId = useId().replace(/:/g, '')
   const controls = useRef<HTMLHeadingElement>(null)
@@ -144,9 +145,9 @@ export default function ResultPanel({
   useEffect(() => {
     if (active && result && !loading && !error && !cancelled && !controls.current?.closest('[hidden]')) {
       controls.current?.focus({ preventScroll: true })
-      controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      if (scrollToResult) controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
     }
-  }, [result, loading, error, cancelled, active])
+  }, [result, loading, error, cancelled, active, scrollToResult])
   useEffect(() => {
     if (exportsOpen && active) {
       dialog.current?.showModal()
