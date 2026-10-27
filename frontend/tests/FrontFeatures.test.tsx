@@ -70,7 +70,7 @@ it('opens a saved design and changes formats with no API calls', async () => {
   const fetcher = vi.spyOn(globalThis, 'fetch')
   render(<DesignLibrary />)
   fireEvent.click(screen.getByRole('button', { name: 'View Milligram design' }))
-  expect(await screen.findByRole('heading', { name: 'Design findings' })).toBeInTheDocument()
+  expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument()
   fireEvent.click(screen.getByText('Original analysis usage'))
   expect(screen.getByText(/Historical usage from the saved analysis/)).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Export design', exact: true }))

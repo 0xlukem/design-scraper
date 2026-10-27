@@ -3,7 +3,7 @@ import { ArrowClockwise, WarningOctagon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import type { AnalysisIssue } from '../analysisError'
 
-export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewSettings }: { issue: AnalysisIssue; onRetry: () => void; disabled: boolean; onReviewSettings?: () => void }) {
+export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewSettings, onReviewUrl }: { issue: AnalysisIssue; onRetry: () => void; disabled: boolean; onReviewSettings?: () => void; onReviewUrl?: () => void }) {
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
     if (!issue.retryAt) return
@@ -15,19 +15,19 @@ export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewS
     <WarningOctagon size={32} weight="bold" aria-hidden="true" />
     <div className="min-w-0">
       <h2 className="mt-2 text-2xl font-semibold tracking-tight">{issue.category}</h2>
-      <p className="mt-3 max-w-[62ch] text-sm leading-relaxed break-words">{issue.message}</p>
-      <details className="provider-rates"><summary>Error details</summary><p className="mt-3 font-mono text-xs break-all">Issue: {issue.code}</p>{issue.telemetry && <TelemetrySummary telemetry={issue.telemetry} />}</details>
-      <p className="mt-4 max-w-[65ch] text-sm leading-relaxed">{issue.guidance}</p>
+
+      <details className="provider-rates"><summary>Error details</summary><p>{issue.message}</p><p>{issue.guidance}</p><p className="mt-3 font-mono text-xs break-all">Issue: {issue.code}</p>{issue.telemetry && <TelemetrySummary telemetry={issue.telemetry} />}</details>
+      <p className="mt-4 max-w-[65ch] text-sm leading-relaxed">{issue.guidance.split('. ')[0] + '.'}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         {issue.retryable && <button type="button" onClick={onRetry} disabled={disabled || remaining > 0} className="secondary-button">
           <ArrowClockwise size={18} aria-hidden="true" />{remaining > 0 ? `Retry in ${remaining}s` : 'Retry'}
         </button>}
         {/PROVIDER|AI_|BYOK|AUTH/.test(issue.code)
           ? <button type="button" className="secondary-button" onClick={onReviewSettings}>Review settings</button>
-          : <button type="button" className="secondary-button" onClick={() => (document.getElementById('single-url') || document.getElementById('mix-url-1'))?.focus()}>Review URL</button>}
+          : <button type="button" className="secondary-button" onClick={onReviewUrl}>Review URL</button>}
         <a className="secondary-button" href="#/library">Open saved designs</a>
       </div>
-      <p className="mt-3 text-xs">A retry is a new analysis and may consume quota.</p>
+      {issue.retryable && <p className="mt-3 text-xs">A retry is a new analysis and may consume quota.</p>}
     </div>
   </section>
 }

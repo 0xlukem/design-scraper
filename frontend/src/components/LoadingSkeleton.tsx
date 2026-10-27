@@ -3,7 +3,7 @@ import { CircleNotch } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 
 // Spinner pattern from shadcn/ui, using the project's existing Phosphor icon set.
-export default function LoadingSkeleton({ isMix, startedAt, progress }: { isMix: boolean; startedAt?: number; progress?: AnalysisProgress }) {
+export default function LoadingSkeleton({ isMix, startedAt, progress, onCancel }: { isMix: boolean; startedAt?: number; progress?: AnalysisProgress; onCancel?: () => void }) {
   const [start] = useState(() => startedAt || Date.now())
   const [elapsed, setElapsed] = useState(() => Math.floor((Date.now() - start) / 1000))
   useEffect(() => {
@@ -23,8 +23,9 @@ export default function LoadingSkeleton({ isMix, startedAt, progress }: { isMix:
     <progress className="analysis-progress" max={100} value={progress?.percent} aria-label={progress ? "Completed analysis steps" : "Analysis in progress; percentage unavailable"} />
     <p role="status" className="text-sm leading-relaxed">{progress ? `${labels[progress.stage]} · ${progress.percent}% of steps complete` : 'Request sent. Waiting for the capture and AI result.'}</p>
     <p className="mt-2 text-xs text-[var(--muted)]">{progress ? `${progress.completed_steps} / ${progress.total_steps} steps confirmed by the server. Steps take different amounts of time; this is not a time estimate.` : 'Progress details will appear when available.'}</p>
-    {elapsed >= 60 && <p role="status" className="mt-3 text-sm">Still waiting. Resource-heavy pages and AI processing can take longer. You can stop waiting above.</p>}
+    {elapsed >= 60 && <p role="status" className="mt-3 text-sm">Still waiting. Resource-heavy pages and AI processing can take longer. You can stop waiting below.</p>}
 
+    {onCancel && <button type="button" className="secondary-button" onClick={onCancel}>Stop waiting for result</button>}
     <p className="text-xs leading-relaxed text-[var(--muted)]">Stopping waiting does not cancel remote work; remote work may still consume quota. Reload clears your API key.</p>
   </section>
 }

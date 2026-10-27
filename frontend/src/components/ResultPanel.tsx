@@ -4,7 +4,7 @@ import type { AnalysisIssue } from '../analysisError'
 import {
   Scan,
 } from '@phosphor-icons/react'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type {
   AnalyzeMetadata,
@@ -32,6 +32,11 @@ interface ResultPanelProps {
   historical?: boolean
   onRetry: () => void
   onReviewSettings?: () => void
+  onReviewUrl?: () => void
+  onCancel?: () => void
+  cancelled?: boolean
+  active?: boolean
+  title?: string
 }
 
 function isMixResult(result: AnalysisResult): result is AnalysisResult & {
@@ -115,10 +120,13 @@ export default function ResultPanel({
   startedAt,
   retryDisabled = false,
   historical = false,
-  onReviewSettings,
+  onReviewSettings, onReviewUrl, onCancel, cancelled = false, active = true, title,
 }: ResultPanelProps) {
   const panelId = useId().replace(/:/g, '')
-  const controls = useRef<HTMLDivElement>(null)
+  const controls = useRef<HTMLHeadingElement>(null)
+  const exportOrigin = useRef<HTMLElement | null>(null)
+  const exportScroll = useRef({ x: 0, y: 0 })
+  const dialog = useRef<HTMLDialogElement>(null)
   const [selection, setSelection] = useState<{
     result: AnalysisResult | null
     format: OutputFormat
@@ -131,9 +139,26 @@ export default function ResultPanel({
     view: 'visual',
   })
 
-  if (loading) return <LoadingSkeleton isMix={mode === 'mix'} startedAt={startedAt} progress={progress} />
+  const exportsOpen = Boolean(result && (selection.result === result ? selection.view === 'raw' : !result.design_system))
+  useEffect(() => {
+    if (active && result && !loading && !error && !cancelled && !controls.current?.closest('[hidden]')) {
+      controls.current?.focus({ preventScroll: true })
+      controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    }
+  }, [result, loading, error, cancelled, active])
+  useEffect(() => {
+    if (exportsOpen && active) {
+      dialog.current?.showModal()
+      window.scrollTo?.({ left: exportScroll.current.x, top: exportScroll.current.y, behavior: 'instant' })
+    }
+    else dialog.current?.close()
+  }, [exportsOpen, active])
 
-  if (error) return <AnalysisErrorPanel issue={error} onRetry={onRetry} disabled={retryDisabled} onReviewSettings={onReviewSettings} />
+  if (loading) return <LoadingSkeleton isMix={mode === 'mix'} startedAt={startedAt} progress={progress} onCancel={onCancel} />
+
+  if (error) return <AnalysisErrorPanel issue={error} onRetry={onRetry} disabled={retryDisabled} onReviewSettings={onReviewSettings} onReviewUrl={onReviewUrl} />
+
+  if (cancelled) return <section className="stopped-result" role="status"><h2>You stopped waiting</h2><p>Remote work may continue. Activity keeps the last received usage.</p><a href="#/activity" className="secondary-button">View activity</a><button className="text-button" type="button" onClick={onRetry} disabled={retryDisabled}>Analyze again</button></section>
 
   if (!result) return (
     <section className="findings-empty" aria-label="Design findings">
@@ -195,48 +220,32 @@ export default function ResultPanel({
     tabs?.[nextIndex]?.focus()
   }
 
+  const closeExport = () => {
+    setSelection({ ...currentSelection, result, view: 'visual' })
+    dialog.current?.close()
+    exportOrigin.current?.focus({ preventScroll: true })
+    window.scrollTo?.({ left: exportScroll.current.x, top: exportScroll.current.y, behavior: 'instant' })
+    requestAnimationFrame(() => window.scrollTo?.({ left: exportScroll.current.x, top: exportScroll.current.y, behavior: 'instant' }))
+  }
+  const openExport = () => {
+    exportOrigin.current = document.activeElement as HTMLElement
+    exportScroll.current = { x: window.scrollX, y: window.scrollY }
+    setSelection({ ...currentSelection, result, view: 'raw' })
+  }
+  const sources = mixResult ? result.metadata.sources.map(source => ({ label: source.slot, url: source.url, title: source.title })) : [{ label: 'web_1', url: singleMetadata?.url || '', title: singleMetadata?.title }]
+  const sourceName = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, '') } catch { return url } }
+  const resultTitle = title || sources.map(source => sourceName(source.url)).filter(Boolean).join(' + ') || 'Design findings'
+
   return (
     <section className={`result-shell ${mixResult ? 'result-shell-wild' : ''}`}>
-      <div className="result-heading" ref={controls} tabIndex={-1} aria-label="Result controls">
-        <div>
-          <h2 className="text-3xl font-semibold tracking-tight">Design findings</h2>
-        </div>
-        <button type="button" className="action-button" aria-expanded={currentSelection.view === 'raw'} aria-controls={`${panelId}-exports`} onClick={() => setSelection({ ...currentSelection, result, view: currentSelection.view === 'raw' ? 'visual' : 'raw' })}>Export design</button>
+      <div className="result-heading">
+        <h2 ref={controls} tabIndex={-1} className="result-title">{resultTitle}</h2>
+        <button type="button" className="action-button" aria-expanded={exportsOpen} aria-controls={`${panelId}-exports`} onClick={openExport}>Export design</button>
       </div>
-
-      {mixResult ? (
-        <div className="metadata-strip">
-          {result.metadata.sources.map((source) => (
-            <div key={source.slot} className="min-w-0">
-              <span className="font-mono text-xs font-bold uppercase">
-                {source.slot.replace('_', ' ')} / {source.influence}%
-              </span>
-              <p className="mt-1 truncate text-sm font-semibold" title={source.url}>
-                {source.title || source.url}
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="metadata-strip">
-          <div className="min-w-0">
-            <span className="font-mono text-xs font-bold uppercase">
-              Source
-            </span>
-            <p className="result-source-title mt-1 text-sm font-semibold">
-              {singleMetadata?.title || singleMetadata?.url}
-            </p>
-          </div>
-          <div className="font-mono text-xs font-bold uppercase">
-            {singleMetadata?.colors_extracted != null && singleMetadata?.fonts_extracted != null
-              ? `${singleMetadata.colors_extracted} colors / ${singleMetadata.fonts_extracted} fonts`
-              : 'Saved evidence'}
-          </div>
-        </div>
-      )}
-      <section id={`${panelId}-exports`} className="result-exports" aria-label="Export design" hidden={currentSelection.view !== 'raw'}>{currentSelection.view === 'raw' && <>
-        <div className="export-heading"><h3>Choose a format</h3><button type="button" className="text-button" onClick={() => { setSelection({ ...currentSelection, result, view: 'visual' }); controls.current?.querySelector('button')?.focus() }}>Close export</button></div>
-
+      <div className="result-source-list">{sources.map(source => <span key={source.label}>{source.url}{mixResult && ` · ${result.metadata.sources.find(item => item.slot === source.label)?.influence}% influence`}</span>)}</div>
+      <dialog ref={dialog} id={`${panelId}-exports`} className="export-dialog" aria-labelledby={`${panelId}-export-title`} onCancel={event => { event.preventDefault(); closeExport() }}>
+        {exportsOpen && <>
+        <div className="export-heading"><div><h3 id={`${panelId}-export-title`}>Export design</h3><p>{resultTitle}</p></div><button autoFocus type="button" className="text-button" onClick={closeExport}>Close export</button></div>
       <div className="output-navigation">
         <div className="output-tabs" role="tablist" aria-label="Design system outputs">
           {outputs.map((output, index) => (
@@ -280,19 +289,11 @@ export default function ResultPanel({
           />
         </div>
       </div>
-      <div
-        id={`${panelId}-output-content`}
-        role="tabpanel"
-        aria-labelledby={`${panelId}-output-tab-${selectedOutput.id}`}
-      >
-        <SyntaxHighlightedCode content={selectedOutput.content} language={selectedOutput.language} label={`${selectedOutput.label} raw output`} />
+      <div id={`${panelId}-output-content`} role="tabpanel" aria-labelledby={`${panelId}-output-tab-${selectedOutput.id}`}>
+        <details className="export-preview" open={!result.design_system || undefined}><summary>Preview code</summary><SyntaxHighlightedCode content={selectedOutput.content} language={selectedOutput.language} label={`${selectedOutput.label} raw output`} /></details>
       </div>
-      </>}</section>
-      {result.design_system ? <VisualInspector system={result.design_system} onBackToControls={() => {
-        setSelection({ ...currentSelection, result, view: 'raw' })
-        controls.current?.querySelector('button')?.focus({ preventScroll: true })
-        controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
-      }} /> : <p className="field-help">Visual evidence is unavailable for this saved response. Its original export is available above.</p>}
+      </>}</dialog>
+      {result.design_system ? <VisualInspector key={resultTitle} system={result.design_system} sources={sources} onBackToControls={openExport} /> : <p className="field-help">This saved response has no visual evidence. Use Export design to open its original document.</p>}
       {historical ? <details className="provider-rates"><summary>Original analysis usage</summary><p className="field-help">Historical usage from the saved analysis. Opening or downloading this design adds no usage.</p>
         {result.telemetry && <TelemetrySummary telemetry={result.telemetry} />}
         {result.metadata.usage ? <UsageSummary usage={result.metadata.usage} /> : <p>Usage unavailable.</p>}

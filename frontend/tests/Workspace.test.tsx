@@ -34,7 +34,7 @@ it('keeps an in-flight analysis and URL through section changes, and records it 
   expect(screen.queryByText('for analysis #2')).not.toBeInTheDocument()
   await navigate('analyze')
   expect(screen.getByLabelText('Website URL')).toHaveValue('https://example.com')
-  expect(screen.getByRole('heading', { name: 'Design findings' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Overview' })).toBeVisible()
   expect(analyze).toHaveBeenCalledTimes(1)
 })
 it('never verifies a key by format; preserves it across navigation and resets verification on edit', async () => {
@@ -82,7 +82,7 @@ it('keeps separate results in history and restores original inputs without submi
   await navigate('activity')
   expect(screen.getAllByRole('link', { name: /View result for analysis/ })).toHaveLength(2)
   await navigate('activity/1')
-  expect(screen.getByRole('heading', { name: 'Design findings' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Overview' })).toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: 'Use these URLs' }))
   await waitFor(() => expect(screen.getByLabelText('Website URL')).toHaveValue('https://first.example'))
   expect(analyze).toHaveBeenCalledTimes(2)
