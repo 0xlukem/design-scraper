@@ -149,7 +149,7 @@ try {
       await writeFile(`reports/result-live-${kind}.json`, JSON.stringify(payload, null, 2));
       console.log(JSON.stringify({ kind, status: response.status(), analysisId: response.headers()["x-analysis-id"], usage: payload.metadata.usage }));
     }
-    await page.getByRole("heading", { name: "Design findings" }).waitFor();
+    await page.getByRole("heading", { name: "Overview" }).waitFor();
     await page.locator('.result-shell:visible').screenshot({ path: `${artifacts}/${kind === "single" ? "design-scraper" : "mix-it"}-result.png` });
     const calls = analyses;
     await outputs(payload, kind);
@@ -164,6 +164,7 @@ try {
       await page.evaluate(() => scrollTo(0, 0));
       await page.screenshot({ path: `${artifacts}/${live ? "live" : "replay"}-${kind}-${width}.png`, fullPage: true });
     }
+    await page.getByRole("button", { name: "Close export", exact: true }).click();
     assert.equal(analyses, calls, "Output actions must not generate another AI request");
     await page.setViewportSize({ width: 1440, height: 1000 });
   }
