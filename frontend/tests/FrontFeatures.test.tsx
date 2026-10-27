@@ -50,7 +50,7 @@ it('shows elapsed time and a slow response without fabricating percentage', () =
   act(() => vi.advanceTimersByTime(65000))
   expect(screen.getByLabelText('Elapsed time')).toHaveTextContent('1:05')
   expect(screen.getAllByRole('status').some(el => el.textContent?.includes('Still waiting'))).toBe(true)
-  expect(screen.getByText(/Capture each active source/)).toBeInTheDocument()
+  expect(screen.getByText(/Stopping waiting does not cancel remote work/)).toBeInTheDocument()
 })
 
 it('separates funding and unknown costs without reporting a complete subtotal', () => {
@@ -70,11 +70,11 @@ it('opens a saved design and changes formats with no API calls', async () => {
   const fetcher = vi.spyOn(globalThis, 'fetch')
   render(<DesignLibrary />)
   fireEvent.click(screen.getByRole('button', { name: 'View Milligram design' }))
-  expect(await screen.findByRole('heading', { name: 'Design findings' })).toBeInTheDocument()
+  expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument()
   fireEvent.click(screen.getByText('Original analysis usage'))
   expect(screen.getByText(/Historical usage from the saved analysis/)).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Export design', exact: true }))
   fireEvent.click(screen.getByRole('tab', { name: 'CSS Variables' }))
-  fireEvent.click(screen.getByRole('button', { name: 'View code' }))
   expect(screen.getByLabelText('CSS Variables raw output')).toBeInTheDocument()
   expect(fetcher).not.toHaveBeenCalled()
 })

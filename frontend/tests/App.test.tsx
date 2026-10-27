@@ -134,7 +134,7 @@ describe('App', () => {
       bias: -25,
     })
     expect(
-      await screen.findByRole('heading', { name: 'mixed-design.md' }),
+      await screen.findByRole('heading', { name: 'one.example + two.example' }),
     ).toBeInTheDocument()
   })
 

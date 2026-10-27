@@ -357,7 +357,6 @@ function App() {
         {retryRemaining > 0 && <p className="form-notice" role="status">New analyses are available in {retryRemaining}s. You can edit your URLs or browse saved designs while you wait.</p>}
         {!providerReady && <p className="form-notice" role="status">Finish setting up your key, or use Design Scraper to analyze.</p>}
         {busy && !state[state.mode].loading && <p role="status" className="form-notice">An analysis is running in the other mode. Switch back to see its progress.</p>}
-        {state[state.mode].cancelled && <p role="status" className="cancellation-note">You stopped waiting. Work already started may still use quota. See Activity &amp; costs for the last available usage.</p>}
       </div>
       {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={reviewSettings} />}
       <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
@@ -369,7 +368,9 @@ function App() {
           {(['single', 'mix'] as const).map(mode => <div key={mode} hidden={state.mode !== mode}>
             <ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
               progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0}
-              onRetry={mode === 'single' ? submitSingle : submitMix} onReviewSettings={reviewSettings} />
+              active={section === 'analyze' && state.mode === mode} cancelled={state[mode].cancelled} onCancel={() => cancel(mode)}
+              onRetry={mode === 'single' ? submitSingle : submitMix} onReviewSettings={reviewSettings}
+              onReviewUrl={() => document.getElementById(mode === 'single' ? 'single-url' : state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()} />
           </div>)}
         </div>
       </div>

@@ -78,6 +78,7 @@ async function assertNoOverflow(name) {
   assert.ok(sizes.actual <= sizes.width + 1, `${name}: ${JSON.stringify(sizes)}`);
 }
 async function outputs(payload, kind) {
+  await page.getByRole("button", { name: "Export design", exact: true }).click();
   for (const [tab, variant, expected, filename] of [
     ["DESIGN.md", "Extended", payload.documents.extended, kind === "mix" ? "mixed-design.md" : "design.md"],
     ["DESIGN.md", "Compact", payload.documents.compact, kind === "mix" ? "mixed-design-compact.md" : "design-compact.md"],
@@ -87,7 +88,6 @@ async function outputs(payload, kind) {
   ]) {
     await page.getByRole("tab", { name: tab, exact: true }).click();
     if (variant) await page.getByRole("button", { name: variant, exact: true }).click();
-    await page.getByRole("button", { name: "View code", exact: true }).click();
     await page.getByRole("button", { name: "Copy", exact: true }).click();
     await page.getByRole("button", { name: "Copied", exact: true }).waitFor();
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), expected);
@@ -149,7 +149,7 @@ try {
       await writeFile(`reports/result-live-${kind}.json`, JSON.stringify(payload, null, 2));
       console.log(JSON.stringify({ kind, status: response.status(), analysisId: response.headers()["x-analysis-id"], usage: payload.metadata.usage }));
     }
-    await page.getByRole("heading", { name: "Design findings" }).waitFor();
+    await page.getByRole("heading", { name: "Overview" }).waitFor();
     await page.locator('.result-shell:visible').screenshot({ path: `${artifacts}/${kind === "single" ? "design-scraper" : "mix-it"}-result.png` });
     const calls = analyses;
     await outputs(payload, kind);
@@ -164,6 +164,7 @@ try {
       await page.evaluate(() => scrollTo(0, 0));
       await page.screenshot({ path: `${artifacts}/${live ? "live" : "replay"}-${kind}-${width}.png`, fullPage: true });
     }
+    await page.getByRole("button", { name: "Close export", exact: true }).click();
     assert.equal(analyses, calls, "Output actions must not generate another AI request");
     await page.setViewportSize({ width: 1440, height: 1000 });
   }

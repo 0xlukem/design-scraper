@@ -50,9 +50,9 @@ export function makeIssue(code: string, message: string, retryable = false, retr
     category = 'An analysis is already running'
     guidance = 'Wait for the current request to finish before starting another analysis.'
   } else if (['RATE_LIMITED', 'IP_DAILY_LIMIT_REACHED', 'DAILY_LIMIT_REACHED', 'BROWSER_QUOTA_EXHAUSTED', 'DAILY_AI_BUDGET_EXHAUSTED', 'AI_BUDGET_REACHED', 'PROJECT_BUDGET_EXHAUSTED', 'CAPACITY_REACHED', 'DUPLICATE_ANALYSIS'].includes(code)) {
-    category = code === 'CAPACITY_REACHED' || code === 'DUPLICATE_ANALYSIS' ? 'Processing capacity is busy' : 'Shared allowance reached'
+    category = code === 'CAPACITY_REACHED' || code === 'DUPLICATE_ANALYSIS' ? 'Processing capacity is busy' : 'Design Scraper limit reached'
     guidance = code === 'PROJECT_BUDGET_EXHAUSTED'
-      ? 'The shared AI budget needs the site owner’s attention. Your own key can fund AI, but shared capture and admission limits still apply.'
+      ? 'Included AI capacity needs the site owner’s attention. Your own key can fund AI, but shared capture and admission limits still apply.'
       : 'Wait until the allowance renews or open a saved design. Your own key still shares capture and admission limits.'
   } else if (/^(CAPTURE_|SCRAPE_|SCREENSHOT_|BROWSER_CLOSE)/.test(code) || code === 'AI_INPUT_LIMIT') {
     category = /LIMIT|TOO_LARGE/.test(code) ? 'Website exceeds capture limits' : /TIMEOUT/.test(code) ? 'Website capture timed out' : 'Website capture interrupted'
@@ -64,21 +64,21 @@ export function makeIssue(code: string, message: string, retryable = false, retr
     category = 'This URL cannot be analyzed'
     guidance = 'Use a public HTTP or HTTPS page without embedded credentials or private network addresses.'
   } else if (/AUTH|BYOK_|MODEL_UNAVAILABLE|REQUEST_REJECTED/.test(code)) {
-    category = funding === 'demo' && !code.startsWith('BYOK_') ? 'Shared provider needs attention' : 'Provider settings need attention'
+    category = funding === 'demo' && !code.startsWith('BYOK_') ? 'Design Scraper needs attention' : 'Provider settings need attention'
     guidance = funding === 'demo' && !code.startsWith('BYOK_')
-      ? 'The shared provider needs the site owner’s attention. You can use your own key or explore a saved design.'
-      : 'Check the selected provider, key and model permissions. A BYOK request never falls back to the shared key.'
+      ? 'Design Scraper’s AI service needs the site owner’s attention. You can use your own key or explore a saved design.'
+      : 'Check the selected provider, key and model permissions. Your key is never replaced automatically with Design Scraper.'
   } else if (code === 'AI_FAILED' || code === 'INVALID_RESULT') {
     category = 'The design result could not be validated'
     guidance = 'The provider response could not be completed or validated. Retry if available, or open a saved design. This does not mean your key was rejected.'
   } else if (/^PROVIDER_|^AI_/.test(code)) {
-    category = /QUOTA/.test(code) ? funding === 'demo' ? 'Shared provider quota reached' : 'Provider quota reached' : 'AI provider interrupted'
+    category = /QUOTA/.test(code) ? funding === 'demo' ? 'Included AI limit reached' : 'Provider quota reached' : 'AI provider interrupted'
     guidance = funding === 'demo'
-      ? 'The shared provider is unavailable. Wait before retrying; persistent configuration or quota issues need the site owner’s attention. You can use your own key or a saved design.'
+      ? 'Design Scraper’s AI service is unavailable. Wait before retrying; persistent configuration or quota issues need the site owner’s attention. You can use your own key or a saved design.'
       : 'Check your selected provider’s account limits and availability before retrying.'
   } else if (/LIMIT|BUDGET|QUOTA|BUSY/.test(code)) {
-    category = 'Shared allowance reached'
-    guidance = 'BYOK still shares capture and admission limits. Wait until the allowance renews or open a saved design without using analysis quota.'
+    category = 'Design Scraper limit reached'
+    guidance = 'Your own key also uses the site’s analysis and capture limits. Wait until the allowance renews or open a saved design without using analysis quota.'
   } else if (/TIMEOUT|NETWORK|UNREADABLE/.test(code)) {
     category = 'The result could not be received'
     guidance = 'The server may still be working. Check your connection before trying again; a new analysis can consume additional quota.'
