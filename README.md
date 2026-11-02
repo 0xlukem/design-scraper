@@ -40,10 +40,31 @@ configured pricing show an unavailable estimate.
   Patched Node.js 22.23.4+ and 26.12.1+ are also supported.
 - Chromium installed through Playwright for browser tests.
 - OpenSSL available on your PATH for the local HTTPS UI tests.
-- A Cloudflare account and Gemini API key only when running real captures and
-  analysis. Tests below use fixtures, local Chromium and local SQLite.
+- Your own Cloudflare account and Gemini API key only when running real captures
+  and analysis. The frontend preview and tests below need no Cloudflare login or
+  provider credentials.
 
-## Install and test
+## Try locally without credentials
+
+From the repository root:
+
+```sh
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+Open `http://localhost:5173/#/library` to inspect saved designs and copy or
+download their five export formats. You can also explore both interface modes.
+This runs the frontend only: no Worker, Cloudflare login, `.dev.vars` or AI key
+is needed. Leave `VITE_API_URL` empty; a fresh clone already uses that default.
+
+New URL analyses and live API availability need a running backend and are
+unavailable in this preview. The **Try** chips only prefill URLs; they do not
+replay saved results. For automated analysis flows with simulated API responses,
+use the local UI tests below. For real captures, follow
+[Run real analysis locally](#run-real-analysis-locally-your-own-accounts).
+
+## Install and test without remote services
 
 ```sh
 npm --prefix frontend ci
@@ -66,7 +87,18 @@ errors, keyboard access, responsive layouts and every copy/download format are
 checked without provider calls. If you change the build's API origin, supply the
 same `API_URL` when running the UI test.
 
-## Run locally
+The API URL in the build command matches the checked-in Pages CSP; the local UI
+test intercepts those requests instead of contacting the deployed demo. These
+checks need neither `wrangler login` nor `.dev.vars`. A deployment dry-run builds
+the Worker without deploying it; it is separate from `npm run dev`.
+
+## Run real analysis locally (your own accounts)
+
+This is an optional integration setup, not a dry-run. The Worker and SQLite
+ledger run locally, but `BROWSER` has `remote: true` in `wrangler.jsonc`: captures
+use Browser Run in the Cloudflare account you log into, and AI requests use your
+own Gemini key. Both consume their respective account quotas. Contributors use
+their own accounts; access to the demo owner's Cloudflare account is not needed.
 
 Create the environment files without overwriting existing credentials:
 
@@ -87,6 +119,7 @@ Start the API and frontend in separate terminals:
 ```sh
 # Terminal 1
 cd cloudflare-backend
+# Log into your own Cloudflare account for remote Browser Run.
 npx wrangler login
 npm run dev
 ```
@@ -113,9 +146,8 @@ in the static Pages application or the Worker request bundle. Workers runs on
 Cloudflare's managed runtime; `nodejs_compat` does not deploy the local Node.js
 binary. Keep the local build and test runtime patched independently.
 
-Real capture uses the remote Browser Run binding and consumes the account's
-browser allowance; Gemini calls consume provider quota. Local Chromium tests
-exercise capture without creating those remote sessions. See Cloudflare's
+Local Chromium tests exercise capture without creating remote Browser Run
+sessions or calling an AI provider. See Cloudflare's
 [remote bindings documentation](https://developers.cloudflare.com/workers/local-development/bindings-per-env/).
 
 ## API and output contract
