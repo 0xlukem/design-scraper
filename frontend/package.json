@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "build:pages": "node scripts/build-pages.mjs",
-    "dev": "vite",
+    "dev": "npm run demo --",
+    "demo": "vite --mode demo",
+    "dev:live": "vite --mode live",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",

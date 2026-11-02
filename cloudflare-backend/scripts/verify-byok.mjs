@@ -3,7 +3,7 @@
 import { chromium } from "playwright";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import assert from "node:assert/strict";
-import { isolateReplayNetwork } from "./replay-network.mjs";
+import { isolateReplayNetwork, replayApiPattern } from "./replay-network.mjs";
 import { readAnalysisResponse } from "./read-analysis-response.mjs";
 const site = process.env.PAGES_URL || "https://design-scraper.pages.dev";
 const api = process.env.API_URL || "https://design-scraper-phase8.lucas-malizia27.workers.dev";
@@ -65,7 +65,7 @@ const catalog = [
   { provider: "openai", model: "gpt-4o", inputPrice: null, outputPrice: null },
   { provider: "xai", model: "grok-4.3", inputPrice: null, outputPrice: null },
 ];
-if (!live) await page.route(`${api}/api/**`, async route => {
+if (!live) await page.route(replayApiPattern(site, api), async route => {
   const request = route.request();
   const headers = { "access-control-allow-origin": site, "access-control-allow-headers": "content-type,x-ai-provider,x-ai-key", "access-control-allow-methods": "GET,POST,OPTIONS" };
   if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers });

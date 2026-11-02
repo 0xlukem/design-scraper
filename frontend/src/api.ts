@@ -3,6 +3,7 @@ import type { AnalysisResult, AnalysisProgress, MixBias } from './types'
 import { AnalysisError, makeIssue, retryDeadline } from './analysisError'
 import { createByokLimiter, secureByokTransport, type ByokCredentials, type ProviderOption } from './byok'
 import { isAnalysisResult, isOwnerBudget, isPublicQuota, validTelemetry } from './responseValidation'
+import { demoHeaders, isLocalDemo } from './demo'
 
 const apiBaseUrl = import.meta.env.VITE_API_URL || ''
 const reserveByok = createByokLimiter()
@@ -51,7 +52,7 @@ async function postAnalysis(
   try {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson', ...(credentials ? { 'X-AI-Provider': credentials.provider, 'X-AI-Key': credentials.key } : {}) },
+    headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson', ...demoHeaders(true), ...(credentials ? { 'X-AI-Provider': credentials.provider, 'X-AI-Key': credentials.key } : {}) },
     redirect: 'error',
     credentials: 'omit',
     cache: 'no-store',
@@ -130,7 +131,7 @@ export async function getSharedQuota(signal: AbortSignal): Promise<import('../..
   signal.addEventListener('abort', cancel, { once: true })
   const timeout = setTimeout(() => controller.abort(new DOMException('Quota request timed out', 'TimeoutError')), 10000)
   try {
-    const response = await fetch(`${local ? '' : apiBaseUrl}/api/quotas`, { signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' })
+    const response = await fetch(`${local ? '' : apiBaseUrl}/api/quotas`, { signal: controller.signal, headers: isLocalDemo ? demoHeaders() : undefined, credentials: 'omit', cache: 'no-store', redirect: 'error' })
     if (!response.ok) throw new Error(`The site API could not return its availability (HTTP ${response.status}). Try again.`)
     let payload: unknown
     try { payload = await response.json() } catch { throw new Error('The site API returned an unreadable availability response. Try again.') }

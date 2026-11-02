@@ -40,10 +40,46 @@ configured pricing show an unavailable estimate.
   Patched Node.js 22.23.4+ and 26.12.1+ are also supported.
 - Chromium installed through Playwright for browser tests.
 - OpenSSL available on your PATH for the local HTTPS UI tests.
-- A Cloudflare account and Gemini API key only when running real captures and
-  analysis. Tests below use fixtures, local Chromium and local SQLite.
+- Your own Cloudflare account and Gemini API key only when running real captures
+  and analysis. The local demo and tests below need no Cloudflare login or
+  provider credentials.
 
-## Install and test
+## Run the local demo (no credentials)
+
+From the repository root:
+
+```sh
+npm --prefix frontend ci
+npm run demo
+```
+
+Open `http://localhost:5173`. The **Local demo · simulated** banner identifies
+this mode. Both Design Scraper and Mix It support form submission, streamed
+progress, results, all five copy/download formats, the design library, session
+activity and simulated API capacity. Use **Next demo run** to choose success,
+a capture error, a provider error, a quota limit or a slow request you can cancel.
+Error scenarios run once; after their three-second retry deadline, **Retry**
+returns a successful sample. There are no automatic retries.
+
+This starts Vite with a local simulated API. It needs only frontend dependencies:
+no Cloudflare account, Worker, `.dev.vars`, AI key or backend installation.
+`npm run dev` is an alias for the demo. From `frontend/`, `npm run demo` works too.
+The demo forces API requests to loopback even if `VITE_API_URL` points elsewhere.
+It neither visits entered URLs nor calls Cloudflare or AI providers, and accepts
+no credentials. The simulation is available only in the development server;
+Pages builds contain the real application without demo controls or transport.
+
+Single analysis replays the saved Example Domain result. Mix It replays fixed
+editorial contract samples for all five balances, including excluded sources.
+Samples retain their original evidence URLs, confidence, gaps and exports;
+they are not analyses of the URLs you enter. Token usage and costs are zero.
+Reload clears the selected scenario and session activity. Capacity figures are
+illustrative and follow the selected scenario; no budget ledger or browser
+storage is used.
+The **Try** chips still only prefill URLs; submit the form to run a simulation.
+For actual captures, use [dev:live](#run-real-analysis-locally-devlive).
+
+## Install and test without remote services
 
 ```sh
 npm --prefix frontend ci
@@ -57,6 +93,7 @@ npm test
 VITE_API_URL=https://design-scraper-phase8.lucas-malizia27.workers.dev npm run build:pages
 cd ../cloudflare-backend
 npm run test:ui
+npm run test:demo
 ```
 
 `verify` checks generated files, TypeScript, unit/contract tests, real Chromium,
@@ -66,7 +103,21 @@ errors, keyboard access, responsive layouts and every copy/download format are
 checked without provider calls. If you change the build's API origin, supply the
 same `API_URL` when running the UI test.
 
-## Run locally
+The API URL in the build command matches the checked-in Pages CSP; the local UI
+test intercepts those requests instead of contacting the deployed demo. These
+checks need neither `wrangler login` nor `.dev.vars`. `test:demo` starts the actual
+`npm run demo` command, exercises its local API in Chromium, blocks unexpected
+outbound browser requests and checks that demo code is absent from the Pages
+build. A deployment dry-run builds the Worker without deploying it; it is
+separate from running either the demo or real analysis.
+
+## Run real analysis locally (dev:live)
+
+This is an optional integration setup, not a dry-run. The Worker and SQLite
+ledger run locally, but `BROWSER` has `remote: true` in `wrangler.jsonc`: captures
+use Browser Run in the Cloudflare account you log into, and AI requests use your
+own Gemini key. Both consume their respective account quotas. Contributors use
+their own accounts; access to the demo owner's Cloudflare account is not needed.
 
 Create the environment files without overwriting existing credentials:
 
@@ -82,20 +133,21 @@ compatibility with existing Cloudflare Secrets; it protects administrative budge
 diagnostics through the protected endpoint and operational scripts. The public
 interface never requests it. Never place secrets in `VITE_*`.
 
-Start the API and frontend in separate terminals:
+After installing both packages, log into your own Cloudflare account once:
 
 ```sh
-# Terminal 1
 cd cloudflare-backend
+# Log into your own Cloudflare account for remote Browser Run.
 npx wrangler login
-npm run dev
+cd ..
+npm run dev:live
 ```
 
-```sh
-# Terminal 2
-cd frontend
-npm run dev
-```
+The root command checks for local dependencies and the three required `.dev.vars`
+values, then starts the Worker and frontend together. It never prints secret
+values. `npm run dev:live -- --check` runs only that preflight, without starting
+services or checking Cloudflare authentication. If running separate terminals,
+use `npm run dev:live` in `cloudflare-backend/` and `frontend/` respectively.
 
 Open `http://localhost:5173` directly. Vite proxies
 `/api` to the local Worker at `127.0.0.1:8787`; the default local frontend API URL
@@ -113,9 +165,8 @@ in the static Pages application or the Worker request bundle. Workers runs on
 Cloudflare's managed runtime; `nodejs_compat` does not deploy the local Node.js
 binary. Keep the local build and test runtime patched independently.
 
-Real capture uses the remote Browser Run binding and consumes the account's
-browser allowance; Gemini calls consume provider quota. Local Chromium tests
-exercise capture without creating those remote sessions. See Cloudflare's
+Local Chromium tests exercise capture without creating remote Browser Run
+sessions or calling an AI provider. See Cloudflare's
 [remote bindings documentation](https://developers.cloudflare.com/workers/local-development/bindings-per-env/).
 
 ## API and output contract
@@ -253,8 +304,8 @@ For a local Pages preview, run `npm run preview` from `frontend/` after the Page
 build. Vite proxies only `/api/quotas` to the HTTPS API origin declared in the
 build's CSP (or an explicit `VITE_API_URL`). This allows the public counter to
 load from localhost without changing production CORS or forwarding credentials.
-Development still uses the local Worker proxy; production uses the configured
-API origin directly.
+Live development uses the local Worker proxy; the local demo uses its simulated
+API. Production uses the configured API origin directly.
 
 The **saved design library** includes reviewed snapshots of Stripe (September 10, 2026),
 Milligram, Example Domain and a Bootstrap/Milligram blend (September 9, 2026). Opening, copying
@@ -315,6 +366,7 @@ Run these commands from `cloudflare-backend/`:
 | `npm run deploy:dry-run` | Build the Worker without deploying |
 | `npm run verify` | Run the complete backend sequence above |
 | `npm run test:ui` | Test the built Pages app locally with intercepted APIs |
+| `npm run test:demo` | Test the interactive local demo and its actual simulated API in Chromium |
 | `npm run test:pages` | Test the deployed Pages app with intercepted APIs |
 | `npm run verify:results -- <files>` | Validate saved successful responses without AI calls |
 
