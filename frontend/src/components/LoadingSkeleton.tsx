@@ -1,6 +1,7 @@
 import type { AnalysisProgress } from '../types'
 import { CircleNotch, Scan, Sparkle, FileMd } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
+import { isLocalDemo } from '../demo'
 
 // Spinner pattern from shadcn/ui, using the project's existing Phosphor icon set.
 export default function LoadingSkeleton({ isMix, startedAt, progress }: { isMix: boolean; startedAt?: number; progress?: AnalysisProgress }) {
@@ -30,6 +31,6 @@ export default function LoadingSkeleton({ isMix, startedAt, progress }: { isMix:
       <li><Sparkle size={24} aria-hidden="true" /><strong>Analyze with AI</strong><span>Your selected provider interprets screenshots and CSS evidence.</span></li>
       <li><FileMd size={24} aria-hidden="true" /><strong>Prepare five exports</strong><span>Validate one system, then prepare Markdown, CSS and tokens.</span></li>
     </ol>
-    <p className="text-xs leading-relaxed text-[var(--muted)]">Stopping waiting does not cancel remote work; remote work may still consume quota. Reload clears your BYOK key and does not start another analysis.</p>
+    <p className="text-xs leading-relaxed text-[var(--muted)]">{isLocalDemo ? 'Replaying simulated stages from committed samples. Stop waiting ends the simulation; no website or AI provider is contacted.' : 'Stopping waiting does not cancel remote work; remote work may still consume quota. Reload clears your BYOK key and does not start another analysis.'}</p>
   </section>
 }

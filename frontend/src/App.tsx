@@ -18,6 +18,8 @@ import { librarySuggestions } from './library'
 import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
 import ProviderControls from './components/ProviderControls'
 import type { ByokCredentials } from './byok'
+import { cancelledDemoTelemetry, isLocalDemo } from './demo'
+import DemoControls from './components/DemoControls'
 import type {
   AnalysisResult,
   AnalysisProgress,
@@ -164,7 +166,10 @@ function App() {
     const brand = state.mode === 'mix' ? 'Mix It' : 'Design Scraper'
     document.title = section === 'analyze' ? `${brand} · ${state.mode === 'mix' ? 'Two references. Something new.' : 'Design, decoded.'}` : `${section === 'library' ? 'Design library' : 'Activity & costs'} · ${brand}`
   }, [section, state.mode])
-  const reviewSettings = () => { setSettingsRevision(n => n + 1) }
+  const reviewSettings = () => {
+    if (isLocalDemo) document.getElementById('demo-scenario')?.focus()
+    else setSettingsRevision(n => n + 1)
+  }
 
 
   useEffect(
@@ -189,10 +194,10 @@ function App() {
     const sources = mode === 'single' ? [state.single.url.trim()] : [state.mix.url1.trim(), state.mix.url2.trim()]
     if (providerAccess.current) { setKeyStatus('checking'); setKeyError('') }
     const funding = providerAccess.current ? 'byok' as const : 'demo' as const
-    const provider = providerAccess.current?.provider || 'gemini'
+    const provider = providerAccess.current?.provider || (isLocalDemo ? 'local-demo' : 'gemini')
     let lastTelemetry: AnalysisTelemetry | undefined
     const recordUsage = (outcome: UsageEntry['outcome'], usage?: AnalysisResult['metadata']['usage'], telemetry?: AnalysisTelemetry, requestSent?: boolean) =>
-      setUsageEntries(entries => [...entries, { id, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || provider, outcome, usage, telemetry, requestSent }])
+      setUsageEntries(entries => [...entries, { id, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || telemetry?.provider || provider, outcome, usage, telemetry, requestSent }])
     dispatch({ type: 'request-start', mode, startedAt: Date.now() })
 
     try {
@@ -209,7 +214,7 @@ function App() {
       if (controllers.current[mode] !== controller) return
       if (error instanceof DOMException && error.name === 'AbortError') {
         if (funding === 'byok') setKeyStatus(previousKeyStatus === 'verified' ? 'verified' : 'unverified')
-        recordUsage('cancelled', undefined, lastTelemetry ? { ...lastTelemetry, final: false, usage_status: 'unavailable' } : undefined)
+        recordUsage('cancelled', undefined, isLocalDemo ? cancelledDemoTelemetry() : lastTelemetry ? { ...lastTelemetry, final: false, usage_status: 'unavailable' } : undefined)
         dispatch({ type: 'request-cancel', mode })
       } else {
         const issue = toIssue(error, funding)
@@ -277,6 +282,7 @@ function App() {
       </div>
     </header>
     <main ref={main} tabIndex={-1} id="main-content" className="workspace-main">
+      {isLocalDemo && <DemoControls busy={busy} />}
       {section === 'activity' && <div className="page-intro activity-intro"><span className="section-kicker">API capacity &amp; usage / 03</span><h1>Activity &amp; costs</h1><p>See what’s available. Track what you use.</p><p className="field-help">Site capacity is shared. Your activity lists analyses from this tab.</p></div>}
       <div className={section === 'analyze' ? 'analysis-controls' : undefined} hidden={section === 'library'}>
       {section === 'analyze' && <HeroReveal mode={state.mode} paused={false}>
@@ -318,9 +324,9 @@ function App() {
         {retryRemaining > 0 && <p className="form-notice" role="status">New analyses are available in {retryRemaining}s. You can edit your URLs or browse saved designs while you wait.</p>}
         {!providerReady && <p className="form-notice" role="status">Finish setting up your key, or choose Shared allowance to analyze.</p>}
         {busy && !state[state.mode].loading && <p role="status" className="form-notice">An analysis is running in the other mode. Switch back to see its progress.</p>}
-        {state[state.mode].cancelled && <p role="status" className="cancellation-note">You stopped waiting. Work already started may still use quota. See Activity &amp; costs for the last available usage.</p>}
+        {state[state.mode].cancelled && <p role="status" className="cancellation-note">{isLocalDemo ? 'Simulation stopped. No website or AI provider was called.' : 'You stopped waiting. Work already started may still use quota. See Activity & costs for the last available usage.'}</p>}
       </div>
-      <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
+      {!isLocalDemo && <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />}
       {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
       </div>
       </div>
