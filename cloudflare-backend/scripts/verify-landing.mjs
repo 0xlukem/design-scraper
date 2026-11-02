@@ -37,8 +37,12 @@ try {
   assert.match(response.headers()['content-security-policy'], /frame-ancestors 'none'/);
   assert.equal(response.headers()['x-frame-options'], 'DENY');
   const html = await response.text();
-  assert.match(html, /Take the web/);
-  assert.match(html, /Start with included use\./);
+  assert.match(html, /Scrape it/);
+  assert.match(html, /Frequently asked/);
+  assert.equal(await page.locator('.faq details').count(),10);
+  assert.equal(await page.getByRole('link',{name:'View all designs',exact:true}).count(),1);
+  assert.equal(await page.locator('.hero-demo,.motion-controls,.access-options,.mix-ratio').count(),0);
+  assert.doesNotMatch((await page.locator('a,button').allTextContents()).join(' '),/[↗↓←→]/);
   assert.doesNotMatch(html, /<div id="root"><\/div>|Open demo|\/demo\//);
   assert.equal(await page.locator('h1').count(), 1);
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), canonical);
@@ -81,8 +85,7 @@ try {
   assert.match(await page.locator('.evidence-ledger').innerText(), /48px \/ 300/);
   assert.match(await page.locator('.evidence-ledger').innerText(), /#533AFD.*Inferred/s);
   assert.deepEqual(mix.metadata.weights,{web_1:25,web_2:75});
-  assert.match(await page.locator('.mix-ratio').innerText(), /25.*75/s);
-  assert.match(await page.locator('#hero-provenance').innerText(), /Saved Bootstrap capture.*9 Sep 2026.*not a live analysis/s);
+  assert.match(await page.locator('#hero-provenance').innerText(), /saved Bootstrap capture.*9 Sep 2026.*does not run a live analysis/s);
   checks.push('Evidence statuses, historical dates and mix weights agree with saved material');
 
   const widths = [320,360,390,429,430,431,640,759,760,761,768,1024,1049,1050,1051,1099,1100,1101,1265,1440];
@@ -90,7 +93,7 @@ try {
     await page.setViewportSize({width,height:width<=430?844:900});
     await page.waitForTimeout(160); // The responsive motion layout is debounced by 100ms.
     await page.evaluate(() => document.fonts.ready);
-    const layout = await page.evaluate(() => ({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,scene:document.querySelector('.scene').getBoundingClientRect().width}));
+    const layout = await page.evaluate(() => ({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,scene:document.querySelector('.hero-art').getBoundingClientRect().width}));
     assert.ok(layout.scrollWidth <= width + 1, `No page overflow at ${width}px: ${layout.scrollWidth}`);
     layouts.push(layout);
     if ([390,768,1265].includes(width)) {
@@ -104,15 +107,15 @@ try {
   await page.goto(origin);
   const action = await page.locator('.hero .primary').boundingBox();
   assert.ok(action.y+action.height<712,'Primary action in first desktop frame');
-  assert.equal(await page.locator('#play').isDisabled(),true);
-  assert.equal(await page.locator('#scrub').inputValue(),'1000');
-  assert.equal(await page.locator('.type-piece').isVisible(),true);
+  assert.equal(await page.locator('#hero-motion').isVisible(),false);
+  assert.equal(await page.locator('.hero').getAttribute('data-phase'),'system');
+  assert.equal(await page.locator('.type-token').isVisible(),true);
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Skip to content');
   await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(()=>document.activeElement.id),'main-content');
-  await page.getByText('What limits apply?',{exact:true}).click();
-  assert.equal(await page.locator('details').filter({hasText:'What limits apply'}).getAttribute('open'),'');
+  await page.locator('.faq summary').filter({hasText:'Which websites can I analyze, and what limits apply?'}).click();
+  assert.equal(await page.locator('details').filter({hasText:'Which websites can I analyze'}).getAttribute('open'),'');
   checks.push('Responsive boundaries; keyboard skip link, native disclosure and reduced-motion result');
 
   const noJs = await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});
@@ -121,9 +124,10 @@ try {
   await staticPage.goto(origin);
   assert.equal(await staticPage.getByRole('heading',{level:1}).isVisible(),true);
   assert.equal(await staticPage.locator('.hero .primary').getAttribute('href'),'/app/#/analyze/start');
-  await staticPage.locator('.hero-demo > summary').click();
-  assert.equal(await staticPage.locator('.type-piece').isVisible(),true);
-  assert.equal(await staticPage.locator('.motion-controls').isVisible(),false);
+  assert.equal(await staticPage.locator('.type-token').isVisible(),true);
+  assert.equal(await staticPage.locator('#hero-motion').isVisible(),false);
+  await staticPage.locator('.faq summary').filter({hasText:'What are saved designs?'}).click();
+  assert.match(await staticPage.locator('.faq').innerText(),/rather than official brand guides/);
   assert.ok(await staticPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await noJs.close();
   checks.push('Static content, evidence and navigation survive disabled JavaScript');
@@ -168,35 +172,39 @@ try {
   }
   checks.push('Every promoted result and application destination opens without an analysis');
 
-  // Record actual one-shot playback in both compositions; recordings need visual review.
+  // Run complete narratives and record them; choreography still requires visual review.
   for(const [name,width,height] of [['desktop',1265,712],['mobile',390,844]]) {
-    const motionContext=await browser.newContext({viewport:{width,height},reducedMotion:'no-preference',recordVideo:{dir:`${artifacts}/recordings`,size:{width,height}},serviceWorkers:'block'});
-    const motionNetwork=await isolateReplayNetwork(motionContext,origin);
-    const motionPage=await motionContext.newPage();
-    motionPage.on('pageerror',error=>errors.push(error.message));
-    await motionPage.goto(origin);
-    if (width <= 760) await motionPage.locator('.hero-demo > summary').click();
-    await motionPage.waitForFunction(()=>document.querySelector('#scrub').value==='1000' && document.querySelector('#play').getAttribute('aria-label')==='Play animation',{},{timeout:18000});
-    assert.equal(await motionPage.locator('#play').getAttribute('aria-label'),'Play animation');
-    await motionPage.getByRole('button',{name:'Replay animation',exact:true}).click();
-    await motionPage.waitForFunction(()=>Number(document.querySelector('#scrub').value)>30);
-    await motionPage.getByRole('button',{name:'Pause animation',exact:true}).click();
-    const paused=await motionPage.locator('#scrub').inputValue();
-    await motionPage.waitForTimeout(200);
-    assert.equal(await motionPage.locator('#scrub').inputValue(),paused);
-    await motionPage.locator('#scrub').press('End');
-    assert.equal(await motionPage.locator('#scrub').inputValue(),'1000');
-    await motionPage.getByRole('button',{name:'01 Site',exact:true}).click();
-    assert.equal(await motionPage.locator('.source-window').isVisible(),true);
-    await motionPage.getByRole('button',{name:'03 System',exact:true}).click();
-    assert.equal(await motionPage.locator('.source-window').isVisible(),false);
-    assert.equal(await motionPage.locator('.type-piece').isVisible(),true);
-    assert.deepEqual(motionNetwork,[]);
-    const video=motionPage.video();
-    await motionContext.close();
-    await video.saveAs(`${artifacts}/hero-${name}.webm`);
+    const ctx=await browser.newContext({viewport:{width,height},reducedMotion:'no-preference',recordVideo:{dir:`${artifacts}/recordings`,size:{width,height}},serviceWorkers:'block'});
+    const network=await isolateReplayNetwork(ctx,origin), mp=await ctx.newPage();
+    mp.on('pageerror',e=>errors.push(e.message));
+    await mp.goto(origin);
+    await mp.waitForFunction(()=>document.querySelector('.hero').dataset.phase==='system',{},{timeout:15000});
+    await mp.getByRole('button',{name:'Pause hero animation',exact:true}).click();
+    const frozen=await mp.locator('.record-disc').getAttribute('style');
+    await mp.waitForTimeout(250);
+    assert.equal(await mp.locator('.record-disc').getAttribute('style'),frozen);
+    await mp.getByRole('button',{name:'Play hero animation',exact:true}).click();
+    await mp.waitForFunction(()=>Number(document.querySelector('.hero').dataset.cycle)>0,{},{timeout:23000});
+    await mp.locator('#mix-it').scrollIntoViewIfNeeded();
+    await mp.waitForFunction(()=>document.querySelector('.hero').dataset.playback==='paused');
+    await mp.waitForFunction(()=>document.querySelector('.mix-section').dataset.phase==='splash',{},{timeout:13000});
+    await mp.getByRole('button',{name:'Pause Mix It animation',exact:true}).click();
+    const token=await mp.locator('.mix-token').first().getAttribute('style');
+    await mp.waitForTimeout(250);
+    assert.equal(await mp.locator('.mix-token').first().getAttribute('style'),token);
+    await mp.getByRole('button',{name:'Play Mix It animation',exact:true}).click();
+    await mp.waitForFunction(()=>Number(document.querySelector('.mix-section').dataset.cycle)>0,{},{timeout:20000});
+    await mp.emulateMedia({reducedMotion:'reduce'});
+    await mp.locator('#mix-motion').waitFor({state:'hidden'});
+    assert.equal(await mp.locator('#mix-motion').isVisible(),false);
+    assert.equal(await mp.locator('.mix-section').getAttribute('data-phase'),'settle');
+    await mp.emulateMedia({reducedMotion:'no-preference'});
+    await mp.locator('#mix-motion').waitFor({state:'visible'});
+    assert.equal(await mp.locator('#mix-motion').isVisible(),true);
+    assert.deepEqual(network,[]);
+    const video=mp.video(); await ctx.close(); await video.saveAs(`${artifacts}/hero-mix-${name}.webm`);
   }
-  checks.push('12-second desktop/mobile playback reaches a stable result; replay, pause, keyboard seeking and stages work; videos saved');
+  checks.push('Full hero and blender cycles at desktop/mobile; explicit and offscreen pause, live reduced-motion changes and restart; videos saved');
   assert.ok(quotaReads > 0, 'Activity loads its mocked public capacity counter');
   assert.ok(apiRequests.every(url => new URL(url).pathname === '/api/quotas'));
   assert.equal(apiRequests.length, quotaReads);

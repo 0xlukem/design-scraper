@@ -119,11 +119,11 @@ const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
 
 function App() {
   // The requested world; the paint transition decides when `state.mode` follows.
-  const [targetMode, setTargetMode] = useState<AppMode>('single')
+  const [targetMode, setTargetMode] = useState<AppMode>(readEntryMode)
   const [allowanceRequested, setAllowanceRequested] = useState(false)
   const [usageEntries, setUsageEntries] = useState<UsageEntry[]>([])
   const requestId = useRef(0)
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, initialState, state => ({ ...state, mode: readEntryMode() }))
   const controllers = useRef<Partial<Record<AppMode, AbortController>>>({})
   const providerAccess = useRef<ByokCredentials | null | undefined>(undefined)
   const [providerReady, setProviderReady] = useState(true)
@@ -164,10 +164,14 @@ function App() {
   }, [section])
   useEffect(() => {
     const focusEntry = () => {
-      if (window.location.hash !== '#/analyze/start') return
+      if (!['#/analyze/start', '#/analyze/mix'].includes(window.location.hash)) return
+      const entryHash = window.location.hash
+      const mode = readEntryMode()
+      setTargetMode(mode)
+      dispatch({ type: 'set-mode', mode })
       requestAnimationFrame(() => {
-        if (window.location.hash !== '#/analyze/start') return
-        const input = document.getElementById('single-url')
+        if (window.location.hash !== entryHash) return
+        const input = document.getElementById(mode === 'mix' ? 'mix-url-1' : 'single-url')
         input?.focus({ preventScroll: true })
         document.getElementById('analysis-form')?.scrollIntoView({ block: 'center', behavior: 'instant' })
       })
@@ -285,7 +289,7 @@ function App() {
       <a href="#main-content" className="skip-link" onClick={e => { e.preventDefault(); main.current?.focus() }}>Skip to content</a>
       <div className="nav-inner">
         <a className="brand-link" href="#/analyze" aria-label={state.mode === 'single' ? 'Design Scraper home' : 'Mix It home'} onClick={() => window.scrollTo?.({ top: 0, behavior: 'instant' })}>
-          {state.mode === 'single' ? <><span className="studio-mark" aria-hidden="true"><i /><i /><i /><i /></span><span className="studio-wordmark">design<br />scraper<span className="brand-period">®</span></span></> : <span className="mix-wordmark">mix it<span>.</span></span>}
+          {state.mode === 'single' ? <><img src="/design-scraper.svg" width="36" height="36" alt="" /><span className="studio-wordmark">design<br />scraper<span className="brand-period">®</span></span></> : <span className="mix-wordmark">mix it<span>.</span></span>}
         </a>
         <nav aria-label="Main navigation">
           {sections.map(item => <a key={item.id} href={`#/${item.id}`} aria-current={section === item.id ? 'page' : undefined}>{item.label}</a>)}
@@ -362,6 +366,10 @@ function App() {
     </main>
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
   </div>
+}
+
+function readEntryMode(): AppMode {
+  return window.location.hash === '#/analyze/mix' ? 'mix' : 'single'
 }
 
 const sections = [

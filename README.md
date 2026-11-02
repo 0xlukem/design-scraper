@@ -21,9 +21,12 @@ paint to monochrome while it retreats.
 
 The public home at `/` has two entry points: analyze a website or explore saved
 designs. The analysis link (`/app/#/analyze/start`) focuses the URL field without
-submitting. The Bootstrap demonstration opens on demand on mobile. Models & rates
-is available independently of API-key setup and loads the public catalog only
-when opened. The initial content and saved-design links work without JavaScript.
+submitting. The Mix It link (`/app/#/analyze/mix`) opens its two-reference form
+and focuses the first URL without submitting. The extraction and blender scenes
+can be paused, suspend off-screen and in hidden tabs, and use a static composition
+with reduced motion. The FAQ and saved-design links work without JavaScript.
+Models & rates is available from the footer independently of API-key setup and
+loads the public catalog only when opened.
 
 The application lives at `/app/`,
 with its existing hash navigation. Saved results can be linked directly, for
@@ -125,7 +128,9 @@ same `API_URL` when running the UI test.
 
 The UI suite also verifies the landing's initial HTML, indexing rules, canonical
 and social metadata, responsive breakpoints, saved-result downloads, and old
-hash links. Home journey checks cover direct form entry, local URL validation,
+hash links. Full desktop/mobile animation cycles, pause controls and live
+reduced-motion changes are also checked. Home journey checks cover direct form
+entry in both modes, local URL validation,
 loading and error recovery, saved-reference navigation, and model-catalog loading,
 failure and empty responses. Screenshots are saved in `output/playwright/landing-a/`
 and `output/playwright/home-ux/`. All API responses in these checks are mocked.

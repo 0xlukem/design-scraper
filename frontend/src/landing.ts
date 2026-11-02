@@ -11,10 +11,6 @@ function forwardWorkspaceLink() {
 forwardWorkspaceLink()
 window.addEventListener('hashchange', forwardWorkspaceLink)
 
-const demo = document.querySelector<HTMLDetailsElement>('.hero-demo')!
-// Native disclosure keeps task entry first on mobile and works without JS.
-// The initial viewport never overrides a later explicit open/close choice.
-demo.open = window.matchMedia('(min-width: 761px)').matches
 initLandingMotion()
 
 const rates = document.querySelector<HTMLDetailsElement>('#model-rates')!

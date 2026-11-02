@@ -47,13 +47,13 @@ try {
   for(const width of [320,390,768,1440]) {
     await page.setViewportSize({width,height:width<768?844:900});
     await page.goto(origin); await page.evaluate(()=>document.fonts.ready);
-    assert.equal(await page.locator('.hero-demo').evaluate(e=>e.open),width>760);
+    assert.equal(await page.locator('.hero').getAttribute('data-phase'),'system');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     const primary=await page.locator('.hero .primary').boundingBox();
     const secondary=await page.locator('.secondary-action').boundingBox();
     assert.ok(primary.y+primary.height<844 && secondary.y+secondary.height<844);
     metrics.push(await page.evaluate(()=>({width:innerWidth,pageHeight:document.documentElement.scrollHeight,examplesY:document.querySelector('#examples').getBoundingClientRect().y,visibleWords:document.body.innerText.split(/\s+/).length})));
-    if(width===390) assert.ok(metrics.at(-1).examplesY<600,'References begin before 600px on mobile');
+    if(width===390) assert.ok(metrics.at(-1).examplesY<1000,'References follow the full-height hero');
     if([390,1440].includes(width)) {
       await page.screenshot({path:`${artifacts}/after-home-${width}.png`});
       await page.screenshot({path:`${artifacts}/after-full-${width}.png`,fullPage:true});
@@ -77,20 +77,21 @@ try {
     if([390,1440].includes(width)) await page.screenshot({path:`${artifacts}/after-entry-${width}.png`});
   }
   assert.equal(analyses(),0,'Navigation and automatic focus never analyze');
-  checks.push('Two visible entry choices at 320/390/768/1440; mobile references before 600px; covers and saved palettes match; task entry focuses URL without submitting');
+  checks.push('Two visible entry choices at 320/390/768/1440; references follow the full-height hero; covers and saved palettes match; task entry focuses URL without submitting');
 
-  await page.setViewportSize({width:390,height:844});
-  await page.goto(origin); await page.locator('.hero-demo > summary').click();
-  await page.waitForFunction(()=>document.querySelector('.scene').clientHeight>100 && document.querySelector('#scrub').value==='1000');
-  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-  await page.locator('.hero-demo > summary').click();
-  await page.setViewportSize({width:1440,height:900});
-  assert.equal(await page.locator('.hero-demo').evaluate(e=>e.open),false,'Resize preserves explicit collapsed state');
-  checks.push('Mobile demonstration opens with valid dimensions and reduced motion; resizing preserves user choice');
+  await page.goto(origin);
+  await page.getByRole('link',{name:'Try Mix It',exact:true}).click();
+  await page.waitForFunction(()=>document.activeElement.id==='mix-url-1');
+  assert.equal(await page.locator('[data-experience]').getAttribute('data-experience'),'mix');
+  assert.equal(analyses(),0,'Mix entry does not submit');
+  await page.reload();
+  await page.waitForFunction(()=>document.activeElement.id==='mix-url-1');
+  assert.equal(await page.locator('[data-experience]').getAttribute('data-experience'),'mix');
+  checks.push('Try Mix It opens and focuses the actual Mix workspace; reload preserves the route without analysis');
 
   await page.goto(origin);
   ratesMode='slow';
-  await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Models & rates'}).click();
+  await page.getByRole('navigation',{name:'Footer'}).getByRole('link',{name:'Models & rates'}).click();
   await page.getByText('Loading models and rates…',{exact:true}).waitFor();
   await page.screenshot({path:`${artifacts}/after-rates-loading.png`});
   await page.waitForFunction(()=>document.querySelector('#rates-status').textContent.includes('Loading'));
