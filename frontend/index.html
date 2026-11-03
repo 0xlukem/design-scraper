@@ -37,14 +37,14 @@
   </div>
   <div class="hero-copy">
     <h1 id="hero-title" aria-label="Scrape it like it’s hot."><span class="headline-line line-scrape" aria-hidden="true">Scrape it</span> <span class="headline-line line-like" aria-hidden="true">like it’s</span> <span class="headline-line line-hot" aria-hidden="true">hot.</span></h1>
-    <div class="hero-summary"><p>Extract colors, type and reusable design tokens.</p>
+    <div class="hero-summary"><p>Turn any website into colors, type and tokens you can build with.</p><div class="hero-actions">
       <a class="primary" href="/app/#/analyze/start">Analyze a website</a>
-      <a class="secondary-action" href="#examples">Explore saved designs</a>
+      <a class="secondary-action" href="#examples">Explore saved designs</a></div>
     </div>
   </div>
   <p id="hero-provenance" class="sr-only">An illustrative 3D extraction. This animation does not run a live analysis.</p>
   <p id="hero-error" class="scene-error" role="status" hidden></p>
-  <div class="scene-controls"><button id="hero-replay" type="button" aria-label="Replay hero animation" hidden>Replay</button><button id="hero-motion" type="button" aria-label="Pause hero animation" hidden>Pause</button></div>
+  <button class="hero-motion" id="hero-motion" type="button" aria-label="Pause hero animation" hidden>Pause</button>
 </section>
 <section class="examples-section section shell" id="examples" aria-labelledby="examples-title">
   <div class="section-heading">
@@ -59,7 +59,7 @@
     </a>
     <a class="example-row" href="/app/#/library/github">
       <img src="/images/library/github.webp" width="960" height="504" loading="lazy" alt="">
-      <div class="example-name"><h3>GitHub</h3><p>Mona Sans and a dark canvas from a developer platform.</p><div class="reference-palette" aria-label="Saved palette: dark canvas, green, blue and off-white"><i style="--swatch:#0d1117"></i><i style="--swatch:#08872b"></i><i style="--swatch:#1f6feb"></i><i style="--swatch:#f0f6fc"></i></div></div>
+      <div class="example-name"><h3>GitHub</h3><p>Mona Sans and a dark canvas from a developer platform.</p><div class="reference-palette" aria-label="Saved palette: dark canvas, green, blue and soft white"><i style="--swatch:#0d1117"></i><i style="--swatch:#08872b"></i><i style="--swatch:#1f6feb"></i><i style="--swatch:#f0f6fc"></i></div></div>
       <time datetime="2026-10-21">21 Oct 2026</time><span class="example-open">View design</span>
     </a>
     <a class="example-row" href="/app/#/library/milligram">
@@ -70,40 +70,49 @@
   </div>
 </section>
 <section class="evidence-section section shell" id="what-you-get" aria-labelledby="evidence-title">
-  <div class="section-heading"><div><h2 id="evidence-title">Inspect the system.<br>Take the useful parts.</h2><p>Colors, type, spacing and components—with measurements, AI interpretations and gaps kept distinct.</p></div></div>
-  <div class="evidence-layout">
-    <figure class="evidence-ledger"><figcaption>Inside the saved Stripe result <time datetime="2026-09-10">10 Sep 2026</time></figcaption>
-      <dl><div><dt>Heading size / weight</dt><dd><strong>48px / 300</strong><span>Detected · CSS evidence</span></dd></div><div><dt>Primary brand role</dt><dd><strong><i class="stripe-swatch" aria-hidden="true"></i>#533AFD</strong><span>Inferred · AI interpretation</span></dd></div><div><dt>Known gaps</dt><dd class="gap-value">Footer outside the capture.<br>Interaction states not tested.</dd></div></dl>
-      <a class="text-link" href="/app/#/library/stripe">Inspect the Stripe result</a>
-    </figure>
-    <div class="exports"><h3>One result. Five exports.</h3><p>Copy values or download files without another AI request.</p>
-      <dl class="export-list"><div><dt>Extended Markdown</dt><dd>Full findings, evidence and gaps</dd></div><div><dt>Compact Markdown</dt><dd>A shorter reference for your build</dd></div><div><dt>CSS variables</dt><dd>Reusable values for your stylesheet</dd></div><div><dt>Tailwind-compatible CSS</dt><dd>A starting theme for Tailwind</dd></div><div><dt>Design tokens JSON</dt><dd>Structured values for your tools</dd></div></dl>
-      <a class="text-link" href="/app/#/library/example-domain">Try the exports</a>
-    </div>
+  <div class="section-heading"><h2 id="evidence-title">Inspect the system.</h2></div>
+  <figure class="evidence-ledger">
+    <figcaption><span>Inside the saved Stripe result</span><time datetime="2026-09-10">10 Sep 2026</time></figcaption>
+    <dl>
+      <div><dt>Heading size / weight</dt><dd><strong class="type-value">48px / 300</strong><span>Detected · CSS evidence</span></dd></div>
+      <div><dt>Primary brand color</dt><dd><strong><i class="stripe-swatch" aria-hidden="true"></i>#533AFD</strong><span>Inferred · AI interpretation</span></dd></div>
+      <div><dt>Known gaps</dt><dd class="gap-value">Footer outside the capture.<br>Interaction states not tested.</dd></div>
+    </dl>
+    <a class="text-link" href="/app/#/library/stripe">Inspect the Stripe result</a>
+  </figure>
+  <div class="exports">
+    <div class="exports-heading"><h3>Choose your export.</h3><p>Markdown for context. CSS for your build. JSON for your tools.</p></div>
+    <dl class="export-list">
+      <div><dt>Extended Markdown</dt><dd>Every finding, source and gap</dd></div>
+      <div><dt>Compact Markdown</dt><dd>A concise reference for AI tools</dd></div>
+      <div><dt>CSS variables</dt><dd>Copy values into your stylesheet</dd></div>
+      <div><dt>CSS for Tailwind</dt><dd>Start with the extracted theme</dd></div>
+      <div><dt>Design tokens JSON</dt><dd>Use structured values in your tools</dd></div>
+    </dl>
+    <a class="text-link" href="/app/#/library/example-domain">Try the exports</a>
   </div>
 </section>
 <section class="mix-section mix-banner" id="mix-it" aria-labelledby="mix-title">
   <div id="mix-scene" class="mix-scene" role="img" aria-label="A lidless chrome blender continuously mixes typography, colors and miniature layouts. Design fragments and colored splashes fly across the banner."></div>
-  <div class="mix-copy"><p class="mix-wordmark">mix it.</p><h2 id="mix-title">Go for<br class="desktop-break"> your<br class="mobile-break"> own<br class="desktop-break"> way.</h2><p class="mix-description">Blend what moves you.<br>Make something unmistakably yours.</p><div class="mix-actions"><a id="mix-action" class="primary mix-action" href="/app/#/analyze/mix">Try Mix It</a><a class="mix-saved" href="/app/#/library/bootstrap-milligram">Explore a saved mix</a></div></div>
+  <div class="mix-copy"><p class="mix-wordmark">mix it.</p><h2 id="mix-title">Go for<br class="desktop-break"> your<br class="mobile-break"> own<br class="desktop-break"> way.</h2><p class="mix-description">Blend two websites.<br>Build something of your own.</p><div class="mix-actions"><a id="mix-action" class="primary mix-action" href="/app/#/analyze/mix">Try Mix It</a><a class="mix-saved" href="/app/#/library/bootstrap-milligram">Explore a saved mix</a></div></div>
   <p id="mix-error" class="scene-error" role="status" hidden></p>
-  <div class="scene-controls"><button id="mix-replay" type="button" aria-label="Replay Mix It animation" hidden>Replay</button><button id="mix-motion" type="button" aria-label="Pause Mix It animation" hidden>Pause</button></div>
 </section>
-<section class="faq section shell" id="faq" aria-labelledby="faq-title"><h2 id="faq-title">Frequently asked<br>questions.</h2><div class="faq-list">
+<section class="faq section shell" id="faq" aria-labelledby="faq-title"><h2 id="faq-title">Frequently asked questions.</h2><div class="faq-list">
 <details open><summary>What is Design Scraper?<span aria-hidden="true">+</span></summary><p>Design Scraper examines a public webpage using screenshots, CSS evidence and AI vision. It turns what it finds into a structured design reference you can inspect and export for your next build.</p></details>
 <details><summary>What can I extract from a website?<span aria-hidden="true">+</span></summary><p>Explore colors, typography, spacing and component styles from the captured page. The result keeps measured values, AI interpretations and missing evidence distinct.</p></details>
 <details><summary>How accurate is a website design analysis?<span aria-hidden="true">+</span></summary><p>A capture covers a bounded view of a page, rather than every screen size, page and interaction. Review each value’s evidence, confidence and known gaps before using it.</p></details>
-<details><summary>Which formats can I export?<span aria-hidden="true">+</span></summary><p>Copy or download Extended Markdown, Compact Markdown, CSS variables, Tailwind-compatible CSS and design tokens JSON. All five come from the same result, without another AI request.</p></details>
+<details><summary>Which formats can I export?<span aria-hidden="true">+</span></summary><p>Copy or download Extended Markdown, Compact Markdown, CSS variables, CSS for Tailwind and design tokens JSON. All five come from the same result, without another AI request.</p></details>
 <details><summary>How does Mix It combine two websites?<span aria-hidden="true">+</span></summary><p>Mix It uses two website references to propose a new design system. Choose their relative influence with the mix balance control, then inspect the resulting values, sources and gaps.</p></details>
 <details><summary>Do I need an API key to start?<span aria-hidden="true">+</span></summary><p>You can analyze through Design Scraper’s shared Gemini service while capacity is available. You can also explore and export saved designs without starting an analysis.</p></details>
 <details><summary>Can I use my own AI provider?<span aria-hidden="true">+</span></summary><p>Yes. Choose Gemini, Claude, OpenAI or Grok in the workspace and use your own API key. Your provider bills your account; displayed costs are estimates, and shared capture and admission limits still apply.</p></details>
 <details><summary>How is my API key handled?<span aria-hidden="true">+</span></summary><p>Your key stays in tab memory and travels over HTTPS to the server and your chosen provider for analysis. The application does not persist the key. Provider processing and retention follow the provider’s terms.</p></details>
-<details><summary>What are saved designs?<span aria-hidden="true">+</span></summary><p>Saved designs are dated analyses of third-party websites, rather than official brand guides or current captures. Opening them and copying or downloading their exports uses static assets, without a new analysis request.</p></details>
-<details><summary>Which websites can I analyze, and what limits apply?<span aria-hidden="true">+</span></summary><p>Design Scraper analyzes accessible public HTTP(S) pages. Daily, per-visitor, concurrency and capture limits apply with both shared access and your own key. Check availability in the workspace; saved designs remain available when new analyses cannot run.</p></details>
+<details><summary>What are saved designs?<span aria-hidden="true">+</span></summary><p>Saved designs are dated analyses of other websites, rather than official brand guides or current captures. Opening them and copying or downloading their exports uses static assets, without a new analysis request.</p></details>
+<details><summary>Which websites can I analyze, and what limits apply?<span aria-hidden="true">+</span></summary><p>Design Scraper analyzes accessible public HTTP(S) pages. Daily, per visitor, concurrency and capture limits apply with both shared access and your own key. Check availability in the workspace; saved designs remain available when new analyses cannot run.</p></details>
 </div></section>
 <section class="rates-section shell" aria-label="Models and rates">  <details class="model-rates" id="model-rates"><summary>Models &amp; rates</summary>
     <div class="rates-content"><p>Configured models and estimated USD per million tokens. Included use is covered by Design Scraper.</p>
       <p id="rates-status" role="status">Open this section to load the current models.</p><div id="rates-list" class="rates-list" hidden></div>
-      <button type="button" id="reload-rates" hidden>Reload model rates</button>
+      <button class="text-link" type="button" id="reload-rates" hidden>Reload model rates</button>
       <noscript><p>Enable JavaScript to load current models and rates.</p></noscript>
     </div>
   </details>

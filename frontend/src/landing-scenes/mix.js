@@ -7,10 +7,7 @@ import {createMixInk} from './mix-ink.js';
 
 export function mountMix(root) {
 const host=root.querySelector('#mix-scene');
-const pauseButton=root.querySelector('#mix-motion');
-const replayButton=root.querySelector('#mix-replay');
 
-const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const LOOP=12000,TOKEN_CYCLE=6000,DROP_CYCLE=3000,TAU=Math.PI*2,FLOOR=-3.12;
 const clamp=x=>Math.max(0,Math.min(1,x));
 const smooth=x=>{const t=clamp(x);return t*t*(3-2*t)};
@@ -29,12 +26,13 @@ try{
   if(disposed)return;
   const message=root.querySelector('#mix-error');message.hidden=false;
   message.textContent='The 3D scene is unavailable. You can still mix references or explore a saved mix.';
-  pauseButton.hidden=replayButton.hidden=true;
   host.dataset.error=error.message;
 }
 }
 
 function start(font){
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion=reduced.matches;
   renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
@@ -72,7 +70,7 @@ function start(font){
     const mesh=new THREE.Mesh(dropGeometry,paints[i%3]);mesh.castShadow=true;scene.add(mesh);
     drops.push({mesh,offset:i*DROP_CYCLE/132,size:.035+random()*.075,angle:random()*TAU,velocity:v(-6.8+random()*12.2,3.6+random()*3.2,-1.8+random()*4.5)});
   }
-  let userPaused=false,inView=false,mobile=false,loops=0,contextLost=false;
+  let inView=false,mobile=false,loops=0,contextLost=false;
   const clock={ms:0};
   timeline=createTimeline({autoplay:false,loop:true,onUpdate:self=>draw(clock.ms,self.currentTime),onLoop:()=>{loops++;root.dataset.cycle=String(loops)}});
   timeline.add(clock,{ms:[0,LOOP],duration:LOOP,ease:t=>t},0);
@@ -84,7 +82,7 @@ function start(font){
   function draw(ms,elapsed=timeline?.currentTime??ms){
     if(disposed)return;
     const time=((ms%LOOP)+LOOP)%LOOP,phase=time/LOOP;
-    blender.rig.position.x=(mobile?0:3)+Math.sin(TAU*96*phase)*.010;
+    blender.rig.position.x=(mobile?0:1.8)+Math.sin(TAU*96*phase)*.010;
     blender.rig.rotation.z=Math.sin(TAU*84*phase)*.003;
     blender.blade.rotation.y=TAU*96*phase;blender.dial.rotation.z=-.55;
     blender.led.emissiveIntensity=1.7+.15*Math.sin(TAU*4*phase);
@@ -125,34 +123,29 @@ function start(font){
       drop.mesh.visible=size>.001;
     }
     renderer.render(scene,camera);
-    ink.render(elapsed,opening.clone().project(camera),{still:reduced.matches});
+    ink.render(elapsed,opening.clone().project(camera),{still:reducedMotion});
     host.dataset.time=String(Math.round(time));root.dataset.phase='continuous-mix';host.dataset.airborne=String(airborne);
     root.dataset.cycle=String(loops);host.dataset.triangles=String(renderer.info.render.triangles);
   }
   function resize(){
     const {width,height}=host.getBoundingClientRect();mobile=innerWidth<=760;
     camera.aspect=width/height;camera.fov=mobile?28:27.5;camera.updateProjectionMatrix();
-    blender.rig.position.x=mobile?0:3;blender.rig.updateMatrixWorld(true);
+    blender.rig.position.x=mobile?0:1.8;blender.rig.updateMatrixWorld(true);
     renderer.setSize(width,height,false);ink.resize();draw(clock.ms);
   }
   const sync=()=>{
-    if(reduced.matches){timeline.pause();draw(2600,2600)}
-    else if(contextLost||pageAway||document.hidden||!inView||userPaused)timeline.pause();
+    if(reducedMotion){timeline.pause();draw(2600,2600)}
+    else if(contextLost||pageAway||document.hidden||!inView)timeline.pause();
     else timeline.resume();
-    pauseButton.hidden=reduced.matches;replayButton.hidden=reduced.matches;pauseButton.textContent=timeline.paused?'Play':'Pause';
-    pauseButton.setAttribute('aria-label',`${timeline.paused?'Play':'Pause'} Mix It animation`);
-    root.dataset.playback=reduced.matches?'still':timeline.paused?'paused':'playing';
+    root.dataset.playback=reducedMotion?'still':timeline.paused?'paused':'playing';
   };
-  const replay=()=>{userPaused=false;loops=0;ink.reset();if(reduced.matches)draw(2600,2600);else{timeline.restart();draw(0);sync()}};
-  const toggle=()=>{userPaused=!timeline.paused;sync()};
-  const preference=()=>{if(!reduced.matches)timeline.seek(0);sync()};
-  pauseButton.addEventListener('click',toggle);replayButton.addEventListener('click',replay);
+  const preference=event=>{reducedMotion=event.matches;if(!reducedMotion)timeline.seek(0);sync()};
   document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',preference);
   const observer=new ResizeObserver(resize);observer.observe(host);
-  const visible=new IntersectionObserver(([entry])=>{inView=entry.isIntersecting;sync()},{threshold:.12});visible.observe(host);
+  const visible=new IntersectionObserver(([entry])=>{inView=entry.isIntersecting&&entry.intersectionRatio>=.15;sync()},{threshold:[0,.15]});visible.observe(root);
   resize();host.dataset.ready='true';host.dataset.renderer='Three.js WebGL';host.dataset.engine='Anime.js';host.dataset.loopMs=String(LOOP);
   let count=0;scene.traverse(node=>{if(node.isMesh)count++});host.dataset.meshes=String(count);
-  root.dataset.motionReady='';root.dataset.cycle='0';replayButton.hidden=false;
+  root.dataset.motionReady='';root.dataset.cycle='0';
   const pagehide=()=>{pageAway=true;sync()},pageshow=()=>{pageAway=false;sync()};
   window.addEventListener('pagehide',pagehide);window.addEventListener('pageshow',pageshow);sync();
   const lost=event=>{event.preventDefault();contextLost=true;sync();const message=root.querySelector('#mix-error');message.hidden=false;message.textContent='The 3D context was interrupted. Reload the page to continue.'};
@@ -160,7 +153,6 @@ function start(font){
   dispose=()=>{
     timeline.revert();
     window.removeEventListener('pagehide',pagehide);window.removeEventListener('pageshow',pageshow);observer.disconnect();visible.disconnect();
-    pauseButton.removeEventListener('click',toggle);replayButton.removeEventListener('click',replay);
     document.removeEventListener('visibilitychange',sync);reduced.removeEventListener('change',preference);renderer.domElement.removeEventListener('webglcontextlost',lost);
     const geometries=new Set(),mats=new Set();scene.traverse(node=>{node.shadow?.dispose();if(node.geometry)geometries.add(node.geometry);if(node.material)(Array.isArray(node.material)?node.material:[node.material]).forEach(material=>mats.add(material))});
     ink.dispose();geometries.forEach(geometry=>geometry.dispose());mats.forEach(material=>material.dispose());environment.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();

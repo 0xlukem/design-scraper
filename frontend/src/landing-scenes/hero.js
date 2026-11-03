@@ -9,9 +9,7 @@ import { createHotBrand, BRAND_TIMING as brandTime } from './hot-brand.js';
 export function mountHero(root) {
 const host = root.querySelector('#hero-scene');
 const pauseButton = root.querySelector('#hero-motion');
-const replayButton = root.querySelector('#hero-replay');
 
-const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 const DURATION = 11500;
 const fastOut = t => 1 - (1 - t) ** 4;
 const inOut = t => t < .5 ? 8 * t ** 4 : 1 - (-2 * t + 2) ** 4 / 2;
@@ -38,13 +36,15 @@ try {
   message.hidden = false;
   message.textContent = 'The 3D scene is unavailable. You can still analyze a website or explore saved designs.';
   host.dataset.error = error.message;
-  pauseButton.hidden = replayButton.hidden = true;
+  pauseButton.hidden = true;
   root.querySelector('h1').innerHTML = originalTitle;
   root.classList.remove('scene-active');
 }
 }
 
 function init(font, brandFont) {
+  const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion = motionPreference.matches;
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -214,7 +214,7 @@ function init(font, brandFont) {
   function resize() {
     const {width,height} = host.getBoundingClientRect();
     const aspect = width/height;
-    const vertical = width < 700 ? 5.95 : 5.95;
+    const vertical = 5.2;
     camera.left = -vertical*aspect/2; camera.right = vertical*aspect/2;
     camera.top = vertical/2; camera.bottom = -vertical/2;
     camera.updateProjectionMatrix(); renderer.setSize(width,height,false);
@@ -223,24 +223,18 @@ function init(font, brandFont) {
   }
   let userPaused = false, inView = false, contextLost = false;
   const sync = () => {
-    if (motionPreference.matches) { timeline.pause(); timeline.seek(DURATION); draw(DURATION); }
+    if (reducedMotion) { timeline.pause(); timeline.seek(DURATION); draw(DURATION); }
     else if (contextLost || pageAway || document.hidden || !inView || userPaused) timeline.pause();
     else if (timeline.currentTime < DURATION) timeline.resume();
     const complete = timeline.currentTime >= DURATION;
-    pauseButton.textContent = complete ? 'Replay' : timeline.paused ? 'Play' : 'Pause';
-    pauseButton.hidden = motionPreference.matches || complete;
-    replayButton.hidden = motionPreference.matches;
-    pauseButton.setAttribute('aria-label', `${complete ? 'Replay' : timeline.paused ? 'Play' : 'Pause'} hero animation`);
-    root.dataset.playback = motionPreference.matches ? 'still' : timeline.currentTime >= DURATION ? 'complete' : timeline.paused ? 'paused' : 'playing';
+    pauseButton.textContent = timeline.paused ? 'Play' : 'Pause';
+    pauseButton.hidden = reducedMotion || complete;
+    pauseButton.setAttribute('aria-label', `${timeline.paused ? 'Play' : 'Pause'} hero animation`);
+    root.dataset.playback = reducedMotion ? 'still' : timeline.currentTime >= DURATION ? 'complete' : timeline.paused ? 'paused' : 'playing';
   };
-  const replay = () => {
-    userPaused = false;
-    if (motionPreference.matches) { timeline.seek(DURATION); draw(DURATION); }
-    else { timeline.restart(); draw(0); sync(); }
-  };
-  const toggle = () => { userPaused = !timeline.paused; if (!userPaused && timeline.currentTime >= DURATION) replay(); else sync(); };
-  const preference = () => { if (!motionPreference.matches) timeline.seek(0); sync(); };
-  pauseButton.addEventListener('click',toggle); replayButton.addEventListener('click',replay);
+  const toggle = () => { userPaused = !userPaused; sync(); };
+  const preference = event => { reducedMotion = event.matches; if (!reducedMotion) timeline.seek(0); sync(); };
+  pauseButton.addEventListener('click',toggle);
   motionPreference.addEventListener('change',preference); document.addEventListener('visibilitychange',sync);
   const observer = new ResizeObserver(resize); observer.observe(host);
   const visibility = new IntersectionObserver(([entry]) => {inView=entry.isIntersecting;sync()}, {threshold:.08}); visibility.observe(host);
@@ -250,14 +244,13 @@ function init(font, brandFont) {
   host.dataset.ready = 'true';
   host.dataset.font = 'Geist outlines';
   root.dataset.motionReady = '';
-  replayButton.hidden = false;
   const pagehide = () => { pageAway=true; sync(); };
   const pageshow = () => { pageAway=false; sync(); };
   window.addEventListener('pagehide',pagehide);
   window.addEventListener('pageshow',pageshow);
   disposers.push(() => {window.removeEventListener('pagehide',pagehide);window.removeEventListener('pageshow',pageshow)});
   sync();
-  disposers.push(()=>{observer.disconnect();visibility.disconnect();pauseButton.removeEventListener('click',toggle);replayButton.removeEventListener('click',replay);motionPreference.removeEventListener('change',preference);document.removeEventListener('visibilitychange',sync);renderer.domElement.removeEventListener('webglcontextlost',lost);timeline.revert();environment.dispose();const geometries=new Set(),materials=new Set();scene.traverse(node=>{if(node.geometry)geometries.add(node.geometry);if(node.material)(Array.isArray(node.material)?node.material:[node.material]).forEach(m=>materials.add(m));node.shadow?.dispose()});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()});
+  disposers.push(()=>{observer.disconnect();visibility.disconnect();pauseButton.removeEventListener('click',toggle);motionPreference.removeEventListener('change',preference);document.removeEventListener('visibilitychange',sync);renderer.domElement.removeEventListener('webglcontextlost',lost);timeline.revert();environment.dispose();const geometries=new Set(),materials=new Set();scene.traverse(node=>{if(node.geometry)geometries.add(node.geometry);if(node.material)(Array.isArray(node.material)?node.material:[node.material]).forEach(m=>materials.add(m));node.shadow?.dispose()});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()});
 }
 
 function choreographHeadline(master, brandFont, environment) {

@@ -45,6 +45,10 @@ try {
   assert.doesNotMatch((await page.locator('a,button').allTextContents()).join(' '),/[↗↓←→]/);
   assert.doesNotMatch(html, /<div id="root"><\/div>|Open demo|\/demo\//);
   assert.equal(await page.locator('h1').count(), 1);
+  assert.equal(await page.locator('#hero-replay,#mix-replay,#mix-motion').count(),0);
+  assert.doesNotMatch(await page.locator('main').innerText(),/[—–-]/);
+  assert.equal(await page.locator('#evidence-title br').count(),0);
+  assert.equal(await page.locator('.export-list > div').count(),5);
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), canonical);
   assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'), canonical);
   assert.equal(await page.locator('meta[name="twitter:card"]').getAttribute('content'), 'summary_large_image');
@@ -88,13 +92,15 @@ try {
   assert.match(await page.locator('#hero-provenance').innerText(), /illustrative 3D extraction.*does not run a live analysis/s);
   checks.push('Evidence statuses, historical dates and mix weights agree with saved material');
 
-  const widths = [320,360,390,429,430,431,640,759,760,761,768,1024,1049,1050,1051,1099,1100,1101,1265,1440];
+  const widths = [320,360,390,429,430,431,640,759,760,761,768,1024,1049,1050,1051,1099,1100,1101,1265,1440,1800,1920];
   for (const width of widths) {
     await page.setViewportSize({width,height:width<=430?844:900});
     await page.waitForTimeout(160); // The responsive motion layout is debounced by 100ms.
     await page.evaluate(() => document.fonts.ready);
     const layout = await page.evaluate(() => ({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,scene:document.querySelector('.hero-art').getBoundingClientRect().width}));
     assert.ok(layout.scrollWidth <= width + 1, `No page overflow at ${width}px: ${layout.scrollWidth}`);
+    const aligned=await page.evaluate(()=>['.product-header','#hero-title','#what-you-get'].map(selector=>document.querySelector(selector).getBoundingClientRect().x));
+    assert.ok(Math.max(...aligned)-Math.min(...aligned)<2,'Header, hero and content share a gutter');
     layouts.push(layout);
     if ([390,768,1265].includes(width)) {
       for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();
@@ -194,7 +200,7 @@ try {
   for(const [name,width,height] of [['desktop',1265,712],['mobile',390,844]]) {
     const ctx=await browser.newContext({viewport:{width,height},reducedMotion:'no-preference',recordVideo:{dir:`${artifacts}/recordings`,size:{width,height}},serviceWorkers:'block'});
     const network=await isolateReplayNetwork(ctx,origin), mp=await ctx.newPage();
-    mp.on('pageerror',e=>errors.push(e.message));
+    mp.on('pageerror',e=>{errors.push(e.message);console.error('Landing runtime error:',e.message)});
     await mp.goto(origin);
     await mp.waitForFunction(()=>document.querySelector('#hero-scene').dataset.ready==='true');
     assert.equal(await mp.locator('#hero-scene canvas').count(),1);
@@ -209,15 +215,14 @@ try {
     await mp.waitForFunction(()=>document.querySelector('.hero').dataset.playback==='complete',{},{timeout:15000});
     assert.equal(await mp.locator('.line-hot .headline-glyph').first().evaluate(el=>getComputedStyle(el).color),'rgb(25, 26, 23)');
     await mp.screenshot({path:`${artifacts}/hero-approved-${name}.png`});
-    await mp.locator('#hero-replay').click();
-    await mp.waitForFunction(()=>Number(document.querySelector('#hero-scene').dataset.time)<1000);
     await mp.locator('#mix-it').scrollIntoViewIfNeeded();
-    await mp.waitForFunction(()=>document.querySelector('.hero').dataset.playback==='paused');
+    assert.ok(['paused','complete'].includes(await mp.locator('.hero').getAttribute('data-playback')));
     await mp.waitForFunction(()=>document.querySelector('#mix-scene').dataset.ready==='true');
     assert.equal(await mp.locator('#mix-scene canvas').count(),1);
     assert.ok(Number(await mp.locator('#mix-scene').getAttribute('data-meshes'))>300);
     await mp.waitForFunction(()=>Number(document.querySelector('#mix-it').dataset.inkMarks)>4,{},{timeout:10000});
-    await mp.getByRole('button',{name:'Pause Mix It animation',exact:true}).click();
+    await mp.locator('#faq').scrollIntoViewIfNeeded();
+    await mp.waitForFunction(()=>document.querySelector('#mix-it').dataset.playback==='paused');
     const token=await mp.locator('#mix-scene').getAttribute('data-time');
     const paint=await mp.locator('.mix-ink-air').innerHTML();
     const marks=Number(await mp.locator('#mix-it').getAttribute('data-ink-marks'));
@@ -226,25 +231,23 @@ try {
     assert.equal(await mp.locator('.mix-ink-air').innerHTML(),paint);
     assert.ok(Number(await mp.locator('#mix-it').getAttribute('data-ink-letters'))>0);
     assert.ok(Number(await mp.locator('#mix-it').getAttribute('data-ink-background'))>0);
-    await mp.getByRole('button',{name:'Play Mix It animation',exact:true}).click();
+    await mp.locator('#mix-it').scrollIntoViewIfNeeded();
+    await mp.waitForFunction(()=>document.querySelector('#mix-it').dataset.playback==='playing');
     await mp.waitForFunction(()=>Number(document.querySelector('#mix-it').dataset.cycle)>0,{},{timeout:15000});
     assert.ok(Number(await mp.locator('#mix-it').getAttribute('data-ink-marks'))>=marks,'Paint survives the continuous-loop boundary');
     await mp.screenshot({path:`${artifacts}/mix-banner-${name}.png`});
-    await mp.locator('#mix-replay').click();
-    assert.ok(Number(await mp.locator('#mix-it').getAttribute('data-ink-marks'))<2,'Replay clears paint');
+    assert.equal(await mp.locator('#mix-it button').count(),0,'Scroll controls the decorative loop');
     await mp.emulateMedia({reducedMotion:'reduce'});
-    await mp.locator('#mix-motion').waitFor({state:'hidden'});
-    assert.equal(await mp.locator('#mix-motion').isVisible(),false);
+    await mp.waitForFunction(()=>document.querySelector('#mix-it').dataset.playback==='still').catch(async error=>{console.error(JSON.stringify({name,errors,media:await mp.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),state:await mp.locator('#mix-it').getAttribute('data-playback')}));throw error});
     assert.equal(await mp.locator('#mix-it').getAttribute('data-playback'),'still');
     await mp.emulateMedia({reducedMotion:'no-preference'});
-    await mp.locator('#mix-motion').waitFor({state:'visible'});
-    assert.equal(await mp.locator('#mix-motion').isVisible(),true);
+    await mp.waitForFunction(()=>document.querySelector('#mix-it').dataset.playback==='playing');
     // Both action links remain reachable while decorative geometry crosses them.
     assert.equal(await mp.locator('#mix-action').getAttribute('href'),'/app/#/analyze/mix');
     assert.deepEqual(network,[]);
     const video=mp.video(); await ctx.close(); await video.saveAs(`${artifacts}/hero-mix-${name}.webm`);
   }
-  checks.push('Real WebGL hero and continuous blender on desktop/mobile; iron red-to-ink closure, explicit/offscreen pause, persistent letter/background paint, replay clearing and live reduced-motion changes; videos saved');
+  checks.push('Real WebGL hero and continuous blender on desktop/mobile; iron red-to-ink closure, hero pause, scroll-controlled blender pause/resume, persistent letter/background paint and live reduced-motion changes; videos saved');
   assert.ok(quotaReads > 0, 'Activity loads its mocked public capacity counter');
   assert.ok(apiRequests.every(url => new URL(url).pathname === '/api/quotas'));
   assert.equal(apiRequests.length, quotaReads);

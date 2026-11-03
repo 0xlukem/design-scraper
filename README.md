@@ -26,8 +26,11 @@ and focuses the first URL without submitting. The home uses real Three.js geomet
 and Anime.js timelines: a chisel extracts
 a design system from marble, and a lidless chrome blender continuously throws
 design fragments across the Mix It banner. Its splashes move and stain the letters
-and background; Replay clears the paint. Both scenes can be paused, suspend
-off-screen and in hidden tabs, and use still compositions with reduced motion.
+and background. The blender starts when its banner enters the viewport, pauses
+when it leaves and resumes on return without clearing its paint. Both scenes
+suspend in hidden tabs and use still compositions with reduced motion. The hero
+has a pause control during its finite extraction sequence; neither scene has a
+replay button.
 The blender loads as its section approaches the viewport. Static copy, links
 and a hero fallback remain usable without WebGL or JavaScript. The FAQ and
 saved-design links work without JavaScript.
@@ -190,8 +193,8 @@ use `npm run dev:live` in `cloudflare-backend/` and `frontend/` respectively.
 Open `http://localhost:5173/` for the landing or
 `http://localhost:5173/app/#/analyze` for the application. The landing and saved
 library can be reviewed with only the frontend running; current model rates
-require the local API. Vite proxies
-`/api` to the local Worker at `127.0.0.1:8787`; the default local frontend API URL
+load the public model catalog through a read-only Vite proxy, without a local
+Worker. Other `/api` requests proxy to the local Worker at `127.0.0.1:8787`; the default local frontend API URL
 is empty for this purpose. Local quotas
 live in `.wrangler/`, separate from the deployed SQLite state.
 
