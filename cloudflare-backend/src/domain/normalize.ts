@@ -327,6 +327,10 @@ export function normalize(raw: string, sources: Source[]): DesignSystem {
       add('capture-independent-samples', 'Evidence consists of separately captured viewport samples with associated measurements, not a continuous photograph. CSS/Web Animations in the viewport were temporarily paused at their observed state and restored; JavaScript/canvas motion is not frozen. Content between samples, later interactions and responsive states were not observed. Sample associations are retained in measurement evidence.', src.label);
       if (capture.quality === 'partial')
         add('capture-partial-coverage', 'Some regions could not provide coherent visual evidence within the capture limits. Only accepted samples support detected values; missing regions and their component roles remain unverified.', src.label);
+      if (Array.isArray(capture.rejected_samples)) for (const [index, rejected] of capture.rejected_samples.slice(0, 3).entries()) {
+        if (typeof rejected?.anchor === 'string' && typeof rejected?.code === 'string' && /^[A-Z0-9_]+$/.test(rejected.code))
+          add(`capture-region-unavailable-${index + 1}`, `Unobserved region ${rejected.anchor.slice(0, 1600)}: ${rejected.code}. This region supplies no visual or measured evidence.`, src.label);
+      }
     }
     if (capture?.method === "viewport-sections")
       add("capture-sections", capture.overlay_policy === "sticky-in-flow-fixed-once"

@@ -170,6 +170,22 @@ it('retains evidence when an optional region becomes unavailable, sharing the or
   } finally { await p.close(); }
 });
 
+it('does not attribute a replaced node to measurements from its predecessor', async () => {
+  const p = await page();
+  let calls = 0;
+  try {
+    const result = await run(p, async () => {
+      if (++calls < 2) return;
+      await p.locator('section').evaluateAll(elements => elements.forEach(element => {
+        const replacement = element.cloneNode(true) as HTMLElement;
+        replacement.style.fontSize = '99px'; element.replaceWith(replacement);
+      }));
+    });
+    expect(result.quality).toBe('partial'); expect(result.samples).toHaveLength(1);
+    expect(JSON.stringify(result.data.measurements)).not.toContain('99px');
+  } finally { await p.close(); }
+});
+
 it.each([
   '<style>header{height:950px}section{height:1000px;display:grid;grid-template-columns:1fr 1fr}article{padding:30px}</style><header><h1>A generic product landing</h1><p>A real introduction with useful measured styles.</p></header><section><article><h2>Independent card design</h2><p>Card content and typography.</p><button>Choose a plan</button></article></section><section><h2>Another useful component</h2><p>Lower page evidence.</p></section>',
   '<style>nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:#ddd}main{margin-left:220px}section{height:1000px}</style><nav><a href="#">Documentation navigation</a></nav><main><h1>A documentation reference</h1><section><p>Useful documentation with native controls and typography.</p><button>Copy example</button></section><section><h2>A second documentation section</h2><p>Another measured content region.</p></section></main>',

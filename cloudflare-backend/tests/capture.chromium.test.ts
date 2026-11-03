@@ -59,6 +59,17 @@ beforeAll(async () => {
   });
   assets = (await listen(cdn)).replace("127.0.0.1", "localhost");
   site = createServer((req, res) => {
+    if (req.url?.startsWith('/sample-resource/')) {
+      const kind = req.url.split('/').at(-1);
+      res.setHeader('content-type', 'text/html');
+      res.end(`<style>body{margin:0;font-family:Arial}header{height:1600px}section{height:1100px}</style>
+        <header><h1>Independent resource evidence</h1><p>Useful rendered context and measured typography.</p></header>
+        <section><h2>Optional content region</h2><p>Further content with a separately validated dependency.</p>
+        ${kind === 'image' ? '<img loading="lazy" src="/sample-missing" width="200" height="100">' : ''}<button>Optional action</button></section>
+        <script>addEventListener('scroll',()=>{if(scrollY>500 && '${kind}'==='stylesheet' && !window.added){window.added=true;const link=document.createElement('link');link.rel='stylesheet';link.href='/sample-missing';document.head.append(link);}})</script>`);
+      return;
+    }
+    if (req.url === '/sample-missing') { res.writeHead(404).end(); return; }
     if (req.url?.startsWith("/script-quality/")) {
       const mode = req.url.split("/")[2];
       const scriptUrl = mode === "unsafe" ? "http://127.0.0.1:1/private.js" : mode === "redirect"
@@ -226,6 +237,18 @@ it('runs the independent strategy through navigation, verified resource loading,
   expect(result.metrics.close_confirmed).toBe(true);
   expect((result.data.measurements as { samples: { capture_sample: string }[] }).samples.every(sample => sample.capture_sample === 'sample-1')).toBe(true);
   expect(result.data.cssVariables).toHaveProperty('--external-brand', '#123456');
+});
+it('preserves useful context when an optional viewport image fails through the real capture transport', async () => {
+  const signal = AbortSignal.timeout(15000);
+  const result = await capture(captureBrowser(), `${origin}/sample-resource/image`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal));
+  expect(result.screenshots).toHaveLength(1);
+  expect(result.data.capture).toMatchObject({ method: 'independent-samples', quality: 'partial', rejected_samples: [{ code: 'CAPTURE_INCOMPLETE' }] });
+  expect(result.metrics.close_confirmed).toBe(true);
+});
+it('keeps a failed essential stylesheet fatal even after accepting a valid sample', async () => {
+  const signal = AbortSignal.timeout(15000);
+  await expect(capture(captureBrowser(), `${origin}/sample-resource/stylesheet`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal)))
+    .rejects.toMatchObject({ code: 'CAPTURE_INCOMPLETE' });
 });
 it('checks lazy images when their viewport is photographed and still rejects a broken visible image', async () => {
   const page = await browser.newPage({viewport:{width:1440,height:900}});

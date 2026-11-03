@@ -27,7 +27,7 @@ it('preserves distinct sampled styles with unique legacy-compatible measurement 
     { id: 'heading-2', capture_sample: 'sample-2', styles: { fontSize: '24px' } },
   ]);
   const fixture = structuredClone(fixtures[0]);
-  (fixture.sources as Source[])[0].data = { ...fixture.sources[0].data, ...merged, capture: { method: 'independent-samples', quality: 'partial', samples: samples.map(({ id }) => ({ id })) } };
+  (fixture.sources as Source[])[0].data = { ...fixture.sources[0].data, ...merged, capture: { method: 'independent-samples', quality: 'partial', samples: samples.map(({ id }) => ({ id })), rejected_samples: [{ anchor: 'html > body > footer', code: 'CAPTURE_SAMPLE_UNSTABLE' }] } };
   const system = normalize(JSON.stringify(fixture.raw), fixture.sources as Source[]);
   assertMeasurementCoverage(system, fixture.sources as Source[]);
   expect(system.known_gaps.map(g => g.code)).toEqual(expect.arrayContaining(['capture-independent-samples', 'capture-partial-coverage']));
@@ -39,6 +39,7 @@ it('preserves distinct sampled styles with unique legacy-compatible measurement 
   for (const document of Object.values(documents)) {
     expect(document).toContain('sample-1'); expect(document).toContain('sample-2');
     expect(document).toContain('32px'); expect(document).toContain('24px');
+    expect(document).toContain('CAPTURE_SAMPLE_UNSTABLE');
   }
   for (const output of Object.values(renderExports(system))) expect(output).toContain('24px');
 });
