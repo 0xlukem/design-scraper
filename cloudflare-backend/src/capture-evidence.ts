@@ -9,7 +9,8 @@ export interface CaptureSample extends CaptureImage {
   bytes: number;
   data: Record<string, unknown>;
 }
-export interface RejectedSample { anchor: string; code: string }
+export interface RejectedSample { anchor: string; code: string; reason?: string }
+export interface SampleProgress { accepted: number; rejected: RejectedSample[]; first_useful_ms: number | null }
 export type CaptureQuality = 'sufficient' | 'partial';
 type Measurement = { id: string; kind: string; selector: string; styles: Record<string, string>; capture_sample?: string };
 type Measurements = { samples?: Measurement[]; candidateCounts?: Record<string, number>; [key: string]: unknown };

@@ -69,6 +69,19 @@ it('retains valid context and rejects only optional regions that change during t
   } finally { await p.close(); }
 });
 
+it('rejects a dependency that fails during the photograph before sealing that sample', async () => {
+  const p = await page();
+  let checked = 0;
+  try {
+    const result = await captureSamples(p as unknown as CapturePage, profile, Date.now() + 12000, Date.now(), async () => {}, () => {}, {
+      validate: async () => { if (++checked === 1) throw new ApiError('CAPTURE_INCOMPLETE', 'A visible resource failed during this photograph.', 422, true); },
+    });
+    expect(result.samples.length).toBeGreaterThan(0);
+    expect(result.samples.every(sample => sample.anchor !== 'context')).toBe(true);
+    expect(result.rejected).toEqual([{ anchor: 'context', code: 'CAPTURE_INCOMPLETE', reason: 'A visible resource failed during this photograph.' }]);
+  } finally { await p.close(); }
+});
+
 it('accepts browser scroll anchoring when outside growth leaves the photographed elements unchanged', async () => {
   const p = await page(fixture().replace('</header>', '</header><div id="above" style="height:1px"></div>'));
   const screenshot = p.screenshot.bind(p);

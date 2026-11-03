@@ -3,8 +3,12 @@ import { captureRegionPredicate } from "./capture-region";
 /** A failed async dependency can leave useful static branding, but is never
  * evidence that hydration or interactive behavior completed. Everything outside
  * this narrow, observable case remains a required rendering failure. */
-export const assessFailedScripts = String.raw`({ urls, height }) => {
-  const visible = element => ((${captureRegionPredicate})(element, height));
+export const assessFailedScripts = String.raw`({ urls, height, viewportOnly = false }) => {
+  const visible = element => {
+    const box = element.getBoundingClientRect();
+    return ((${captureRegionPredicate})(element, height)) &&
+      (!viewportOnly || (box.bottom > 0 && box.top < innerHeight));
+  };
   const scripts = [...document.scripts];
   const asyncClassicOnly = urls.every(url => {
     const matches = scripts.filter(script => script.src === url);

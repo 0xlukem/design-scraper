@@ -63,13 +63,18 @@ beforeAll(async () => {
       const kind = req.url.split('/').at(-1);
       res.setHeader('content-type', 'text/html');
       res.end(`<style>body{margin:0;font-family:Arial}header{height:1600px}section{height:1100px}</style>
-        <header><h1>Independent resource evidence</h1><p>Useful rendered context and measured typography.</p></header>
+        <header><h1>Independent resource evidence</h1><p>Useful rendered context and measured typography.</p>
+        ${kind === 'frame' || kind === 'frame-unsafe' ? `<iframe src="${kind === 'frame' ? '/script-network-failure' : 'http://127.0.0.1:1/private'}" width="200" height="80"></iframe>` : ''}</header>
         <section><h2>Optional content region</h2><p>Further content with a separately validated dependency.</p>
         ${kind === 'image' ? '<img loading="lazy" src="/sample-missing" width="200" height="100">' : ''}<button>Optional action</button></section>
-        <script>addEventListener('scroll',()=>{if(scrollY>500 && '${kind}'==='stylesheet' && !window.added){window.added=true;const link=document.createElement('link');link.rel='stylesheet';link.href='/sample-missing';document.head.append(link);}})</script>`);
+        <script>addEventListener('scroll',()=>{if(scrollY>500 && !window.added){window.added=true;
+          if('${kind}'==='stylesheet'){const link=document.createElement('link');link.rel='stylesheet';link.href='/sample-missing';document.head.append(link);}
+          if(['script','unsafe','budget'].includes('${kind}')){const script=document.createElement('script');script.defer=true;script.src='${kind === 'unsafe' ? 'http://127.0.0.1:1/private.js' : kind === 'budget' ? '/sample-budget.js' : '/sample-missing'}';document.head.append(script);}
+          if('${kind}'==='font'){const style=document.createElement('style');style.textContent="@font-face{font-family:MissingSampleFont;src:url('/sample-missing')}section{font-family:MissingSampleFont}";document.head.append(style);}
+        }})</script>`);
       return;
     }
-    if (req.url === '/sample-missing') { res.writeHead(404).end(); return; }
+    if (req.url?.startsWith('/sample-missing')) { res.writeHead(404).end(); return; }
     if (req.url?.startsWith("/script-quality/")) {
       const mode = req.url.split("/")[2];
       const scriptUrl = mode === "unsafe" ? "http://127.0.0.1:1/private.js" : mode === "redirect"
@@ -245,10 +250,90 @@ it('preserves useful context when an optional viewport image fails through the r
   expect(result.data.capture).toMatchObject({ method: 'independent-samples', quality: 'partial', rejected_samples: [{ code: 'CAPTURE_INCOMPLETE' }] });
   expect(result.metrics.close_confirmed).toBe(true);
 });
-it('keeps a failed essential stylesheet fatal even after accepting a valid sample', async () => {
+it.each(['stylesheet', 'script', 'font'])('retains sealed context when a later viewport has a failed %s dependency', async kind => {
   const signal = AbortSignal.timeout(15000);
-  await expect(capture(captureBrowser(), `${origin}/sample-resource/stylesheet`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal)))
-    .rejects.toMatchObject({ code: 'CAPTURE_INCOMPLETE' });
+  const result = await capture(captureBrowser(), `${origin}/sample-resource/${kind}`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal));
+  expect(result.screenshots).toHaveLength(1);
+  expect(result.data.capture).toMatchObject({ quality: 'partial', samples: [{ anchor: 'context' }],
+    rejected_samples: [{ code: 'CAPTURE_INCOMPLETE' }], later_unobserved_resource_failures: 1 });
+  expect(result.metrics.rendering_failures).toEqual(expect.arrayContaining([expect.objectContaining({ kind, origin, status: 404 })]));
+  expect((result.data.measurements as { samples: { capture_sample: string }[] }).samples.every(row => row.capture_sample === 'sample-1')).toBe(true);
+  expect(result.data.cssVariables).toEqual({});
+  expect(result.metrics.close_confirmed).toBe(true);
+  expect(browser.contexts()).toHaveLength(0);
+});
+
+it.each(['unsafe', 'budget'])('keeps a later %s violation fatal after a valid sample', async kind => {
+  const signal = AbortSignal.timeout(15000);
+  const resources = new PublicResources(fetch, signal);
+  const load = resources.load.bind(resources);
+  resources.load = async request => {
+    if (request.url.endsWith('/sample-budget.js')) throw new ApiError('SCRAPE_RESOURCE_LIMIT', 'Fixture byte budget exceeded', 422);
+    return load(request);
+  };
+  await expect(capture(captureBrowser(), `${origin}/sample-resource/${kind}`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, resources))
+    .rejects.toMatchObject({ code: kind === 'unsafe' ? 'UNSAFE_URL' : 'SCRAPE_RESOURCE_LIMIT',
+      captureMetrics: { sample_evidence: { accepted: 1 } } });
+  expect(browser.contexts()).toHaveLength(0);
+});
+
+it('isolates an unavailable embedded document without treating it as main-page navigation', async () => {
+  const signal = AbortSignal.timeout(15000);
+  const result = await capture(captureBrowser(), `${origin}/sample-resource/frame`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal));
+  expect(result.screenshots!.length).toBeGreaterThan(0);
+  expect(result.data.capture).toMatchObject({ embedded_resource_failures: 1 });
+  expect(result.metrics.rendering_failures).toContainEqual(expect.objectContaining({ kind: 'document', frame: 'embedded', origin }));
+  expect(result.metrics.close_confirmed).toBe(true);
+});
+
+it('still rejects an unsafe embedded document before network access', async () => {
+  const signal = AbortSignal.timeout(15000);
+  await expect(capture(captureBrowser(), `${origin}/sample-resource/frame-unsafe`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal)))
+    .rejects.toMatchObject({ code: 'UNSAFE_URL' });
+});
+
+it('retains images after a rendering failure during later CSS enrichment instead of revalidating a different page state', async () => {
+  let injected = false;
+  const adapter = {
+    close: async () => { for (const context of browser.contexts()) await context.close(); },
+    async newContext(options: Parameters<Browser['newContext']>[0]) {
+      const context = await browser.newContext(options);
+      const create = context.newCDPSession.bind(context);
+      context.newCDPSession = async target => {
+        const cdp = await create(target);
+        const send = cdp.send.bind(cdp);
+        cdp.send = (async (method: string, parameters: unknown) => {
+          if (method === 'CSS.getStyleSheetText' && !injected) {
+            injected = true;
+            await context.pages()[0].evaluate(() => new Promise<void>(resolve => {
+              const script = document.createElement('script'); script.defer = true;
+              script.src = '/sample-missing?credential=never-record-this'; script.onerror = () => resolve();
+              script.onload = () => resolve(); document.head.appendChild(script);
+            }));
+          }
+          return send(method as never, parameters as never);
+        }) as typeof cdp.send;
+        return cdp;
+      };
+      return context;
+    },
+  } as unknown as Parameters<typeof capture>[0];
+  const result = await capture(adapter, `${origin}/sample-resource/plain`, config({ CAPTURE_STRATEGY: 'samples' }), AbortSignal.timeout(15000), policy);
+  expect(injected).toBe(true);
+  expect(result.screenshots!.length).toBeGreaterThan(1);
+  expect(result.data.capture).toMatchObject({ quality: 'partial', later_unobserved_resource_failures: 1, failed_async_scripts_count: 0 });
+  expect(result.data.cssVariables).toEqual({});
+  expect(JSON.stringify(result.metrics)).not.toMatch(/credential|never-record-this|sample-missing/);
+  expect(result.metrics.close_confirmed).toBe(true);
+});
+
+it('preserves rejection reasons and sanitized resource details when every sample fails', async () => {
+  const signal = AbortSignal.timeout(15000);
+  await expect(capture(captureBrowser(), `${origin}/script-quality/defer`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal)))
+    .rejects.toMatchObject({ code: 'CAPTURE_EVIDENCE_INSUFFICIENT', captureMetrics: {
+      sample_evidence: { accepted: 0, rejected_details: [{ code: 'CAPTURE_INCOMPLETE', reason: expect.stringContaining('script') }] },
+      rendering_failures: [{ kind: 'script', status: 404, origin }],
+    } });
 });
 it('checks lazy images when their viewport is photographed and still rejects a broken visible image', async () => {
   const page = await browser.newPage({viewport:{width:1440,height:900}});

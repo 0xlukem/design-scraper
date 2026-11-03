@@ -3,19 +3,23 @@ import { Buffer } from 'node:buffer';
 import type { Config } from './config';
 import { ApiError } from './errors';
 import { extractionScript } from './domain/extraction-script';
-import { mergeSampleData, type CaptureSample, type RejectedSample } from './capture-evidence';
+import { mergeSampleData, type CaptureSample, type RejectedSample, type SampleProgress } from './capture-evidence';
 
 const recoverable = new Set(['CAPTURE_INCOMPLETE', 'CAPTURE_SAMPLE_UNSTABLE', 'CAPTURE_SAMPLE_UNAVAILABLE']);
 
 /** Independent photographs: only the photographed viewport must stay coherent.
  * No normalization/hiding of page content, global height lock or site selectors. */
 export async function captureSamples(page: Page, c: Config, deadline: number, started: number,
-  ready: (remainingMs: number) => Promise<void>, assertHealthy: () => void) {
+  ready: (remainingMs: number) => Promise<void>, assertHealthy: () => void,
+  checkpoints: { validate?: () => Promise<void>; accepted?: () => void; progress?: (value: SampleProgress) => void } = {}) {
   const samples: CaptureSample[] = [];
   const rejected: RejectedSample[] = [];
   let bytes = 0;
   let inspected = 0;
   let firstUsefulMs: number | null = null;
+  const report = () => checkpoints.progress?.({ accepted: samples.length, rejected: [...rejected], first_useful_ms: firstUsefulMs });
+  const reject = (anchor: string, code: string, reason?: string) => { rejected.push({ anchor, code, ...(reason ? { reason } : {}) }); report(); };
+  report();
   const remaining = (until = deadline) => {
     assertHealthy();
     const ms = until - Date.now();
@@ -91,7 +95,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     const info = await page.evaluate(state => ({ anchors: state.anchors.map(a => a.anchor), documentHeight: state.documentHeight }), state);
     for (const [index, anchor] of ['context', ...info.anchors].entries()) {
       if (index > 0 && (Date.now() - started >= 45000 || deadline - Date.now() < 2000 || inspected >= c.elements)) {
-        rejected.push({ anchor, code: 'CAPTURE_SAMPLE_UNAVAILABLE' }); continue;
+        reject(anchor, 'CAPTURE_SAMPLE_UNAVAILABLE', 'The shared capture allowance cannot admit another sample.'); continue;
       }
       const until = Math.min(deadline, Date.now() + (index === 0 ? 20000 : 8000));
       let accepted = false;
@@ -183,18 +187,25 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
             throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
           const measurementCount = (data.measurements as { samples: unknown[] }).samples.length;
           if (!measurementCount) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'No corresponding element measurements were captured.', 422, true);
+          // Seal this image/measurement pair only after auditing events that
+          // arrived during the photograph. Later regions get their own checks.
+          await checkpoints.validate?.();
+          remaining(until);
+          if ((await read()).signature !== after.signature)
+            throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during resource validation.', 422, true);
           samples.push({ id: `sample-${samples.length + 1}`, anchor, sequence: index + 1, image: Buffer.from(photograph).toString('base64'),
             viewport: previous.viewport, region: previous.region, scroll_y_after: after.region.y, bytes: photograph.byteLength, data });
           firstUsefulMs ??= Date.now() - started;
+          checkpoints.accepted?.(); report();
           accepted = true;
         } catch (error) {
           assertHealthy(); // Never downgrade a safety, resource, or outer deadline failure.
           if (error instanceof Error && error.name === 'TimeoutError') {
-            rejected.push({ anchor, code: 'CAPTURE_SAMPLE_UNAVAILABLE' }); break;
+            reject(anchor, 'CAPTURE_SAMPLE_UNAVAILABLE', 'The sample operation timed out.'); break;
           }
           if (!(error instanceof ApiError) || !recoverable.has(error.code)) throw error;
           if (attempt === 0 && error.code === 'CAPTURE_SAMPLE_UNSTABLE' && until - Date.now() >= 500) continue;
-          rejected.push({ anchor, code: error.code }); break;
+          reject(anchor, error.code, error.message.slice(0, 200)); break;
         } finally {
           await page.evaluate(state => {
             for (const animation of state.paused) if (animation.playState === 'paused') animation.play();

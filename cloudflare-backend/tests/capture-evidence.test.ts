@@ -27,10 +27,11 @@ it('preserves distinct sampled styles with unique legacy-compatible measurement 
     { id: 'heading-2', capture_sample: 'sample-2', styles: { fontSize: '24px' } },
   ]);
   const fixture = structuredClone(fixtures[0]);
-  (fixture.sources as Source[])[0].data = { ...fixture.sources[0].data, ...merged, capture: { method: 'independent-samples', quality: 'partial', samples: samples.map(({ id }) => ({ id })), rejected_samples: [{ anchor: 'html > body > footer', code: 'CAPTURE_SAMPLE_UNSTABLE' }] } };
+  (fixture.sources as Source[])[0].data = { ...fixture.sources[0].data, ...merged, capture: { method: 'independent-samples', quality: 'partial', later_unobserved_resource_failures: 1, embedded_resource_failures: 1, samples: samples.map(({ id }) => ({ id })), rejected_samples: [{ anchor: 'html > body > footer', code: 'CAPTURE_SAMPLE_UNSTABLE' }] } };
   const system = normalize(JSON.stringify(fixture.raw), fixture.sources as Source[]);
   assertMeasurementCoverage(system, fixture.sources as Source[]);
   expect(system.known_gaps.map(g => g.code)).toEqual(expect.arrayContaining(['capture-independent-samples', 'capture-partial-coverage']));
+  expect(system.known_gaps.map(g => g.code)).toEqual(expect.arrayContaining(['capture-later-resources-unavailable', 'capture-embedded-content-unavailable']));
   expect(system.metadata.measurement_locators).toMatchObject({ 'measured-web-1-heading-2': { capture_sample: 'sample-2' } });
   const corrupted = structuredClone(system);
   (corrupted.metadata.measurement_locators as Record<string, { capture_sample: string }>)['measured-web-1-heading-2'].capture_sample = 'sample-3';

@@ -29,6 +29,14 @@ paint to monochrome while it retreats.
   Values retain their source, confidence and detected/inferred status. Missing
   evidence appears as explicit gaps.
 
+Capture can opt into independent viewport samples with the server-only setting
+`CAPTURE_STRATEGY=samples`; the default remains `sections`. Each accepted image
+retains measurements from its own validated state. A rendering failure in a
+later region qualifies coverage without discarding earlier samples. Missing
+current dependencies still reject that sample, and safety/resource limits or
+uncertain cleanup still abort the source. Unavailable embedded content supplies
+no design evidence. Partial coverage and rejected regions remain explicit gaps.
+
 The shared demo uses Gemini. Choose **Use my own key** to use Gemini, Claude,
 OpenAI or Grok through your provider account. The UI shows the configured model
 before analysis. Costs are always estimates, not invoices; models without
