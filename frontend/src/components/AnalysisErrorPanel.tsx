@@ -2,7 +2,8 @@ import TelemetrySummary from './TelemetrySummary'
 import { ArrowClockwise, WarningOctagon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import type { AnalysisIssue } from '../analysisError'
-import { isLocalDemo } from '../demo'
+
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
 
 export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewSettings }: { issue: AnalysisIssue; onRetry: () => void; disabled: boolean; onReviewSettings?: () => void }) {
   const [now, setNow] = useState(Date.now)

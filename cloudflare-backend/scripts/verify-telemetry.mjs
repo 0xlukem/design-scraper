@@ -17,7 +17,7 @@ const usage = JSON.parse(await readFile('../frontend/src/examples/milligram.json
 const telemetry = { funding: 'demo', provider: 'gemini', model: 'fixture-model', provider_calls: 2, generation_attempts: 1, auxiliary_calls: 1, final: false, usage_status: 'pending', usage: null, demo_budget: null, browser_ms: null, browser_reserved_ms: 75000 };
 await context.route(replayApiPattern(site, api), async route => {
   const r = route.request();
-  const headers = { 'access-control-allow-origin': site, 'access-control-allow-headers': 'Content-Type, Authorization, X-AI-Provider, X-AI-Key', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
+  const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-headers': 'Content-Type, Authorization, X-AI-Provider, X-AI-Key', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
   if (r.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
   requests.push({ path: new URL(r.url()).pathname, authenticated: Boolean(r.headers().authorization) });
   if (r.url().endsWith('/quotas')) return route.fulfill({ headers, json: { day: '2026-09-18', resets_at: '2026-09-19T00:00:00Z', analyses: { used: 2, limit: 20, remaining: 18 }, capture: { remaining_ms: 330000, limit_ms: 480000, used_or_reserved_ms: 150000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
@@ -53,7 +53,7 @@ try {
   await page.getByRole('heading', { name: 'Design findings' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
-  await spending.getByText('Run details', { exact: true }).click();
+  await spending.locator('summary').filter({ hasText: 'Run details' }).click();
   await spending.getByLabel('Analysis telemetry').waitFor();
   assert.match(await spending.getByLabel('Analysis telemetry').innerText(), /Provider calls: 2.*Generation attempts: 1.*Auxiliary calls: 1/);
   checks.push('NDJSON result and measured provider/generation/auxiliary calls in spending table');
@@ -66,6 +66,7 @@ try {
   }
   await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
+  assert.ok(requests.every(r => r.path !== '/api/diagnostics/budget' && !r.authenticated));
   checks.push('Browser storage stays empty');
   assert.deepEqual(errors, []); assert.deepEqual(unexpected, []);
   await writeFile('reports/telemetry-replay.json', JSON.stringify({ checks, errors, unexpectedNetwork: unexpected, requests }, null, 2));

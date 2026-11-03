@@ -100,7 +100,11 @@ try {
   };
 
   await page.goto(site);
+  await page.getByRole('link', { name: 'Analyze a website', exact: true }).click();
+  await page.waitForURL(`${site}/app/#/analyze/start`);
   await page.getByRole('complementary', { name: 'Local demo' }).waitFor();
+  assert.equal(requests.filter(request => request.method === 'POST').length, 0, 'Entering the demo never submits an analysis');
+  checks.push('Public home opens the simulated workspace without submitting');
   assert.equal(await page.getByRole('button', { name: 'Use your own key', exact: true }).count(), 0);
   assert.equal(await page.getByLabel('Provider API key').count(), 0);
   await page.getByLabel('Website URL', { exact: true }).fill('https://never-visit.invalid');
@@ -198,6 +202,7 @@ try {
   const live = await resolveConfig({ root: fileURLToPath(new URL('../../frontend/', import.meta.url)), mode: 'live' }, 'serve');
   assert.ok(!live.plugins.some(plugin => plugin.name === 'local-demo-api'));
   assert.equal(live.server.proxy['/api'].target, 'http://127.0.0.1:8787');
+  assert.deepEqual(Object.keys(live.server.proxy), ['/api'], 'Every live API route uses the local Worker');
   checks.push('Credentials/unknown endpoints rejected; demo code absent from Pages build; external API override ignored');
   checks.push('Live mode excludes the simulation and retains the local Worker proxy');
   assert.deepEqual(errors, []);

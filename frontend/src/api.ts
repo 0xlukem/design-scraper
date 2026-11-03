@@ -3,8 +3,9 @@ import type { AnalysisResult, AnalysisProgress, MixBias } from './types'
 import { AnalysisError, makeIssue, retryDeadline } from './analysisError'
 import { createByokLimiter, secureByokTransport, type ByokCredentials, type ProviderOption } from './byok'
 import { isAnalysisResult, isOwnerBudget, isPublicQuota, validTelemetry } from './responseValidation'
-import { demoHeaders, isLocalDemo } from './demo'
+import { demoHeaders } from './demo'
 
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
 const apiBaseUrl = import.meta.env.VITE_API_URL || ''
 const reserveByok = createByokLimiter()
 export const byokAvailable = () => secureByokTransport(apiBaseUrl)
@@ -52,7 +53,7 @@ async function postAnalysis(
   try {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson', ...demoHeaders(true), ...(credentials ? { 'X-AI-Provider': credentials.provider, 'X-AI-Key': credentials.key } : {}) },
+    headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson', ...(isLocalDemo ? demoHeaders(true) : {}), ...(credentials ? { 'X-AI-Provider': credentials.provider, 'X-AI-Key': credentials.key } : {}) },
     redirect: 'error',
     credentials: 'omit',
     cache: 'no-store',

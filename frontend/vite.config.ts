@@ -12,15 +12,23 @@ export default defineConfig(({ mode, isPreview, command }) => {
       builtApi = readFileSync(new URL('./dist/_headers', import.meta.url), 'utf8').match(/connect-src 'self' (https:\/\/[^;\s]+);/)?.[1]
     } catch { /* Vite reports a missing build before serving the preview. */ }
   }
+  const publishedApi = readFileSync(new URL('./public/_headers', import.meta.url), 'utf8').match(/connect-src 'self' (https:\/\/[^;\s]+);/)?.[1]
   const api = demo ? undefined : process.env.VITE_API_URL || loadEnv(mode, process.cwd(), 'VITE_').VITE_API_URL || builtApi
   const publicApi = api && new URL(api).protocol === 'https:' && new URL(api).origin === api && !new URL(api).username ? api : undefined
   return {
     plugins: [react(), ...(demo ? [localDemoApi()] : [])],
     ...(demo ? { define: { 'import.meta.env.VITE_API_URL': JSON.stringify('') } } : {}),
+    build: {
+      rolldownOptions: {
+        input: { landing: 'index.html', app: 'app/index.html', legacy: 'demo/index.html' },
+      },
+    },
     server: {
       host: '127.0.0.1',
       port: 5173,
       proxy: demo ? {} : {
+        // Live mode reads every endpoint from its local Worker.
+        ...(mode !== 'live' ? { '^/api/providers(?:\\?.*)?$': { target: publicApi || publishedApi, changeOrigin: true } } : {}),
         '/api': {
           target: 'http://127.0.0.1:8787',
           changeOrigin: true,
@@ -29,8 +37,8 @@ export default defineConfig(({ mode, isPreview, command }) => {
     },
     preview: {
       host: '127.0.0.1',
-      // Only the public counter is proxied. No analysis or credential endpoints.
-      proxy: publicApi ? { '^/api/quotas(?:\\?.*)?$': { target: publicApi, changeOrigin: true } } : {},
+      // Only public catalog and counter reads are proxied.
+      proxy: publicApi ? { '^/api/(?:quotas|providers)(?:\\?.*)?$': { target: publicApi, changeOrigin: true } } : {},
     },
     test: {
       globals: true,
