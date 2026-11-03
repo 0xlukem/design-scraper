@@ -1,7 +1,8 @@
 import type { AnalysisProgress } from '../types'
 import { CircleNotch, Scan, Sparkle, FileMd } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { isLocalDemo } from '../demo'
+
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
 
 // Spinner pattern from shadcn/ui, using the project's existing Phosphor icon set.
 export default function LoadingSkeleton({ isMix, startedAt, progress }: { isMix: boolean; startedAt?: number; progress?: AnalysisProgress }) {

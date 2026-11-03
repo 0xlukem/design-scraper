@@ -1,6 +1,7 @@
 import TelemetrySummary from './TelemetrySummary'
 import type { AnalysisUsage, AnalysisTelemetry } from '../types'
-import { isLocalDemo } from '../demo'
+
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
 
 export interface UsageEntry {
   id: number

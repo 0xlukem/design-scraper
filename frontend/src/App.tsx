@@ -18,7 +18,7 @@ import { librarySuggestions } from './library'
 import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
 import ProviderControls from './components/ProviderControls'
 import type { ByokCredentials } from './byok'
-import { cancelledDemoTelemetry, isLocalDemo } from './demo'
+import { cancelledDemoTelemetry } from './demo'
 import DemoControls from './components/DemoControls'
 import type {
   AnalysisResult,
@@ -29,6 +29,9 @@ import type {
   AppState,
   MixBias,
 } from './types'
+
+// Keep the build guard local so it folds before entry chunks are separated.
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
 
 const initialRequest = {
   loading: false,

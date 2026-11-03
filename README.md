@@ -87,8 +87,9 @@ npm --prefix frontend ci
 npm run demo
 ```
 
-Open `http://localhost:5173`. The **Local demo · simulated** banner identifies
-this mode. Both Design Scraper and Mix It support form submission, streamed
+Open `http://localhost:5173` and choose **Analyze a website** to enter the workspace.
+The **Local demo · simulated** banner identifies this mode. Both Design Scraper
+and Mix It support form submission, streamed
 progress, results, all five copy/download formats, the design library, session
 activity and simulated API capacity. Use **Next demo run** to choose success,
 a capture error, a provider error, a quota limit or a slow request you can cancel.
@@ -194,11 +195,14 @@ use `npm run dev:live` in `cloudflare-backend/` and `frontend/` respectively.
 
 Open `http://localhost:5173/` for the landing or
 `http://localhost:5173/app/#/analyze` for the application. The landing and saved
-library can be reviewed with only the frontend running; current model rates
-load the public model catalog through a read-only Vite proxy, without a local
-Worker. Other `/api` requests proxy to the local Worker at `127.0.0.1:8787`; the default local frontend API URL
-is empty for this purpose. Local quotas
+library remain accessible in both modes. In `dev:live`, all `/api` requests,
+including model rates and quotas, proxy to the local Worker at `127.0.0.1:8787`;
+the default local frontend API URL is empty for this purpose. Local quotas
 live in `.wrangler/`, separate from the deployed SQLite state.
+
+After a Pages build, `npm run preview` from `frontend/` can serve the home and
+saved library without a local Worker. Only public catalog and quota reads are
+proxied to the API origin recorded in that build.
 
 Development servers bind to loopback. Do not expose Vite, its preview server or
 the local Worker to the public internet. Tailwind processes repository sources
