@@ -109,8 +109,8 @@ export function renderDocuments(s: DesignSystem) {
   ] : [];
   const measurementEvidence = s.metadata.measurements_version === 1 ? [
     '', '### Measurement locators', '',
-    ...Object.entries(s.metadata.measurement_locators as Record<string,{selector:string;source:string}> || {}).map(([name,record])=>
-      `- \`${name}\` (${record.source}): \`${record.selector}\``),
+    ...Object.entries(s.metadata.measurement_locators as Record<string,{selector:string;source:string;capture_sample?:string}> || {}).map(([name,record])=>
+      `- \`${name}\` (${record.source}${record.capture_sample ? `, ${record.capture_sample}` : ""}): \`${record.selector}\``),
   ] : [];
   const overview = [
     "## Overview",

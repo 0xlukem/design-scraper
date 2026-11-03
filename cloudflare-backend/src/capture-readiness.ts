@@ -1,16 +1,21 @@
 import { captureRegionPredicate } from "./capture-region";
-export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly = false }) => {
+export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly = false, localFonts = false }) => {
   const inRegion = element => {
     if (!((${captureRegionPredicate})(element, height))) return false;
     const box = element.getBoundingClientRect();
     return !viewportOnly || (box.bottom > 0 && box.top < innerHeight);
   };
+  const fontsReady = () => !localFonts ? document.fonts.status === 'loaded' :
+    [...document.querySelectorAll('h1,h2,h3,p,li,a,button,input')].filter(inRegion).every(element => {
+      const css = getComputedStyle(element);
+      return document.fonts.check(css.font || (css.fontSize + ' ' + css.fontFamily), (element.textContent || 'BESbswy').slice(0, 32));
+    });
   const start = Date.now();
   let stable = 0;
   while (Date.now() - start < waitMs) {
     const images = [...document.images].filter(inRegion);
     const pending = images.filter(image => !image.complete);
-    if (document.fonts.status === 'loaded' && !pending.length) {
+    if (fontsReady() && !pending.length) {
       if (++stable >= 3) break;
     } else stable = 0;
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -28,7 +33,7 @@ export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly
       for (const match of style.backgroundImage.matchAll(/url\(["']?(.*?)["']?\)/g)) backgrounds.push(match[1]);
     }
   }
-  return { fontsLoaded: document.fonts.status === 'loaded',
+  return { fontsLoaded: fontsReady(),
     pending: images.filter(image => !image.complete || !image.naturalWidth).length,
     outside: [...document.images].filter(image => !((${captureRegionPredicate})(image, height))).length,
     imageUrls,

@@ -368,6 +368,41 @@ transitions are completed. JavaScript animation states and excluded media remain
 explicit limitations. Up to 24 distinct measured elements retain source locators,
 computed properties and source influence through normalization and every export.
 
+### Experimental independent samples
+
+The server-only `CAPTURE_STRATEGY=samples` option selects an experimental capture
+path. The default remains `sections`; no public request parameter selects it.
+Controlled local Chromium tests exercise both strategies without Browser Run or
+provider calls. Success on local fixtures does not establish remote site support.
+
+The experimental path collects up to three independent 1440×900 viewport images
+per active source within the initial 4000 px region. It selects complementary
+content using generic DOM heuristics, resolves anchors after scrolling, and checks
+local geometry and styles before and after each photograph. Changes to document
+height outside the photographed region do not invalidate it. Images are never
+stitched into an apparently continuous page. Context and controls are not hidden
+or rearranged. Viewport Web Animations are temporarily paused at their current
+state and resumed afterward; arbitrary JavaScript and canvas motion remain outside
+that guarantee. Blocking overlays and loading shells are not accepted as branding.
+
+Samples retain source and image identity, region, sequence, and corresponding CSS
+measurements. At most 24 distinct measurements and the configured element-inspection
+allowance are shared across a source's images. Image bytes are bounded in aggregate
+by `MAX_SCREENSHOT_BYTES`; download, request, time, cleanup and safety limits remain
+in force. Optional regions have bounded local attempts within the same source
+deadline. Insufficient evidence fails before AI; partial coverage preserves useful
+observations with explicit Known Gaps. Sufficient coverage means enough evidence
+for a scoped result, not observation of the entire website or its responsive states.
+Computed font-family stacks describe CSS declarations, not proof that every listed
+font was rendered.
+
+All four provider adapters receive an ordered source/sample manifest with up to
+six images for Mix. Excluded sources contribute none. The full multimodal input
+is counted where required, and the input guard and estimated usage include all
+images. Binary images stay out of textual evidence. The canonical DesignSystem
+schema and historical fixtures are unchanged; sampled measurement locators add an
+optional image association in existing metadata and Markdown evidence.
+
 For a new single-source result, proposed colors unmatched by the bounded
 captured evidence keep their value and inference status, but confidence is
 capped at 0.5 with a token-specific gap. A proposed global maximum equal to the

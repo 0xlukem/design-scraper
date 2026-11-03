@@ -10,7 +10,7 @@
     "generate": "node scripts/generate-contract.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --exclude '**/*.chromium.test.ts' --exclude '**/*.runtime.test.ts'",
-    "test:chromium": "vitest run tests/capture.chromium.test.ts tests/capture-media.chromium.test.ts tests/capture-sections.chromium.test.ts",
+    "test:chromium": "vitest run tests/capture.chromium.test.ts tests/capture-media.chromium.test.ts tests/capture-sections.chromium.test.ts tests/capture-samples.chromium.test.ts",
     "test:relay": "node scripts/test-relay.mjs",
     "test:runtime": "node scripts/runtime-test.mjs",
     "deploy:dry-run": "wrangler deploy --dry-run",

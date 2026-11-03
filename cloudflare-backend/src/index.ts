@@ -213,6 +213,7 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
               undefined,
               new RelayResources(() => this.env.RESOURCE_RELAY.get(this.env.RESOURCE_RELAY.newUniqueId()),
                 captureSignal, start + c.scrapeMs, relayBudget),
+              start,
             ),
         ).catch((error: unknown) => {
           if (error instanceof ApiError) {
@@ -222,6 +223,7 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
           throw error;
         });
         source.screenshot = result.screenshot;
+        if (result.screenshots) source.screenshots = result.screenshots;
         source.data = result.data;
         metrics.push({ ...result.metrics });
         capturedMs += Date.now() - start;

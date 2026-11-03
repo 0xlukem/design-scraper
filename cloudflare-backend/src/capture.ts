@@ -1,3 +1,5 @@
+import { captureSamples } from './capture-samples';
+import type { CaptureImage } from './capture-evidence';
 import {screenshotSections, SectionLayoutError} from "./capture-sections";
 import type { Browser, Request as BrowserRequest, Response as BrowserResponse } from "@cloudflare/playwright";
 import { Buffer } from "node:buffer";
@@ -29,6 +31,7 @@ export interface CaptureMetrics {
   failed_async_scripts?: number;
   required_image_failures?: { kind: string; origin: string; status: number | null; browser_error: string | null }[];
   outside_images: number;
+  sample_evidence?: { quality: string; accepted: number; rejected: string[]; first_useful_ms: number | null };
   close_confirmed: boolean;
   dns_requests: number | null;
   resource_downloads: number | null;
@@ -45,6 +48,7 @@ export interface CaptureMetrics {
 }
 export interface CaptureResult {
   screenshot: string;
+  screenshots?: CaptureImage[];
   data: Record<string, unknown>;
   metrics: CaptureMetrics;
 }
@@ -52,8 +56,9 @@ export async function capture(
   browser: Browser, url: string, c: Config, signal: AbortSignal,
   network: NetworkPolicy = new PublicNetwork(fetch, signal),
   resources?: ResourceTransport,
+  acquisitionStartedAt?: number,
 ): Promise<CaptureResult> {
-  const started = Date.now();
+  const started = c.captureStrategy === 'samples' && acquisitionStartedAt !== undefined ? acquisitionStartedAt : Date.now();
   const metrics: CaptureMetrics = {
     requests: 0, browser_wall_ms: 0, external_hosts: 0, stage: "context",
     stage_ms: {}, blocked: {}, css_characters: 0, css_sheets: 0,
@@ -261,7 +266,7 @@ export async function capture(
     await cdp.send("DOM.enable");
     await cdp.send("CSS.enable");
     stage("navigation");
-    const response = await page.goto(url, { waitUntil: "load", timeout: Math.max(1000, c.scrapeMs - 5000) });
+    const response = await page.goto(url, { waitUntil: c.captureStrategy === "samples" ? "domcontentloaded" : "load", timeout: Math.max(1000, c.scrapeMs - 5000) });
     metrics.navigation = { response_received: !!response, status: response?.status() ?? null,
       final_origin: response ? new URL(response.url()).origin : null };
     if (!response || response.status() >= 400)
@@ -269,7 +274,7 @@ export async function capture(
         ? `The source website returned HTTP ${response.status()}.`
         : "The source website did not return a navigation response.", 502, true);
     stage("region");
-    await page.evaluate(async height => {
+    if (c.captureStrategy !== "samples") await page.evaluate(async height => {
       // Let hydration run, then trigger lazy assets only within the capture region.
       await new Promise(resolve => setTimeout(resolve, 250));
       for (let y = 0; y < Math.min(document.documentElement.scrollHeight, height); y += 700) {
@@ -287,18 +292,18 @@ export async function capture(
       if (!usable) throw new ApiError("CAPTURE_INCOMPLETE", "A required script failed to load or left insufficient rendered design evidence.", 422, true);
       metrics.failed_async_scripts = failedScripts.size;
     };
-    const waitForResources = async () => {
+    const waitForResources = async (sampleMs = 10000) => {
     stage("resources");
     const readReadiness = (waitMs: number) => page.evaluate(`(${captureReadiness})(${JSON.stringify({ height: c.height,
-      viewportOnly: true, waitMs })})`) as Promise<{
+      viewportOnly: true, localFonts: c.captureStrategy === "samples", waitMs })})`) as Promise<{
         fontsLoaded: boolean; pending: number; outside: number; required: string[];
         imageUrls: string[]; backgroundUrls: string[];
       }>;
-    const readinessDeadline = Math.min(started + c.scrapeMs - 3000, Date.now() + 8000);
+    const readinessDeadline = Math.min(started + c.scrapeMs - 3000, Date.now() + Math.max(0, Math.min(8000, sampleMs - 1000)));
     readiness = await readReadiness(Math.max(0, readinessDeadline - Date.now()));
     // Backgrounds have no HTMLImageElement.complete flag. Wait for their
     // observed network completion too, without waiting for off-region assets.
-    const backgroundDeadline = Math.min(started + c.scrapeMs - 2000, Date.now() + 3000);
+    const backgroundDeadline = Math.min(started + c.scrapeMs - 2000, Date.now() + Math.max(0, Math.min(3000, sampleMs - 500)));
     while (readiness.required.some(url => pendingImages.has(url)) && Date.now() < backgroundDeadline)
       await page.waitForTimeout(50);
     // Resources can complete during the network wait. Inspect current DOM state,
@@ -341,8 +346,18 @@ export async function capture(
     // Each photographed viewport is checked after scrolling/overlay normalization.
     // Requiring lazy images in later tiles now would wait for untriggered loads.
     stage("screenshot");
-    const sectionResult = await screenshotSections(page,c.height,Math.max(1,c.scrapeMs-(Date.now()-started)-2500),waitForResources);
-    const screenshot = sectionResult.screenshot;
+    const assertHealthy = () => {
+      if (fatal) throw fatal;
+      if (signal.aborted || Date.now() >= started + c.scrapeMs)
+        throw new ApiError('SCRAPE_TIMEOUT', 'A source website took too long to load.', 504, true);
+    };
+    const sampled = c.captureStrategy === 'samples'
+      ? await captureSamples(page, c, started + c.scrapeMs - 2500, started, waitForResources, assertHealthy) : null;
+    const sectionResult = sampled ? null
+      : await screenshotSections(page,c.height,Math.max(1,c.scrapeMs-(Date.now()-started)-2500),() => waitForResources());
+    if (sampled) metrics.sample_evidence = { quality: sampled.quality, accepted: sampled.samples.length,
+      rejected: sampled.rejected.map(sample => sample.code), first_useful_ms: sampled.firstUsefulMs };
+    const screenshot = sampled ? Buffer.from(sampled.samples[0].image, 'base64') : sectionResult!.screenshot;
     const missingBackgrounds = [...missingBackgroundsSet];
     stage("css");
     const variables: Record<string, string> = {};
@@ -378,7 +393,7 @@ export async function capture(
       for (const bp of selected.breakpoints) if (breakpoints.size < 40) breakpoints.add(bp);
     }
     stage("extraction");
-    const data = await page.evaluate(`(() => { const result = (${extractionScript})(${JSON.stringify({ maxElements: c.elements, maxHeight: c.height, skipStylesheets: true })});
+    const data = sampled?.data || await page.evaluate(`(() => { const result = (${extractionScript})(${JSON.stringify({ maxElements: c.elements, maxHeight: c.height, skipStylesheets: true })});
       if (JSON.stringify(result).length > 200000) throw new Error('evidence-limit'); return result; })()`) as Record<string, unknown>;
     data.cssVariables = variables;
     data.cssEvidence = Object.values(cssEvidence);
@@ -390,17 +405,23 @@ export async function capture(
     if (fatal) throw fatal;
     await checkFailedScripts();
     data.capture = {
-      height_truncated: sectionResult.documentHeight > c.height, region_height: sectionResult.height,
-      composition_attempts: sectionResult.attempts,
+      height_truncated: (sampled?.documentHeight ?? sectionResult!.documentHeight) > c.height,
+      region_height: sampled ? Math.max(...sampled.samples.map(s => s.region.y + s.region.height)) : sectionResult!.height,
+      ...(sampled ? { quality: sampled.quality, first_useful_ms: sampled.firstUsefulMs,
+        samples: sampled.samples.map(({ image, data: sampleData, ...sample }) => ({ ...sample,
+          measurement_ids: ((data.measurements as { samples: { id: string; capture_sample?: string }[] }).samples)
+            .filter(m => m.capture_sample === sample.id).map(m => m.id) })), rejected_samples: sampled.rejected }
+        : { composition_attempts: sectionResult!.attempts }),
       blocked_subresources: Object.entries(metrics.blocked).filter(([key]) => !["media", "eventsource", "websocket", "prefetch"].includes(key)).reduce((sum, [, n]) => sum + n, 0),
       media_policy: "static-branding",
       excluded_media_resources: metrics.blocked.media || 0,
       excluded_prefetch_resources: metrics.blocked.prefetch || 0,
       excluded_streaming_resources: (metrics.blocked.eventsource || 0) + (metrics.blocked.websocket || 0),
-      request_limit_reached: false, fonts_loaded: readiness.fontsLoaded,
+      request_limit_reached: false, fonts_loaded: sampled ? true : readiness.fontsLoaded,
       external_stylesheets_inspected: metrics.css_sheets, css_evidence_omitted: metrics.css_omitted,
-      outside_region_images: readiness.outside, animations_disabled: true, method: "viewport-sections", section_count: sectionResult.tiles.length,
-      overlay_policy: "sticky-in-flow-fixed-once",
+      outside_region_images: readiness.outside, animations_disabled: !sampled, method: sampled ? 'independent-samples' : 'viewport-sections',
+      ...(sampled ? { overlay_policy: 'observed-without-modification', motion_policy: 'viewport-web-animations-paused-and-restored' }
+        : { section_count: sectionResult!.tiles.length, overlay_policy: 'sticky-in-flow-fixed-once' }),
       missing_background_images_count: missingBackgrounds.length,
       missing_background_images: missingBackgrounds.slice(0, 16).map(raw => {
         const resource = new URL(raw);
@@ -413,7 +434,8 @@ export async function capture(
     };
     if (JSON.stringify(data).length > 200000)
       throw new ApiError("SCRAPE_EVIDENCE_LIMIT", "The page evidence exceeded the capture limit.", 422);
-    return { screenshot: Buffer.from(screenshot).toString("base64"), data, metrics };
+    return { screenshot: Buffer.from(screenshot).toString("base64"),
+      ...(sampled ? { screenshots: sampled.samples.map(({ id, image }) => ({ id, image })) } : {}), data, metrics };
   } catch (error) {
     if (error instanceof SectionLayoutError) metrics.composition_failure = error.geometry;
     // Preserve the first fatal cause even if teardown or the outer deadline races.

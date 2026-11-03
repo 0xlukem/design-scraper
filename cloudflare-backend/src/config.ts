@@ -17,6 +17,9 @@ export function integer(
   return v;
 }
 export function config(env: Settings) {
+  const captureStrategy = env.CAPTURE_STRATEGY || 'sections';
+  if (captureStrategy !== 'sections' && captureStrategy !== 'samples')
+    throw new ApiError('CONFIGURATION_ERROR', 'The capture strategy is invalid.', 503);
   const origins = (env.ALLOWED_ORIGINS || "http://localhost:5173")
     .split(",")
     .map((x) => x.trim());
@@ -44,6 +47,7 @@ export function config(env: Settings) {
       );
   }
   const c = {
+    captureStrategy,
     origins,
     requireAuth: env.REQUIRE_AUTH !== "false",
     daily: integer(env, "GLOBAL_DAILY_LIMIT", 10),

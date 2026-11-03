@@ -217,6 +217,16 @@ const policy: NetworkPolicy = {
   },
   audit() {},
 };
+it('runs the independent strategy through navigation, verified resource loading, CSS extraction and context cleanup', async () => {
+  const signal = AbortSignal.timeout(15000);
+  const result = await capture(captureBrowser(), origin, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal));
+  expect(result.screenshots).toHaveLength(1);
+  expect(result.screenshots![0]).toMatchObject({ id: 'sample-1', image: result.screenshot });
+  expect(result.data.capture).toMatchObject({ method: 'independent-samples', quality: 'sufficient', overlay_policy: 'observed-without-modification' });
+  expect(result.metrics.close_confirmed).toBe(true);
+  expect((result.data.measurements as { samples: { capture_sample: string }[] }).samples.every(sample => sample.capture_sample === 'sample-1')).toBe(true);
+  expect(result.data.cssVariables).toHaveProperty('--external-brand', '#123456');
+});
 it('checks lazy images when their viewport is photographed and still rejects a broken visible image', async () => {
   const page = await browser.newPage({viewport:{width:1440,height:900}});
   try {

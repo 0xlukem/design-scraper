@@ -1,3 +1,4 @@
+import type { CaptureImage } from '../capture-evidence';
 import { preserveMeasurements, omitNullStateProperties } from "./measurements";
 import { cssLikeColor } from "./css-color";
 import validate from "./validate.js";
@@ -8,6 +9,7 @@ export interface Source {
   url: string;
   weight: number;
   screenshot?: string;
+  screenshots?: CaptureImage[];
   data: Record<string, unknown>;
 }
 // validationDetail names the rejected field and a bounded copy of its value for
@@ -321,6 +323,11 @@ export function normalize(raw: string, sources: Source[]): DesignSystem {
       add("media-content-excluded", "Capture targets static branding: media downloads and playback are excluded. Existing video boxes and available posters are retained; video frames, motion and media-dependent content are not evidence of the design system.", src.label);
     if (Number(capture?.excluded_prefetch_resources) > 0)
       add("navigation-prefetch-excluded", "Speculative requests for future navigation were excluded; the current page's ordinary rendering resources remain required.", src.label);
+    if (capture?.method === 'independent-samples') {
+      add('capture-independent-samples', 'Evidence consists of separately captured viewport samples with associated measurements, not a continuous photograph. CSS/Web Animations in the viewport were temporarily paused at their observed state and restored; JavaScript/canvas motion is not frozen. Content between samples, later interactions and responsive states were not observed. Sample associations are retained in measurement evidence.', src.label);
+      if (capture.quality === 'partial')
+        add('capture-partial-coverage', 'Some regions could not provide coherent visual evidence within the capture limits. Only accepted samples support detected values; missing regions and their component roles remain unverified.', src.label);
+    }
     if (capture?.method === "viewport-sections")
       add("capture-sections", capture.overlay_policy === "sticky-in-flow-fixed-once"
         ? capture.media_policy === "static-branding"

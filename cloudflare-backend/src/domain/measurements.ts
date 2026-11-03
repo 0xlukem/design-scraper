@@ -2,7 +2,7 @@ import type { Source } from './normalize';
 import type { DesignSystem, TokenValue, DimensionToken } from './types';
 import { ApiError } from '../errors';
 
-type Sample = { id: string; kind: string; tag: string; selector: string; styles: Record<string, string> };
+type Sample = { id: string; kind: string; tag: string; selector: string; styles: Record<string, string>; capture_sample?: string };
 const kinds = ['heading','body','button','link','input','card','section','navigation','layout','image','footer'];
 const dimension = /^-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc)?$/i;
 const typographyKeys = ['family','size','weight','line_height','letter_spacing'] as const;
@@ -18,7 +18,11 @@ function samples(source: Source): Sample[] | null {
   if (!capture || capture.version !== 1) return null;
   if (!Array.isArray(capture.samples) || capture.samples.length > 24) return issue('measurement_shape');
   const ids = new Set<string>();
+  const frames = source.data.capture as { method?: string; samples?: { id: string }[] } | undefined;
+  const frameIds = new Set(frames?.samples?.map(sample => sample.id) || []);
+  if (frames?.method === 'independent-samples' && (frameIds.size < 1 || frameIds.size > 3 || frameIds.size !== frames.samples?.length)) return issue('measurement_frame_shape');
   for (const sample of capture.samples) {
+    if (frames?.method === 'independent-samples' && (!sample.capture_sample || !frameIds.has(sample.capture_sample))) return issue('measurement_frame_shape');
     if (!sample || !kinds.includes(sample.kind) || !new RegExp(`^${sample.kind}-[1-6]$`).test(sample.id) || ids.has(sample.id)
       || typeof sample.selector !== 'string' || sample.selector.length > 1600
       || typeof sample.tag !== 'string' || !/^[a-z][a-z0-9-]*$/.test(sample.tag) || !sample.styles || typeof sample.styles !== 'object' || Array.isArray(sample.styles)
@@ -60,7 +64,10 @@ export function preserveMeasurements(system: DesignSystem, sources: Source[]) {
   if (!observed.length) return;
   // AI cannot opt in to the renderer mode: the server sets this from capture evidence.
   system.metadata.measurements_version = 1;
-  system.metadata.measurement_scope = 'Element measurements from a single static viewport per source; not a complete responsive system. In a mix, measured references retain their original source and are not blended tokens.';
+  const independent = active.some(source => (source.data.capture as { method?: string })?.method === 'independent-samples');
+  system.metadata.measurement_scope = independent
+    ? 'Element measurements from identified independent viewport samples; not a continuous page or a complete responsive system. Measured references retain their source and sample identity.'
+    : 'Element measurements from a single static viewport per source; not a complete responsive system. In a mix, measured references retain their original source and are not blended tokens.';
   const addGap = (code: string, message: string, source: string[]) => {
     if (!system.known_gaps.some(g => g.code === code && g.source.join() === source.join())) system.known_gaps.push({code,message,source});
   };
@@ -75,7 +82,7 @@ export function preserveMeasurements(system: DesignSystem, sources: Source[]) {
   markInterpretations(system);
   for (const component of system.components) for (const state of component.states) state.observed = false;
   addGap('model-roles-inferred', 'Model-assigned roles and recipes are interpretations, even when their values appear in CSS. Only measured- entries are linked to exact sampled elements; interaction states were not exercised.', activeLabels);
-  const locators: Record<string, {selector:string;tag:string;kind:string;source:string;influence:number}> = {};
+  const locators: Record<string, {selector:string;tag:string;kind:string;source:string;influence:number;capture_sample?:string}> = {};
   // Preserve the fact that the model omitted fields without publishing unusable empty rows.
   if (observed.some(x => x.values.some(v => ['heading','body'].includes(v.kind)))) {
     const blank = system.typography.scale.filter(t => typographyKeys.every(k => t[k] === null));
@@ -102,7 +109,7 @@ export function preserveMeasurements(system: DesignSystem, sources: Source[]) {
     totals[source.label] = values.length;
     for (const sample of values) {
       const name = prefix(source.label, sample.id), style = sample.styles;
-      locators[name] = {selector:sample.selector,tag:sample.tag,kind:sample.kind,source:source.label,influence:source.weight};
+      locators[name] = {selector:sample.selector,tag:sample.tag,kind:sample.kind,source:source.label,influence:source.weight,...(sample.capture_sample ? {capture_sample:sample.capture_sample} : {})};
       const where = `${name} (${sample.tag}, static; ${source.label}, influence ${source.weight}%; locator in Evidence)`;
       const token = (property: string, value: string): TokenValue => ({name:`${name}-${property}`,value,
         role:`Observed ${property} on ${where}`,source:[source.label],status:'detected',confidence:1});
@@ -156,6 +163,10 @@ export function preserveMeasurements(system: DesignSystem, sources: Source[]) {
 export function assertMeasurementCoverage(system: DesignSystem, sources: Source[]) {
   for (const source of sources.filter(s => s.weight > 0)) for (const sample of samples(source) || []) {
     const name = prefix(source.label, sample.id);
+    if (sample.capture_sample) {
+      const locators = system.metadata.measurement_locators as Record<string, { capture_sample?: string }> | undefined;
+      if (locators?.[name]?.capture_sample !== sample.capture_sample) issue('measurement_frame_lost');
+    }
     if (['heading','body','button','link','input'].includes(sample.kind) && dimension.test(sample.styles.fontSize || '')) {
       const t = system.typography.scale.find(t => t.name === name)?.size;
       if (!t || t.value !== sample.styles.fontSize || t.source.join() !== source.label) issue('measurement_typography_lost');
