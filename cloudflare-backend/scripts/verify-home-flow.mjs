@@ -45,14 +45,18 @@ async function waitForMock(ready) {
 const analyses=()=>requests.filter(r=>r.method==='POST').length;
 try {
   for(const width of [320,390,768,1440]) {
-    await page.setViewportSize({width,height:width<768?844:900});
+    const height=width<768?844:900;
+    await page.setViewportSize({width,height});
     await page.goto(origin); await page.evaluate(()=>document.fonts.ready);
     await page.waitForFunction(()=>document.querySelector('#hero-scene').dataset.ready==='true');
     assert.equal(await page.locator('.hero').getAttribute('data-phase'),'resolution');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     const primary=await page.locator('.hero .primary').boundingBox();
     const secondary=await page.locator('.secondary-action').boundingBox();
-    assert.ok(primary.y+primary.height<844 && secondary.y+secondary.height<844);
+    assert.ok(primary.y>=0 && secondary.y>=0 && primary.y+primary.height<height && secondary.y+secondary.height<height,`Both hero actions fit the ${width}×${height} viewport`);
+    const summary=await page.locator('.hero-summary').boundingBox();
+    const title=await page.locator('#hero-title').boundingBox();
+    assert.ok(Math.abs(summary.x-title.x)<2 && summary.y>height/2,'Supporting copy and actions sit in the lower left');
     metrics.push(await page.evaluate(()=>({width:innerWidth,pageHeight:document.documentElement.scrollHeight,examplesY:document.querySelector('#examples').getBoundingClientRect().y,visibleWords:document.body.innerText.split(/\s+/).length})));
     if(width===390) assert.ok(metrics.at(-1).examplesY<1000,'References follow the full-height hero');
     if([390,1440].includes(width)) {

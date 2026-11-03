@@ -29,8 +29,10 @@ design fragments across the Mix It banner. Its splashes move and stain the lette
 and background. The blender starts when its banner enters the viewport, pauses
 when it leaves and resumes on return without clearing its paint. Both scenes
 suspend in hidden tabs and use still compositions with reduced motion. The hero
-has a pause control during its finite extraction sequence; neither scene has a
-replay button.
+pauses outside the viewport and starts a fresh extraction when revisited after
+completion. Both scenes are controlled by visibility, without playback buttons.
+Export formats reveal in sequence as they enter view, pause outside it and remain
+fully visible with reduced motion or JavaScript disabled.
 The blender loads as its section approaches the viewport. Static copy, links
 and a hero fallback remain usable without WebGL or JavaScript. The FAQ and
 saved-design links work without JavaScript.

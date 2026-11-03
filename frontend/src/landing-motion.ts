@@ -1,10 +1,11 @@
 import { animate } from 'framer-motion'
 import './landing-scenes/scenes.css'
+import { mountExportReveal } from './landing-exports'
 
 /** Load the approved WebGL scenes independently of the static home content. */
 export function initLandingMotion() {
   let disposed = false
-  const cleanups: (() => void)[] = []
+  const cleanups: (() => void)[] = [mountExportReveal(document.querySelector<HTMLElement>('.exports')!)]
   const hero = document.querySelector<HTMLElement>('.hero')!
   const mix = document.querySelector<HTMLElement>('#mix-it')!
   void import('./landing-scenes/hero.js').then(({ mountHero }) => {

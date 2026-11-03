@@ -8,7 +8,6 @@ import { createHotBrand, BRAND_TIMING as brandTime } from './hot-brand.js';
 
 export function mountHero(root) {
 const host = root.querySelector('#hero-scene');
-const pauseButton = root.querySelector('#hero-motion');
 
 const DURATION = 11500;
 const fastOut = t => 1 - (1 - t) ** 4;
@@ -36,7 +35,6 @@ try {
   message.hidden = false;
   message.textContent = 'The 3D scene is unavailable. You can still analyze a website or explore saved designs.';
   host.dataset.error = error.message;
-  pauseButton.hidden = true;
   root.querySelector('h1').innerHTML = originalTitle;
   root.classList.remove('scene-active');
 }
@@ -142,7 +140,7 @@ function init(font, brandFont) {
   host.dataset.renderer = 'webgl';
   host.dataset.engine = 'three-anime';
   const clock = { ms: 0 };
-  timeline = createTimeline({ autoplay: false, defaults: { ease: fastOut }, onUpdate: self => draw(self.currentTime), onComplete: () => { pauseButton.hidden = true; root.dataset.playback = 'complete' } });
+  timeline = createTimeline({ autoplay: false, defaults: { ease: fastOut }, onUpdate: self => draw(self.currentTime), onComplete: () => { root.dataset.playback = 'complete' } });
   timeline.add(clock, { ms: [0, DURATION], duration: DURATION, ease: linear }, 0);
   const headline = choreographHeadline(timeline, brandFont, environment.texture);
   // Three deliberate, fast sculptor strokes. Each cut precedes its corresponding release.
@@ -221,24 +219,25 @@ function init(font, brandFont) {
     headline.resize();
     draw(timeline?.currentTime || 0);
   }
-  let userPaused = false, inView = false, contextLost = false;
+  let inView = false, contextLost = false, cycle = 0;
+  root.dataset.cycle = String(cycle);
   const sync = () => {
     if (reducedMotion) { timeline.pause(); timeline.seek(DURATION); draw(DURATION); }
-    else if (contextLost || pageAway || document.hidden || !inView || userPaused) timeline.pause();
+    else if (contextLost || pageAway || document.hidden || !inView) timeline.pause();
     else if (timeline.currentTime < DURATION) timeline.resume();
-    const complete = timeline.currentTime >= DURATION;
-    pauseButton.textContent = timeline.paused ? 'Play' : 'Pause';
-    pauseButton.hidden = reducedMotion || complete;
-    pauseButton.setAttribute('aria-label', `${timeline.paused ? 'Play' : 'Pause'} hero animation`);
     root.dataset.playback = reducedMotion ? 'still' : timeline.currentTime >= DURATION ? 'complete' : timeline.paused ? 'paused' : 'playing';
   };
-  const toggle = () => { userPaused = !userPaused; sync(); };
   const preference = event => { reducedMotion = event.matches; if (!reducedMotion) timeline.seek(0); sync(); };
-  pauseButton.addEventListener('click',toggle);
   motionPreference.addEventListener('change',preference); document.addEventListener('visibilitychange',sync);
   const observer = new ResizeObserver(resize); observer.observe(host);
-  const visibility = new IntersectionObserver(([entry]) => {inView=entry.isIntersecting;sync()}, {threshold:.08}); visibility.observe(host);
-  const lost = event => {event.preventDefault();contextLost=true;sync();root.querySelector('#hero-error').hidden=false;root.querySelector('#hero-error').textContent='The browser lost its 3D context. Reload the page to replay.'};
+  const visibility = new IntersectionObserver(([entry]) => {
+    const entered = entry.isIntersecting && entry.intersectionRatio >= .15;
+    if (entered && !inView && !reducedMotion && timeline.currentTime >= DURATION) {
+      cycle++; root.dataset.cycle = String(cycle); timeline.seek(0);
+    }
+    inView = entered; sync();
+  }, {threshold:[0,.15]}); visibility.observe(root);
+  const lost = event => {event.preventDefault();contextLost=true;sync();root.querySelector('#hero-error').hidden=false;root.querySelector('#hero-error').textContent='The browser lost its 3D context. Reload the page to view the scene.'};
   renderer.domElement.addEventListener('webglcontextlost',lost);
   resize();
   host.dataset.ready = 'true';
@@ -250,7 +249,7 @@ function init(font, brandFont) {
   window.addEventListener('pageshow',pageshow);
   disposers.push(() => {window.removeEventListener('pagehide',pagehide);window.removeEventListener('pageshow',pageshow)});
   sync();
-  disposers.push(()=>{observer.disconnect();visibility.disconnect();pauseButton.removeEventListener('click',toggle);motionPreference.removeEventListener('change',preference);document.removeEventListener('visibilitychange',sync);renderer.domElement.removeEventListener('webglcontextlost',lost);timeline.revert();environment.dispose();const geometries=new Set(),materials=new Set();scene.traverse(node=>{if(node.geometry)geometries.add(node.geometry);if(node.material)(Array.isArray(node.material)?node.material:[node.material]).forEach(m=>materials.add(m));node.shadow?.dispose()});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()});
+  disposers.push(()=>{observer.disconnect();visibility.disconnect();motionPreference.removeEventListener('change',preference);document.removeEventListener('visibilitychange',sync);renderer.domElement.removeEventListener('webglcontextlost',lost);timeline.revert();environment.dispose();const geometries=new Set(),materials=new Set();scene.traverse(node=>{if(node.geometry)geometries.add(node.geometry);if(node.material)(Array.isArray(node.material)?node.material:[node.material]).forEach(m=>materials.add(m));node.shadow?.dispose()});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()});
 }
 
 function choreographHeadline(master, brandFont, environment) {

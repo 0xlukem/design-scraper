@@ -8,6 +8,7 @@ import {createMixInk} from './mix-ink.js';
 export function mountMix(root) {
 const host=root.querySelector('#mix-scene');
 
+const BLENDER_X=3.8;
 const LOOP=12000,TOKEN_CYCLE=6000,DROP_CYCLE=3000,TAU=Math.PI*2,FLOOR=-3.12;
 const clamp=x=>Math.max(0,Math.min(1,x));
 const smooth=x=>{const t=clamp(x);return t*t*(3-2*t)};
@@ -70,7 +71,7 @@ function start(font){
     const mesh=new THREE.Mesh(dropGeometry,paints[i%3]);mesh.castShadow=true;scene.add(mesh);
     drops.push({mesh,offset:i*DROP_CYCLE/132,size:.035+random()*.075,angle:random()*TAU,velocity:v(-6.8+random()*12.2,3.6+random()*3.2,-1.8+random()*4.5)});
   }
-  let inView=false,mobile=false,loops=0,contextLost=false;
+  let inView=false,mobile=false,blenderX=BLENDER_X,loops=0,contextLost=false;
   const clock={ms:0};
   timeline=createTimeline({autoplay:false,loop:true,onUpdate:self=>draw(clock.ms,self.currentTime),onLoop:()=>{loops++;root.dataset.cycle=String(loops)}});
   timeline.add(clock,{ms:[0,LOOP],duration:LOOP,ease:t=>t},0);
@@ -82,7 +83,7 @@ function start(font){
   function draw(ms,elapsed=timeline?.currentTime??ms){
     if(disposed)return;
     const time=((ms%LOOP)+LOOP)%LOOP,phase=time/LOOP;
-    blender.rig.position.x=(mobile?0:1.8)+Math.sin(TAU*96*phase)*.010;
+    blender.rig.position.x=blenderX+Math.sin(TAU*96*phase)*.010;
     blender.rig.rotation.z=Math.sin(TAU*84*phase)*.003;
     blender.blade.rotation.y=TAU*96*phase;blender.dial.rotation.z=-.55;
     blender.led.emissiveIntensity=1.7+.15*Math.sin(TAU*4*phase);
@@ -129,8 +130,9 @@ function start(font){
   }
   function resize(){
     const {width,height}=host.getBoundingClientRect();mobile=innerWidth<=760;
+    blenderX=mobile?0:Math.min(BLENDER_X,Math.max(.8,.8+(width/height-1)*3.6));
     camera.aspect=width/height;camera.fov=mobile?28:27.5;camera.updateProjectionMatrix();
-    blender.rig.position.x=mobile?0:1.8;blender.rig.updateMatrixWorld(true);
+    blender.rig.position.x=blenderX;blender.rig.updateMatrixWorld(true);
     renderer.setSize(width,height,false);ink.resize();draw(clock.ms);
   }
   const sync=()=>{
