@@ -223,6 +223,34 @@ it('binds the hydrated DOM after resource readiness instead of photographing det
   } finally { await p.close(); }
 });
 
+it('retains a useful image within its deadline over a slow browser protocol', async () => {
+  const p = await page('<h1>A complete short design reference</h1><p>Useful static content with corresponding measured styles.</p>');
+  const protocol = p as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+  for (const method of ['evaluate', 'evaluateHandle', 'waitForFunction', 'waitForTimeout', 'screenshot']) {
+    const original = protocol[method].bind(p);
+    protocol[method] = async (...args) => { await new Promise(resolve => setTimeout(resolve, 500)); return original(...args); };
+  }
+  try {
+    const result = await captureSamples(p as unknown as CapturePage, profile, Date.now() + 7200, Date.now(), async () => {
+      for (let i = 0; i < 3; i++) await p.evaluate(() => document.fonts.status);
+    }, () => {});
+    expect(result.samples).toHaveLength(1);
+    expect(result.quality).toBe('sufficient');
+    expect((result.data.measurements as { samples: unknown[] }).samples.length).toBeGreaterThan(0);
+  } finally { await p.close(); }
+});
+
+it('does not exhaust the content allowance on document metadata or non-content SVG paths', async () => {
+  const p = await page(`<head>${'<meta name="fixture" content="metadata">'.repeat(3100)}</head><body><svg style="display:none">${'<path d="M0 0"></path>'.repeat(3100)}</svg><h1>A useful content reference</h1><p>Rendered text and measurements must still be sampled within the original element allowance.</p></body>`);
+  try {
+    const result = await run(p);
+    expect(result.samples).toHaveLength(1);
+    expect(result.quality).toBe('sufficient');
+    expect((result.data.measurements as { samples: { tag: string }[] }).samples.some(row => row.tag === 'h1')).toBe(true);
+    expect((result.data.extraction as { inspectedElements: number }).inspectedElements).toBeLessThanOrEqual(profile.elements);
+  } finally { await p.close(); }
+});
+
 it.each([
   '<style>header{height:950px}section{height:1000px;display:grid;grid-template-columns:1fr 1fr}article{padding:30px}</style><header><h1>A generic product landing</h1><p>A real introduction with useful measured styles.</p></header><section><article><h2>Independent card design</h2><p>Card content and typography.</p><button>Choose a plan</button></article></section><section><h2>Another useful component</h2><p>Lower page evidence.</p></section>',
   '<style>nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:#ddd}main{margin-left:220px}section{height:1000px}</style><nav><a href="#">Documentation navigation</a></nav><main><h1>A documentation reference</h1><section><p>Useful documentation with native controls and typography.</p><button>Copy example</button></section><section><h2>A second documentation section</h2><p>Another measured content region.</p></section></main>',

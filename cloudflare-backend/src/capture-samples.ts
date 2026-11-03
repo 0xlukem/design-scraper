@@ -59,7 +59,14 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     };
     const collect = () => {
       const nodes: Element[] = [];
-      const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
+      // Metadata and SVG path trees must not exhaust the content allowance
+      // before any visible heading is reached. Their pixels remain in the image.
+      const walker = document.createTreeWalker(document.body || document.documentElement, NodeFilter.SHOW_ELEMENT, {
+        acceptNode(node) {
+          return (node as Element).matches('head,script,style,link,meta,template,noscript,svg,canvas,iframe')
+            ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+        },
+      });
       while (nodes.length < limit && walker.nextNode()) nodes.push(walker.currentNode as Element);
       return nodes;
     };
@@ -93,7 +100,68 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       const path = selector(element);
       if (path) { located.push(element); selectors.push(path); }
     }
+    type Snapshot = { signature: string; selectors: string[]; useful: boolean; blocked: string | null;
+      visibleCount: number; textLength: number; region: { x: number; y: number; width: number; height: number };
+      viewport: { width: number; height: number } };
+    const snapshot = (): Snapshot => {
+      const visible = (element: Element) => {
+        if (!element.isConnected) return false;
+        const r = element.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0 || r.right <= 0 || r.left >= innerWidth ||
+          r.bottom <= 0 || r.top >= innerHeight || r.top + scrollY >= maxHeight) return false;
+        const css = getComputedStyle(element);
+        if (css.display === 'none' || css.visibility === 'hidden' || css.opacity === '0' ||
+          !element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
+        const x = Math.max(0, Math.min(innerWidth - 1, (Math.max(0, r.left) + Math.min(innerWidth, r.right)) / 2));
+        const y = Math.max(0, Math.min(innerHeight - 1, (Math.max(0, r.top) + Math.min(innerHeight, r.bottom)) / 2));
+        const top = document.elementFromPoint(x, y);
+        return top !== null && (element === top || element.contains(top));
+    };
+    const shown = binding.elements.map((element, i) => ({ element, selector: binding.selectors[i] })).filter(({ element }) => visible(element));
+    const challenge = /^(?:just a moment|access denied|verify (?:that )?you are human|checking your browser)(?:[.\s…]|$)/i.test(document.title.trim());
+    const modal = [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).some(visible);
+    const busy = shown.some(({ element }) => {
+        const r = element.getBoundingClientRect();
+        return element.matches('[aria-busy="true"],[role="progressbar"]') && r.width * r.height >= innerWidth * innerHeight / 2;
+      });
+    const textNodes = shown.filter(({ element }) => element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button,[role="heading"]') && !element.closest('[aria-busy="true"],[role="progressbar"]'));
+    const text = textNodes.map(({ element }) => (element.textContent || '').trim()).join(' ');
+    const fingerprint = shown.map(({ element, selector }) => {
+      const r = element.getBoundingClientRect(), css = getComputedStyle(element);
+      // Clip geometry to this photograph: movement outside it is irrelevant.
+      return [selector, Math.max(0, r.left), Math.max(0, r.top), Math.min(innerWidth, r.right), Math.min(innerHeight, r.bottom),
+        css.fontFamily, css.fontSize, css.fontWeight, css.lineHeight, css.color, css.backgroundColor,
+        css.border, css.borderRadius, css.padding, css.boxShadow, element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button') ? (element.textContent || '').slice(0, 120) : ''];
+    });
+    return { signature: JSON.stringify([innerWidth, innerHeight, fingerprint]),
+      selectors: shown.map(value => value.selector), useful: !challenge && !modal && !busy && text.replace(/\s+/g, ' ').trim().length >= 20,
+      blocked: challenge ? 'challenge' : modal ? 'modal' : busy ? 'loading' : null, visibleCount: shown.length, textLength: text.length,
+      region: { x: 0, y: scrollY, width: innerWidth, height: Math.min(innerHeight, maxHeight - scrollY) },
+      viewport: { width: innerWidth, height: innerHeight } };
+    };
     const binding = { elements: located, selectors, anchors, documentHeight: document.documentElement.scrollHeight, paused: [] as Animation[],
+      snapshot,
+      // Run the short stability loop inside Chromium. Remote protocol latency
+      // must not multiply every 100 ms observation into another network trip.
+      prepare: async (settleMs: number): Promise<Snapshot & { stable: boolean }> => {
+        binding.refresh();
+        for (const animation of document.getAnimations()) {
+          const element = (animation.effect as KeyframeEffect | null)?.target;
+          if (!(element instanceof Element) || animation.playState !== 'running') continue;
+          const r = element.getBoundingClientRect();
+          if (r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
+          binding.paused.push(animation); animation.pause();
+        }
+        let previous = snapshot(), stableAt = Date.now();
+        const until = stableAt + settleMs;
+        while (Date.now() - stableAt < 300 && Date.now() < until) {
+          await new Promise(resolve => setTimeout(resolve, Math.min(100, Math.max(0, until - Date.now()))));
+          const next = snapshot();
+          if (next.signature !== previous.signature) stableAt = Date.now();
+          previous = next;
+        }
+        return { ...previous, stable: Date.now() - stableAt >= 300 };
+      },
       refresh: (): void => {
         const current = collect();
         binding.elements = []; binding.selectors = [];
@@ -133,66 +201,14 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           }, { state, index, maxHeight: c.height });
           if (!positioned) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The selected content is no longer in the capture region.', 422, true);
           await ready(Math.max(1, remaining(until) - 2000));
-          await page.evaluate(state => state.refresh(), state);
-          await page.evaluate(state => {
-            for (const animation of document.getAnimations()) {
-              const element = (animation.effect as KeyframeEffect | null)?.target;
-              if (!(element instanceof Element) || animation.playState !== 'running') continue;
-              const r = element.getBoundingClientRect();
-              if (r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
-              state.paused.push(animation); animation.pause();
-            }
-          }, state);
-          const read = () => page.evaluate(({ state, maxHeight }) => {
-            const visible = (element: Element) => {
-              if (!element.isConnected) return false;
-              const r = element.getBoundingClientRect();
-              if (r.width <= 0 || r.height <= 0 || r.right <= 0 || r.left >= innerWidth ||
-                r.bottom <= 0 || r.top >= innerHeight || r.top + scrollY >= maxHeight) return false;
-              const css = getComputedStyle(element);
-              if (css.display === 'none' || css.visibility === 'hidden' || css.opacity === '0' ||
-                !element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
-              const x = Math.max(0, Math.min(innerWidth - 1, (Math.max(0, r.left) + Math.min(innerWidth, r.right)) / 2));
-              const y = Math.max(0, Math.min(innerHeight - 1, (Math.max(0, r.top) + Math.min(innerHeight, r.bottom)) / 2));
-              const top = document.elementFromPoint(x, y);
-              return top !== null && (element === top || element.contains(top));
-            };
-            const shown = state.elements.map((element, i) => ({ element, selector: state.selectors[i] })).filter(({ element }) => visible(element));
-            const challenge = /^(?:just a moment|access denied|verify (?:that )?you are human|checking your browser)(?:[.\s…]|$)/i.test(document.title.trim());
-            const modal = [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).some(visible);
-            const busy = shown.some(({ element }) => {
-                const r = element.getBoundingClientRect();
-                return element.matches('[aria-busy="true"],[role="progressbar"]') && r.width * r.height >= innerWidth * innerHeight / 2;
-              });
-            const textNodes = shown.filter(({ element }) => element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button,[role="heading"]') && !element.closest('[aria-busy="true"],[role="progressbar"]'));
-            const text = textNodes.map(({ element }) => (element.textContent || '').trim()).join(' ');
-            const fingerprint = shown.map(({ element, selector }) => {
-              const r = element.getBoundingClientRect(), css = getComputedStyle(element);
-              // Clip geometry to this photograph: movement outside it is irrelevant.
-              return [selector, Math.max(0, r.left), Math.max(0, r.top), Math.min(innerWidth, r.right), Math.min(innerHeight, r.bottom),
-                css.fontFamily, css.fontSize, css.fontWeight, css.lineHeight, css.color, css.backgroundColor,
-                css.border, css.borderRadius, css.padding, css.boxShadow, element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button') ? (element.textContent || '').slice(0, 120) : ''];
-            });
-            return { signature: JSON.stringify([innerWidth, innerHeight, fingerprint]),
-              selectors: shown.map(value => value.selector), useful: !challenge && !modal && !busy && text.replace(/\s+/g, ' ').trim().length >= 20,
-              blocked: challenge ? 'challenge' : modal ? 'modal' : busy ? 'loading' : null, visibleCount: shown.length, textLength: text.length,
-              region: { x: 0, y: scrollY, width: innerWidth, height: Math.min(innerHeight, maxHeight - scrollY) },
-              viewport: { width: innerWidth, height: innerHeight } };
-          }, { state, maxHeight: c.height });
-          let previous = await read();
-          const settleUntil = Math.min(until, Date.now() + 1500);
-          let stableAt = Date.now();
-          while (Date.now() - stableAt < 300 && Date.now() < settleUntil) {
-            await page.waitForTimeout(Math.min(100, remaining(until)));
-            const next = await read();
-            if (next.signature !== previous.signature) stableAt = Date.now();
-            previous = next;
-          }
+          const read = () => page.evaluate(state => state.snapshot(), state);
+          const previous = await page.evaluate(({ state, settleMs }) => state.prepare(settleMs),
+            { state, settleMs: Math.min(1500, remaining(until)) });
           if (previous.region.y < 0 || previous.region.y + previous.viewport.height > c.height) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
           if (!previous.useful) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', previous.blocked
             ? `The sample is obscured by ${previous.blocked} content.`
             : `The sample has insufficient unobstructed content (${previous.visibleCount} visible nodes, ${previous.textLength} text characters).`, 422, true);
-          if (Date.now() - stableAt < 300) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content did not stabilize.', 422, true);
+          if (!previous.stable) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content did not stabilize.', 422, true);
           if (previous.viewport.width !== 1440 || previous.viewport.height !== 900)
             throw new ApiError('CAPTURE_COMPOSITION_FAILED', 'The capture viewport changed.', 502, true);
           const data = await page.evaluate(`(${extractionScript})(${JSON.stringify({ maxElements: c.elements - inspected,

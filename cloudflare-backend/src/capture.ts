@@ -343,7 +343,7 @@ export async function capture(
       await page.waitForTimeout(50);
     // Resources can complete during the network wait. Inspect current DOM state,
     // rather than rejecting using the earlier pending-image snapshot.
-    readiness = await readReadiness(0);
+    if (sampleMs > 0) readiness = await readReadiness(0);
     // Completing a background or hydration step can introduce a new font or
     // image after the first stable snapshot. Spend the remaining bounded wait
     // on that current state instead of treating it as a failed resource.
