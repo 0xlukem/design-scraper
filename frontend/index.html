@@ -32,26 +32,19 @@
 </header>
 <main id="main-content" tabindex="-1">
 <section class="hero" aria-labelledby="hero-title">
-  <div class="hero-copy shell">
-    <h1 id="hero-title"><span>Scrape it</span><span>like it’s</span><span>hot.</span></h1>
-    <div class="hero-summary"><p>Extract colors, type and reusable design tokens from a public webpage.</p>
+  <div class="hero-art" id="hero-scene" role="img" aria-label="A marble block carved with a steel chisel. Typography, color and spacing detach and assemble into a physical design system." aria-describedby="hero-provenance">
+    <div class="scene-fallback" aria-hidden="true"><strong>Aa</strong><div class="fallback-swatches"><i></i><i></i><i></i></div><span>8 / 24</span><b>Create</b></div>
+  </div>
+  <div class="hero-copy">
+    <h1 id="hero-title" aria-label="Scrape it like it’s hot."><span class="headline-line line-scrape" aria-hidden="true">Scrape it</span> <span class="headline-line line-like" aria-hidden="true">like it’s</span> <span class="headline-line line-hot" aria-hidden="true">hot.</span></h1>
+    <div class="hero-summary"><p>Extract colors, type and reusable design tokens.</p>
       <a class="primary" href="/app/#/analyze/start">Analyze a website</a>
       <a class="secondary-action" href="#examples">Explore saved designs</a>
     </div>
   </div>
-  <div class="hero-art" role="img" aria-label="A saved Bootstrap page is scratched into strips. Typography, colors, spacing and a button drop into a new arrangement in a rhythmic extraction sequence." aria-describedby="hero-provenance">
-    <div class="hero-world">
-      <div class="source-sheet"><div class="source-address">getbootstrap.com / heroes</div><img src="/images/landing/bootstrap-capture.jpg" width="1440" height="900" alt=""><div class="scrape-bar"></div></div>
-      <div class="scratch-strip strip-one"></div><div class="scratch-strip strip-two"></div><div class="scratch-strip strip-three"></div>
-      <div class="hero-token type-token"><span>Typography</span><strong>Aa</strong><small>system-ui</small></div>
-      <div class="hero-token color-token"><span>Color</span><i></i><small>#0D6EFD</small></div>
-      <div class="hero-token spacing-token"><span>Spacing</span><strong>8 / 24</strong><small>px / button padding</small></div>
-      <div class="hero-token button-token"><span>Component</span><strong>Primary button</strong><small>20px / 8px radius</small></div>
-      <div class="record-disc"><span>CSS<br>evidence</span></div>
-    </div>
-  </div>
-  <p id="hero-provenance" class="sr-only">Illustrated extraction using a saved Bootstrap capture from 9 Sep 2026. This animation does not run a live analysis.</p>
-  <button class="motion-toggle" id="hero-motion" type="button" aria-label="Pause hero animation" hidden>Pause</button>
+  <p id="hero-provenance" class="sr-only">An illustrative 3D extraction. This animation does not run a live analysis.</p>
+  <p id="hero-error" class="scene-error" role="status" hidden></p>
+  <div class="scene-controls"><button id="hero-replay" type="button" aria-label="Replay hero animation" hidden>Replay</button><button id="hero-motion" type="button" aria-label="Pause hero animation" hidden>Pause</button></div>
 </section>
 <section class="examples-section section shell" id="examples" aria-labelledby="examples-title">
   <div class="section-heading">
@@ -89,22 +82,11 @@
     </div>
   </div>
 </section>
-<section class="mix-section" id="mix-it" aria-labelledby="mix-title">
-  <div class="mix-flight" aria-hidden="true">
-    <span class="mix-token token-type">Aa</span><span class="mix-token token-color">#F855A3</span><span class="mix-token token-space">24px</span><span class="mix-token token-curly">{ }</span>
-    <span class="mix-token token-button">Button</span><span class="mix-token token-type">Aa</span><span class="mix-token token-color">#EFFF7C</span><span class="mix-token token-space">8px</span>
-    <span class="mix-token token-curly">{ }</span><span class="mix-token token-button">Button</span><span class="mix-token token-space">16px</span><span class="mix-token token-type">Aa</span>
-    <i class="mix-chip"></i><i class="mix-chip"></i><i class="mix-chip"></i><i class="mix-chip"></i><i class="mix-chip"></i><i class="mix-chip"></i>
-  </div>
-  <div class="shell mix-layout">
-    <div class="mix-copy"><h2 id="mix-title"><span class="mix-wordmark">Mix it:</span>Go for your<br>own way.</h2><p>Blend two websites into a new design system.</p><a class="primary" href="/app/#/analyze/mix">Try Mix It</a><a class="mix-saved" href="/app/#/library/bootstrap-milligram">Explore a saved mix</a></div>
-    <div class="blender-scene" role="img" aria-label="A blender without a lid mixes two design references and sends typography, color swatches, spacing and component tokens across the banner.">
-      <div class="ingredient ingredient-one">Bootstrap<span>Aa</span></div><div class="ingredient ingredient-two">Milligram<span>Aa</span></div>
-      <img class="blender" src="/images/landing/mix-blender.webp" width="640" height="960" loading="lazy" alt="">
-      <div class="jar-tokens" aria-hidden="true"><span>Aa</span><span>{ }</span><span>24</span><span>#</span></div>
-    </div>
-  </div>
-  <button class="motion-toggle" id="mix-motion" type="button" aria-label="Pause Mix It animation" hidden>Pause</button>
+<section class="mix-section mix-banner" id="mix-it" aria-labelledby="mix-title">
+  <div id="mix-scene" class="mix-scene" role="img" aria-label="A lidless chrome blender continuously mixes typography, colors and miniature layouts. Design fragments and colored splashes fly across the banner."></div>
+  <div class="mix-copy"><p class="mix-wordmark">mix it.</p><h2 id="mix-title">Go for<br class="desktop-break"> your<br class="mobile-break"> own<br class="desktop-break"> way.</h2><p class="mix-description">Blend what moves you.<br>Make something unmistakably yours.</p><div class="mix-actions"><a id="mix-action" class="primary mix-action" href="/app/#/analyze/mix">Try Mix It</a><a class="mix-saved" href="/app/#/library/bootstrap-milligram">Explore a saved mix</a></div></div>
+  <p id="mix-error" class="scene-error" role="status" hidden></p>
+  <div class="scene-controls"><button id="mix-replay" type="button" aria-label="Replay Mix It animation" hidden>Replay</button><button id="mix-motion" type="button" aria-label="Pause Mix It animation" hidden>Pause</button></div>
 </section>
 <section class="faq section shell" id="faq" aria-labelledby="faq-title"><h2 id="faq-title">Frequently asked<br>questions.</h2><div class="faq-list">
 <details open><summary>What is Design Scraper?<span aria-hidden="true">+</span></summary><p>Design Scraper examines a public webpage using screenshots, CSS evidence and AI vision. It turns what it finds into a structured design reference you can inspect and export for your next build.</p></details>

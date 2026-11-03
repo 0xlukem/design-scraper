@@ -22,9 +22,15 @@ paint to monochrome while it retreats.
 The public home at `/` has two entry points: analyze a website or explore saved
 designs. The analysis link (`/app/#/analyze/start`) focuses the URL field without
 submitting. The Mix It link (`/app/#/analyze/mix`) opens its two-reference form
-and focuses the first URL without submitting. The extraction and blender scenes
-can be paused, suspend off-screen and in hidden tabs, and use a static composition
-with reduced motion. The FAQ and saved-design links work without JavaScript.
+and focuses the first URL without submitting. The home uses real Three.js geometry
+and Anime.js timelines: a chisel extracts
+a design system from marble, and a lidless chrome blender continuously throws
+design fragments across the Mix It banner. Its splashes move and stain the letters
+and background; Replay clears the paint. Both scenes can be paused, suspend
+off-screen and in hidden tabs, and use still compositions with reduced motion.
+The blender loads as its section approaches the viewport. Static copy, links
+and a hero fallback remain usable without WebGL or JavaScript. The FAQ and
+saved-design links work without JavaScript.
 Models & rates is available from the footer independently of API-key setup and
 loads the public catalog only when opened.
 
@@ -128,8 +134,8 @@ same `API_URL` when running the UI test.
 
 The UI suite also verifies the landing's initial HTML, indexing rules, canonical
 and social metadata, responsive breakpoints, saved-result downloads, and old
-hash links. Full desktop/mobile animation cycles, pause controls and live
-reduced-motion changes are also checked. Home journey checks cover direct form
+hash links. The complete hero sequence and continuous blender loop, pause controls
+and live reduced-motion changes are also checked. Home journey checks cover direct form
 entry in both modes, local URL validation,
 loading and error recovery, saved-reference navigation, and model-catalog loading,
 failure and empty responses. Screenshots are saved in `output/playwright/landing-a/`

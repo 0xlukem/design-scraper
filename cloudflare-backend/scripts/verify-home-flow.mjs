@@ -47,7 +47,8 @@ try {
   for(const width of [320,390,768,1440]) {
     await page.setViewportSize({width,height:width<768?844:900});
     await page.goto(origin); await page.evaluate(()=>document.fonts.ready);
-    assert.equal(await page.locator('.hero').getAttribute('data-phase'),'system');
+    await page.waitForFunction(()=>document.querySelector('#hero-scene').dataset.ready==='true');
+    assert.equal(await page.locator('.hero').getAttribute('data-phase'),'resolution');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     const primary=await page.locator('.hero .primary').boundingBox();
     const secondary=await page.locator('.secondary-action').boundingBox();
