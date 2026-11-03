@@ -185,17 +185,41 @@ it('retains evidence when an optional region becomes unavailable, sharing the or
 
 it('does not attribute a replaced node to measurements from its predecessor', async () => {
   const p = await page();
-  let calls = 0;
-  try {
-    const result = await run(p, async () => {
-      if (++calls < 2) return;
-      await p.locator('section').evaluateAll(elements => elements.forEach(element => {
+  const screenshot = p.screenshot.bind(p);
+  p.screenshot = async options => {
+    const image = await screenshot(options);
+    await p.evaluate(() => {
+      if (!scrollY) return;
+      for (const element of document.querySelectorAll('section')) {
         const replacement = element.cloneNode(true) as HTMLElement;
         replacement.style.fontSize = '99px'; element.replaceWith(replacement);
-      }));
+      }
     });
+    return image;
+  };
+  try {
+    const result = await run(p);
     expect(result.quality).toBe('partial'); expect(result.samples).toHaveLength(1);
     expect(JSON.stringify(result.data.measurements)).not.toContain('99px');
+  } finally { await p.close(); }
+});
+
+it('binds the hydrated DOM after resource readiness instead of photographing detached initial nodes', async () => {
+  const p = await page();
+  let hydrated = false;
+  try {
+    const result = await run(p, async () => {
+      if (hydrated) return;
+      hydrated = true;
+      await p.locator('header').evaluate(element => {
+        const replacement = element.cloneNode(true) as HTMLElement;
+        replacement.querySelector('h1')!.style.fontSize = '41px'; element.replaceWith(replacement);
+      });
+    });
+    expect(result.samples[0].anchor).toBe('context');
+    const measurements = (result.samples[0].data.measurements as { samples: { tag: string; styles: Record<string, string> }[] }).samples;
+    expect(measurements.find(row => row.tag === 'h1')?.styles.fontSize).toBe('41px');
+    expect(measurements.some(row => row.styles.fontSize === '32px')).toBe(false);
   } finally { await p.close(); }
 });
 

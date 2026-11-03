@@ -45,12 +45,9 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     if (!(error instanceof Error) || error.name !== 'TimeoutError') throw error;
     throw new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'The page did not render usable content within the readiness budget.', 422, true);
   }
-  // The bounded initial element set is reused for local stability checks. A
-  // replaced node is not silently assigned its predecessor's measurements.
+  // Anchor selection is bounded. Each attempt binds its own current node set
+  // after resources settle, before extracting any measurements or photograph.
   const state = await page.evaluateHandle(({ limit, maxHeight }) => {
-    const elements: Element[] = [];
-    const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
-    while (elements.length < limit && walker.nextNode()) elements.push(walker.currentNode as Element);
     const selector = (element: Element) => {
       const path: string[] = [];
       for (let node: Element | null = element; node; node = node.parentElement) {
@@ -60,6 +57,13 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       }
       return path.join(' > ');
     };
+    const collect = () => {
+      const nodes: Element[] = [];
+      const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
+      while (nodes.length < limit && walker.nextNode()) nodes.push(walker.currentNode as Element);
+      return nodes;
+    };
+    const elements = collect();
     const kinds: [string, string][] = [['heading', 'h1,h2,h3,[role="heading"]'], ['control', 'button,input:not([type="hidden"]),a[href]'],
       ['card', 'article,[class~="card"]'], ['content', 'p,li,section,main']];
     const candidates = elements.flatMap(element => {
@@ -89,7 +93,17 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       const path = selector(element);
       if (path) { located.push(element); selectors.push(path); }
     }
-    return { elements: located, selectors, anchors, documentHeight: document.documentElement.scrollHeight, paused: [] as Animation[] };
+    const binding = { elements: located, selectors, anchors, documentHeight: document.documentElement.scrollHeight, paused: [] as Animation[],
+      refresh: (): void => {
+        const current = collect();
+        binding.elements = []; binding.selectors = [];
+        for (const element of current) {
+          const path = selector(element);
+          if (path) { binding.elements.push(element); binding.selectors.push(path); }
+        }
+      },
+    };
+    return binding;
   }, { limit: c.elements, maxHeight: c.height });
   try {
     const info = await page.evaluate(state => ({ anchors: state.anchors.map(a => a.anchor), documentHeight: state.documentHeight }), state);
@@ -103,8 +117,12 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         try {
           remaining(until);
           const positioned = await page.evaluate(({ state, index, maxHeight }) => {
-            const element = index ? state.anchors[index - 1]?.element : null;
-            if (index && !element?.isConnected) return false;
+            let element = index ? state.anchors[index - 1]?.element : null;
+            if (index && !element?.isConnected) {
+              element = document.querySelector(state.anchors[index - 1].anchor);
+              if (!element) return false;
+              state.anchors[index - 1].element = element;
+            }
             const anchorY = element ? element.getBoundingClientRect().top + scrollY : 0;
             if (anchorY < 0 || anchorY >= maxHeight) return false;
             // Include the context around a selected control/card, not only the
@@ -115,6 +133,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           }, { state, index, maxHeight: c.height });
           if (!positioned) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The selected content is no longer in the capture region.', 422, true);
           await ready(Math.max(1, remaining(until) - 2000));
+          await page.evaluate(state => state.refresh(), state);
           await page.evaluate(state => {
             for (const animation of document.getAnimations()) {
               const element = (animation.effect as KeyframeEffect | null)?.target;
@@ -139,9 +158,9 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
               return top !== null && (element === top || element.contains(top));
             };
             const shown = state.elements.map((element, i) => ({ element, selector: state.selectors[i] })).filter(({ element }) => visible(element));
-            const blocked = /^(?:just a moment|access denied|verify (?:that )?you are human|checking your browser)(?:[.\s…]|$)/i.test(document.title.trim()) ||
-              shown.some(({ element }) => {
-                if (element.matches('[aria-modal="true"]')) return true;
+            const challenge = /^(?:just a moment|access denied|verify (?:that )?you are human|checking your browser)(?:[.\s…]|$)/i.test(document.title.trim());
+            const modal = [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).some(visible);
+            const busy = shown.some(({ element }) => {
                 const r = element.getBoundingClientRect();
                 return element.matches('[aria-busy="true"],[role="progressbar"]') && r.width * r.height >= innerWidth * innerHeight / 2;
               });
@@ -155,7 +174,8 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
                 css.border, css.borderRadius, css.padding, css.boxShadow, element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button') ? (element.textContent || '').slice(0, 120) : ''];
             });
             return { signature: JSON.stringify([innerWidth, innerHeight, fingerprint]),
-              selectors: shown.map(value => value.selector), useful: !blocked && text.replace(/\s+/g, ' ').trim().length >= 20,
+              selectors: shown.map(value => value.selector), useful: !challenge && !modal && !busy && text.replace(/\s+/g, ' ').trim().length >= 20,
+              blocked: challenge ? 'challenge' : modal ? 'modal' : busy ? 'loading' : null, visibleCount: shown.length, textLength: text.length,
               region: { x: 0, y: scrollY, width: innerWidth, height: Math.min(innerHeight, maxHeight - scrollY) },
               viewport: { width: innerWidth, height: innerHeight } };
           }, { state, maxHeight: c.height });
@@ -169,7 +189,9 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
             previous = next;
           }
           if (previous.region.y < 0 || previous.region.y + previous.viewport.height > c.height) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
-          if (!previous.useful) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The sample has insufficient unobstructed content.', 422, true);
+          if (!previous.useful) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', previous.blocked
+            ? `The sample is obscured by ${previous.blocked} content.`
+            : `The sample has insufficient unobstructed content (${previous.visibleCount} visible nodes, ${previous.textLength} text characters).`, 422, true);
           if (Date.now() - stableAt < 300) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content did not stabilize.', 422, true);
           if (previous.viewport.width !== 1440 || previous.viewport.height !== 900)
             throw new ApiError('CAPTURE_COMPOSITION_FAILED', 'The capture viewport changed.', 502, true);
