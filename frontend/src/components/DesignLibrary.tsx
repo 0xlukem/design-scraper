@@ -89,7 +89,7 @@ export default function DesignLibrary({ active = true, busy = false, onUseRefere
       </article>)}</div>
     </> : <div id="saved-design-preview" ref={preview} tabIndex={-1} className="saved-preview" aria-label={`${selected.name} saved design`}>
       <div className="library-detail-nav"><a href="#/library" className="text-button" onClick={event => navigate(event, null)}>← Back to library</a>{onUseReference && <button className="text-button" type="button" disabled={!result || busy} onClick={() => result && !busy && onUseReference(selected, result)} title={busy ? 'Wait for the current analysis to finish' : undefined}>Use as reference</button>}</div>
-      <p className="library-snapshot">Saved {formatLibraryDate(selected.date)} · Reflects the analysis date.</p>
+      <p className="library-snapshot">Saved <time dateTime={selected.date}>{selected.date}</time> · Reflects the analysis date.</p>
       {!result && <h1 className="library-loading-title">{selected.name}</h1>}
       {!result && !message && <p role="status">Opening saved design…</p>}
       {message && <p role="alert">{message} <button type="button" onClick={() => setRevision(value => value + 1)} className="text-button">Try again</button></p>}

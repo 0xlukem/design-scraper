@@ -1,7 +1,6 @@
 import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { URL } from 'node:url'
 import { build } from 'vite'
 import { expect, it } from 'vitest'
 import { libraryPreviews } from '../scripts/library-previews.mjs'
@@ -11,13 +10,13 @@ it('builds cards for new catalog entries while keeping the saved document in a l
   try {
     await mkdir(join(root, 'examples'))
     const entry = join(root, 'library.ts')
-    await copyFile(new URL('../src/library.ts', import.meta.url), entry)
+    await copyFile(join(process.cwd(), 'src/library.ts'), entry)
     await writeFile(join(root, 'examples/catalog.json'), JSON.stringify([{ id: 'new-reference', mode: 'single' }]))
     await writeFile(join(root, 'examples/new-reference.json'), JSON.stringify({
       design_system: { colors: { brand: [{ value: '#0acafe' }], accent: [], surfaces: [], text: [] }, typography: { families: [], scale: [] } },
       documents: { extended: 'Full document from a newly added reference' }, metadata: { mode: 'single' },
     }))
-    const result = await build({ root, configFile: false, plugins: [libraryPreviews()], logLevel: 'silent',
+    const [result] = await build({ root, configFile: false, plugins: [libraryPreviews()], logLevel: 'silent',
       build: { write: false, lib: { entry, formats: ['es'] }, minify: false },
     })
     const chunks = result.output.filter(file => file.type === 'chunk')

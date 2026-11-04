@@ -187,7 +187,7 @@ try {
   checks.push('Session activity, zero costs, refreshable simulated capacity and responsive demo controls');
   const calls = requests.filter(request => request.method === 'POST').length;
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
-  await page.getByRole('button', { name: 'View Stripe design', exact: true }).click();
+  await page.getByRole('link', { name: 'View Stripe design', exact: true }).click();
   await page.getByRole('button', { name: 'Export design', exact: true }).waitFor();
   assert.equal(requests.filter(request => request.method === 'POST').length, calls);
   await page.reload();
