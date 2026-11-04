@@ -83,6 +83,6 @@ it.each([
     { headers: { 'content-type': 'application/x-ndjson' } },
   ))
   await expect(analyzeWebsite('https://example.com/', new AbortController().signal)).rejects.toMatchObject({
-    issue: { ...detail, category: 'Insufficient visual evidence', guidance: expect.stringContaining('different public URL') },
+    issue: { ...detail, category: 'Insufficient visual evidence', guidance: expect.stringContaining(message) },
   })
 })

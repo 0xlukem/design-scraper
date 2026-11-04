@@ -160,7 +160,9 @@ try {
   analysisMode='blocked';
   await page.getByRole('button',{name:'Analyze design',exact:true}).click();
   const blockedAlert = page.getByRole('alert').filter({ hasText: 'Insufficient visual evidence' });
-  await blockedAlert.getByText(blockedCapture, { exact: true }).filter({ visible: true }).waitFor();
+  await blockedAlert.waitFor();
+  assert.ok((await blockedAlert.innerText()).includes('A dialog blocked every attempted sample.'),
+    'The cause must be visible with the technical details closed');
   assert.equal(await blockedAlert.getByRole('button', { name: /^Retry/ }).count(), 0);
   await blockedAlert.getByRole('button', { name: 'Review URL', exact: true }).click();
   assert.equal(await page.evaluate(()=>document.activeElement.id),'single-url');
