@@ -8,6 +8,7 @@ import DesignLibrary from './components/DesignLibrary'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { analyzeWebsite, mixWebsites } from './api'
 import MixForm from './components/MixForm'
+import { mixInputIssue } from './mixInput'
 import ModeToggle from './components/ModeToggle'
 import ResultPanel from './components/ResultPanel'
 import SingleForm from './components/SingleForm'
@@ -245,19 +246,19 @@ function App() {
       analyzeWebsite(state.single.url.trim(), signal, providerAccess.current || undefined, onProgress),
     )
 
-  const submitMix = () =>
-    runRequest('mix', (signal, onProgress) =>
-      Math.abs(state.mix.bias) === 50
-        ? analyzeWebsite((state.mix.bias === -50 ? state.mix.url1 : state.mix.url2).trim(), signal, providerAccess.current || undefined, onProgress)
-        : mixWebsites(
-        state.mix.url1.trim(),
-        state.mix.url2.trim(),
-        state.mix.bias,
-        signal,
-        providerAccess.current || undefined,
-        onProgress,
-      ),
-    )
+  const mixIssue = mixInputIssue(state.mix.url1, state.mix.url2, state.mix.bias)
+  const submitMix = () => {
+    if (mixIssue) return
+    return runRequest('mix', (signal, onProgress) => {
+      const credentials = providerAccess.current || undefined
+      const { url1, url2, bias } = state.mix
+      if (bias === -50 || bias === 50) {
+        const activeUrl = bias === -50 ? url1 : url2
+        return analyzeWebsite(activeUrl.trim(), signal, credentials, onProgress)
+      }
+      return mixWebsites(url1.trim(), url2.trim(), bias, signal, credentials, onProgress)
+    })
+  }
 
   const cancel = (mode: AppMode) => controllers.current[mode]?.abort()
 
@@ -368,7 +369,8 @@ function App() {
           {state.mode === 'single' ? <SingleForm url={state.single.url} loading={state.single.loading} disabled={!providerReady || busy || retryRemaining > 0}
             suggestions={singleSuggestions} onIntent={requestAllowance}
             onUrlChange={value => dispatch({ type: 'set-single-url', value })} onSubmit={submitSingle} onCancel={() => cancel('single')} />
-            : <MixForm url1={state.mix.url1} url2={state.mix.url2} bias={state.mix.bias} loading={state.mix.loading} disabled={!providerReady || busy || retryRemaining > 0}
+            : <MixForm url1={state.mix.url1} url2={state.mix.url2} bias={state.mix.bias} loading={state.mix.loading}
+              duplicate={mixIssue === 'duplicate'} disabled={!providerReady || busy || retryRemaining > 0 || Boolean(mixIssue)}
               suggestions={mixSuggestions} onIntent={requestAllowance}
               onUrlChange={(field, value) => dispatch({ type: 'set-mix-url', field, value })}
               onBiasChange={(value: MixBias) => dispatch({ type: 'set-bias', value })} onSubmit={submitMix} onCancel={() => cancel('mix')} />}
@@ -387,7 +389,7 @@ function App() {
         <div className="analysis-results">
           {(['single', 'mix'] as const).map(mode => <div key={mode} hidden={state.mode !== mode}>
             <ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
-              progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0}
+              progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0 || (mode === 'mix' && Boolean(mixIssue))}
               active={section === 'analyze' && state.mode === mode} cancelled={state[mode].cancelled} onCancel={() => cancel(mode)}
               onRetry={mode === 'single' ? submitSingle : submitMix} onReviewSettings={reviewSettings}
               onReviewUrl={() => document.getElementById(mode === 'single' ? 'single-url' : state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()} />

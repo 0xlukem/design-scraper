@@ -11,6 +11,7 @@ interface MixFormProps {
   bias: MixBias
   loading: boolean
   disabled?: boolean
+  duplicate: boolean
   suggestions?: UrlSuggestion[]
   onUrlChange: (field: 'url1' | 'url2', value: string) => void
   onIntent?: () => void
@@ -25,6 +26,7 @@ export default function MixForm({
   bias,
   loading,
   disabled = false,
+  duplicate,
   suggestions = [],
   onUrlChange,
   onIntent,
@@ -33,13 +35,10 @@ export default function MixForm({
   onCancel,
 }: MixFormProps) {
   const [first, second] = BIAS_WEIGHTS[bias]
-  const ready = (first === 0 || Boolean(url1.trim())) && (second === 0 || Boolean(url2.trim()))
-  const normalized = (value: string) => { try { return new URL(value).href.replace(/\/$/, '') } catch { return null } }
-  const sameSource = first > 0 && second > 0 && Boolean(normalized(url1)) && normalized(url1) === normalized(url2)
   const oneSource = first === 0 || second === 0
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    if (!disabled && !loading && ready && !sameSource) onSubmit()
+    if (!disabled && !loading) onSubmit()
   }
 
   return (
@@ -90,12 +89,12 @@ export default function MixForm({
         requestAnimationFrame(() => document.getElementById(suggestion.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus())
       }} />
       <BlendSlider urls={[url1, url2]} value={bias} onChange={onBiasChange} disabled={loading} />
-      {sameSource && <p className="mix-duplicate" role="alert">Choose two different URLs to mix designs.</p>}
+      {duplicate && <p className="mix-duplicate" role="alert">Choose two different URLs to mix designs.</p>}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <MagneticButton
           type="submit"
           tone="acid"
-          disabled={disabled || loading || !ready || sameSource}
+          disabled={disabled || loading}
           className="min-w-56"
         >
           <Lightning size={19} weight="fill" aria-hidden="true" />
