@@ -149,7 +149,7 @@ export function renderDocuments(s: DesignSystem) {
   const footer = "<!-- Generated from the normalized DesignSystem model. -->";
   const colorGroups: Array<[string, TokenValue[]]> = [
     ["Brand", s.colors.brand],
-    ["Accent", s.colors.accent],
+    [s.metadata.extraction_method === "declared-css" ? "Declared colors" : "Accent", s.colors.accent],
     ["Surfaces", s.colors.surfaces],
     ["Text", s.colors.text],
     ["Borders", s.colors.borders],
@@ -166,6 +166,7 @@ export function renderDocuments(s: DesignSystem) {
       colorGroups.flatMap((x) => x[1]),
       true,
     ),
+    ...(s.metadata.extraction_method === "declared-css" ? [...group("Declared radii", s.shapes.radii), ...group("Declared spacing", s.spacing.tokens)] : []),
     ...typography(s, true),
     ...components(s, true),
     "## Key Rules",

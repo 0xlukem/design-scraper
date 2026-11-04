@@ -471,6 +471,19 @@ transitions are completed. JavaScript animation states and excluded media remain
 explicit limitations. Up to 24 distinct measured elements retain source locators,
 computed properties and source influence through normalization and every export.
 
+### Source CSS before visual analysis
+
+Single-URL analysis first reads the public HTML, inline declarations and up to
+two linked stylesheets through the validated resource relay. The pass has a
+5.5-second deadline and a 2 MB download allowance within the source budget.
+When supported literal values are present, the progress stream includes an
+exportable DesignSystem marked `declared-css`. The application shows its
+stylesheet evidence and all five formats while visual verification runs.
+The final visual analysis replaces this preview. If a recoverable capture
+error occurs after confirmed cleanup, the response retains the source-only
+exports and identifies the visual issue in metadata. Source CSS does not
+establish the active theme, rendered font, responsive state or selector usage.
+
 ### Experimental independent samples
 
 The server-only `CAPTURE_STRATEGY=samples` option selects an experimental capture

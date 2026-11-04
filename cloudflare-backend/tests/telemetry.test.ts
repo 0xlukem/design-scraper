@@ -1,3 +1,4 @@
+import { declaredResult, extractDeclared, readCss } from '../src/declared-styles';
 import { afterEach, expect, it, vi } from 'vitest';
 import { AnalysisSession, type RuntimeEnv } from '../src/index';
 import { capture } from '../src/capture';
@@ -7,6 +8,9 @@ import { newState, reserve, recordProviderCall, settle } from '../src/quota';
 import fixtures from './fixtures/contracts.json';
 import type { Source } from '../src/domain/normalize';
 import type { AnalysisProgress } from '../src/telemetry-contract';
+vi.mock('../src/declared-styles', async importOriginal => ({
+  ...await importOriginal<typeof import('../src/declared-styles')>(), extractDeclared: vi.fn(async () => null),
+}));
 vi.mock('../src/browser-session', () => ({ withBrowser: vi.fn(async (_b, _s, callback) => callback({})) }));
 vi.mock('../src/capture', () => ({ capture: vi.fn(async () => ({ screenshot: 'YWJj', data: fixtures[0].sources[0].data, metrics: { requests: 1 } })) }));
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
@@ -137,4 +141,23 @@ it('does not regenerate a BYOK analysis', async () => {
   const response = await session.run(sources(), 'regen-byok', null, false, { provider: 'openai', key: 'fake-private-byok' });
   expect(response.status).toBe(502);
   expect(fetcher).toHaveBeenCalledOnce();
+});
+
+it('streams exportable source CSS before capture and returns it after a safely closed visual failure', async () => {
+  const { session, providerCall, finish } = setup();
+  const declarations: Parameters<typeof readCss>[2] = [];
+  readCss(':root{--brand-primary:#7845ba;--radius-card:23px}', 'style block 1', declarations);
+  const preview = declaredResult('https://example.com/', declarations)!;
+  vi.mocked(extractDeclared).mockResolvedValueOnce(preview);
+  const error = new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'Font unavailable.', 422);
+  error.browserMs = 1200;
+  error.captureMetrics = { close_confirmed: true, transport: { cleanup_confirmed: true } } as typeof error.captureMetrics;
+  vi.mocked(capture).mockRejectedValueOnce(error);
+  const events: AnalysisProgress[] = [];
+  const response = await session.run(sources(), 'css-fallback', null, false, undefined, p => events.push(p));
+  expect(events.find(p => p.preview)?.preview).toEqual(preview);
+  expect(await response.json()).toMatchObject({ ...preview, metadata: { ...preview.metadata, visual_issue: error.code },
+    telemetry: { usage_status: 'not_called', browser_ms: 1200 } });
+  expect(providerCall).not.toHaveBeenCalled();
+  expect(finish).toHaveBeenCalledOnce();
 });

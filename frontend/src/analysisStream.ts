@@ -1,5 +1,5 @@
 import type { AnalysisProgress } from './types'
-import { isAnalysisTelemetry } from './responseValidation'
+import { isAnalysisResult, isAnalysisTelemetry } from './responseValidation'
 
 type TerminalEvent = { type: 'result' | 'error'; payload: unknown; retry_after?: string | null }
 
@@ -10,7 +10,7 @@ export async function readAnalysisStream(response: Response, signal: AbortSignal
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let pending = '', bytes = 0
-  const readLine = (line: string): TerminalEvent | undefined => {
+  const readLine = async (line: string): Promise<TerminalEvent | undefined> => {
     if (!line.trim()) return
     const event = JSON.parse(line)
     if (event?.type === 'progress') {
@@ -20,6 +20,8 @@ export async function readAnalysisStream(response: Response, signal: AbortSignal
         !Number.isInteger(p.completed_steps) || !Number.isInteger(p.total_steps) ||
         p.total_steps < 4 || p.total_steps > 5 || p.completed_steps < 0 || p.completed_steps > p.total_steps ||
         !isAnalysisTelemetry(p.telemetry)) throw new Error('Invalid analysis progress.')
+      if (p.preview !== undefined && (!await isAnalysisResult(p.preview) || p.preview.design_system?.metadata?.extraction_method !== 'declared-css'))
+        throw new Error('Invalid source CSS preview.')
       // Receiving completed server steps is not the same as receiving and
       // validating the final payload. Never announce 100% before that result.
       if (p.stage !== 'complete') onProgress?.({ ...p, percent: Math.min(99, Math.floor(p.completed_steps * 100 / p.total_steps)) })
@@ -43,13 +45,13 @@ export async function readAnalysisStream(response: Response, signal: AbortSignal
         const line = pending.slice(0, end).trim()
         pending = pending.slice(end + 1)
         if (!line) continue
-        const terminal = readLine(line)
+        const terminal = await readLine(line)
         if (terminal) return terminal
       }
       if (done) {
         // A final JSON record remains valid when a proxy closes the response
         // immediately after it, without a trailing newline.
-        const terminal = readLine(pending)
+        const terminal = await readLine(pending)
         if (terminal) return terminal
         throw new Error('The connection ended before the final analysis result.')
       }

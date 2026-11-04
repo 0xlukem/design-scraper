@@ -34,6 +34,12 @@ export interface AnalysisTelemetry {
   browser_reserved_ms: number;
 }
 export interface AnalysisProgress {
+  preview?: {
+    success: true; design_md: string; design_system: import('./domain/types').DesignSystem;
+    documents: { extended: string; compact: string };
+    exports: { css_variables: string; tailwind: string; design_tokens: string };
+    metadata: { url: string; title: string; description: string; colors_extracted: number; fonts_extracted: number };
+  };
   stage: 'admitted' | 'capture' | 'counting_tokens' | 'analyzing' | 'exporting' | 'complete' | 'failed';
   source: string | null;
   completed_steps: number;

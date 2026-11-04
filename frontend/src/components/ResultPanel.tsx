@@ -132,7 +132,7 @@ export default function ResultPanel({
     view: 'visual',
   })
 
-  if (loading) return <LoadingSkeleton isMix={mode === 'mix'} startedAt={startedAt} progress={progress} />
+  if (loading && !result) return <LoadingSkeleton isMix={mode === 'mix'} startedAt={startedAt} progress={progress} />
 
   if (error) return <AnalysisErrorPanel issue={error} onRetry={onRetry} disabled={retryDisabled} onReviewSettings={onReviewSettings} />
 
@@ -198,6 +198,9 @@ export default function ResultPanel({
 
   return (
     <section className={`result-shell ${mixResult ? 'result-shell-wild' : ''}`}>
+      {result.design_system?.metadata?.extraction_method === 'declared-css' &&
+        <p className="form-notice" role="status">{loading ? 'Source CSS is ready to inspect and export. Visual analysis is running.' :
+          'Source CSS only. Visual verification was unavailable. These values are declared in the page styles.'}</p>}
       <div className="result-heading" ref={controls} tabIndex={-1} aria-label="Result controls">
         <div>
           <span className="section-kicker result-ready">Your ingredients, decoded</span>

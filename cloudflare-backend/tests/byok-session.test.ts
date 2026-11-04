@@ -7,6 +7,9 @@ import { config } from "../src/config";
 import { analyze } from "../src/providers";
 import { providerSettings } from "../src/byok";
 
+vi.mock('../src/declared-styles', async importOriginal => ({
+  ...await importOriginal<typeof import('../src/declared-styles')>(), extractDeclared: vi.fn(async () => null),
+}));
 vi.mock("../src/browser-session", () => ({ withBrowser: vi.fn(async (_binding, _signal, callback) => callback({})) }));
 vi.mock("../src/capture", () => ({ capture: vi.fn(async () => ({ screenshot: "YWJj", data: fixtures[0].sources[0].data, metrics: { requests: 1, external_hosts: 0 } })) }));
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });

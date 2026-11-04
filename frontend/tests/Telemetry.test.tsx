@@ -78,3 +78,20 @@ it('retains last counters on cancellation without claiming final consumption', a
   expect(await screen.findByText('Last confirmed counters. Remote work may continue; final usage is unknown.')).toBeInTheDocument()
   expect(screen.getByRole('row', { name: /#1/ })).toHaveTextContent('Unknown')
 })
+
+it('makes the CSS exports available while the visual check is pending and retains the partial result', async () => {
+  const { default: sample } = await import('../src/examples/example-domain.json')
+  const preview = structuredClone(sample)
+  preview.design_system.metadata = { ...preview.design_system.metadata, extraction_method: 'declared-css' } as typeof preview.design_system.metadata
+  let controller!: ReadableStreamDefaultController<Uint8Array>
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new ReadableStream({ start(c) { controller = c } }), { headers: { 'content-type': 'application/x-ndjson' } }))
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Website URL'), { target: { value: 'https://example.com' } })
+  fireEvent.click(screen.getByRole('button', { name: /Analyze design/ }))
+  await act(async () => controller.enqueue(encode([{ type: 'progress', progress: { ...progress, preview } }])))
+  expect(await screen.findByText(/Source CSS is ready to inspect and export/)).toBeVisible()
+  expect(screen.getByRole('button', { name: /Download design.md/i })).toBeEnabled()
+  await act(async () => { controller.enqueue(encode([{ type: 'result', payload: preview }])); controller.close() })
+  expect(await screen.findByText(/Source CSS only/)).toBeVisible()
+  expect(screen.getByRole('button', { name: /Download design.md/i })).toBeEnabled()
+})

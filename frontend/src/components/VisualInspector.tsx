@@ -216,7 +216,7 @@ export default function VisualInspector({ system, onBackToControls }: VisualInsp
             if (!tokens.length) return null
             return (
               <div className="color-group" key={key}>
-                <h4>{label}</h4>
+                <h4>{key === 'accent' && system.metadata.extraction_method === 'declared-css' ? 'Declared colors' : label}</h4>
                 <div className="swatch-list">
                   {tokens.map((token, index) => {
                     const value = tokenValue(token.value)

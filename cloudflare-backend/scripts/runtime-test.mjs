@@ -52,6 +52,12 @@ const base = {
   version: "1",
 };
 try {
+  const declared = await (await mf.dispatchFetch('http://test/test/declared-styles')).json();
+  assert.equal(declared.design_system.metadata.extraction_method, 'declared-css');
+  for (const output of [...Object.values(declared.documents), ...Object.values(declared.exports)]) {
+    for (const value of ['#7845ba', '23px', '#284795', '17px']) assert.ok(output.includes(value), value);
+    assert.ok(!output.includes('43px'));
+  }
   const stream = await mf.dispatchFetch('http://test/test/stream');
   assert.equal(stream.headers.get('content-type'), 'application/x-ndjson');
   const reader = stream.body.getReader();
