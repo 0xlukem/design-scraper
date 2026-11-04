@@ -27,6 +27,16 @@ it('loads only in activity, refreshes on return, and never sends credentials', a
   }
 })
 
+it('displays unlimited local test counts alongside the remaining capture allowance', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({
+    ...quota, analyses: { used: 6, limit: null, remaining: null }, per_ip: { hourly_limit: null, daily_limit: null },
+  }))
+  render(<SharedBudget revision={0} active />)
+  await screen.findByText('Unlimited')
+  expect(screen.getByText('7 min')).toBeInTheDocument()
+  expect(screen.queryByText('Daily capacity reached')).not.toBeInTheDocument()
+})
+
 it('shows unknown values on a network error, then recovers with real counts', async () => {
   const fetcher = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
   render(<SharedBudget revision={0} active />)
