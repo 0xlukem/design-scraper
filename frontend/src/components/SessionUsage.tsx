@@ -8,6 +8,7 @@ const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
 export interface UsageEntry {
   id: number
   sources?: string[]
+  mixInputs?: { url1: string; url2: string }
   startedAt?: number
   durationMs?: number
   funding: 'demo' | 'byok'

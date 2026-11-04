@@ -142,7 +142,7 @@ function App() {
     }
     providerAccess.current = value
     setProviderReady(value !== null)
-    setUsingOwnKey(value !== undefined)
+    setUsingOwnKey(Boolean(value))
   }, [])
   const [section, setSection] = useState(() => readSection())
   const [runId, setRunId] = useState(readRunId)
@@ -227,8 +227,9 @@ function App() {
     const funding = providerAccess.current ? 'byok' as const : 'demo' as const
     const provider = providerAccess.current?.provider || (isLocalDemo ? 'local-demo' : 'gemini')
     let lastTelemetry: AnalysisTelemetry | undefined
+    const mixInputs = mode === 'mix' ? { url1: state.mix.url1, url2: state.mix.url2 } : undefined
     const recordUsage = (outcome: UsageEntry['outcome'], usage?: AnalysisResult['metadata']['usage'], telemetry?: AnalysisTelemetry, requestSent?: boolean, result?: AnalysisResult, issue?: UsageEntry['issue']) =>
-      setUsageEntries(entries => [...entries, { id, mode, bias: mode === 'mix' ? state.mix.bias : undefined, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || telemetry?.provider || provider, outcome, usage, telemetry, requestSent, result, issue }])
+      setUsageEntries(entries => [...entries, { id, mode, bias: mode === 'mix' ? state.mix.bias : undefined, mixInputs, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || telemetry?.provider || provider, outcome, usage, telemetry, requestSent, result, issue }])
     dispatch({ type: 'request-start', mode, startedAt: Date.now() })
 
     try {
@@ -290,8 +291,8 @@ function App() {
     const mode = entry.mode || 'single'
     if (mode === 'single') dispatch({ type: 'set-single-url', value: entry.sources?.[0] || '' })
     else {
-      dispatch({ type: 'set-mix-url', field: 'url1', value: entry.bias === 50 ? '' : entry.sources?.[0] || '' })
-      dispatch({ type: 'set-mix-url', field: 'url2', value: entry.bias === 50 ? entry.sources?.[0] || '' : entry.sources?.[1] || '' })
+      dispatch({ type: 'set-mix-url', field: 'url1', value: entry.mixInputs?.url1 ?? entry.sources?.[0] ?? '' })
+      dispatch({ type: 'set-mix-url', field: 'url2', value: entry.mixInputs?.url2 ?? entry.sources?.[1] ?? '' })
       dispatch({ type: 'set-bias', value: entry.bias || 0 })
     }
     dispatch({ type: 'set-mode', mode }); setTargetMode(mode)

@@ -111,7 +111,7 @@ try {
   const availability = page.getByRole('region', { name: 'Service availability', exact: true });
   await availability.getByText('Service limits', { exact: true }).click();
   await availability.getByText('17', { exact: true }).waitFor();
-  assert.equal(quotaRequests, 1, 'Opening activity checks the public counter');
+  assert.equal(quotaRequests, quotaBeforeLibrary + 1, 'Opening activity checks the public counter');
   checks.push('Gallery: zero analysis requests and no session consumption');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
   await page.getByRole('button', { name: 'View Bootstrap × Milligram design', exact: true }).click();
@@ -122,7 +122,7 @@ try {
   checks.push('Saved results remain independent of new analyses');
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).waitFor();
-  assert.equal(quotaRequests, 1, 'Opening the form never checks the shared allowance by itself');
+  assert.equal(quotaRequests, quotaBeforeLibrary + 1, 'Opening the form never checks the shared allowance by itself');
   const quotaBeforeIntent = quotaRequests;
   const chips = page.getByRole('group', { name: 'Try a reference', exact: true });
   const firstSingle = catalog.find(entry => entry.mode === 'single');
