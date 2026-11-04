@@ -34,7 +34,7 @@ it('keeps an in-flight analysis and URL through section changes, and records it 
   expect(screen.queryByText('for analysis #2')).not.toBeInTheDocument()
   await navigate('analyze')
   expect(screen.getByLabelText('Website URL')).toHaveValue('https://example.com')
-  expect(screen.getByRole('heading', { name: 'Design findings' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Overview' })).toBeVisible()
   expect(analyze).toHaveBeenCalledTimes(1)
 })
 it('never verifies a key by format; preserves it across navigation and resets verification on edit', async () => {
@@ -82,7 +82,7 @@ it('keeps separate results in history and restores original inputs without submi
   await navigate('activity')
   expect(screen.getAllByRole('link', { name: /View result for analysis/ })).toHaveLength(2)
   await navigate('activity/1')
-  expect(screen.getByRole('heading', { name: 'Design findings' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Overview' })).toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: 'Use these URLs' }))
   await waitFor(() => expect(screen.getByLabelText('Website URL')).toHaveValue('https://first.example'))
   expect(analyze).toHaveBeenCalledTimes(2)
@@ -91,19 +91,19 @@ it('keeps separate results in history and restores original inputs without submi
 })
 
 it('recovers both mix input slots from a 0/100 run', async () => {
-  const mix = vi.spyOn(api, 'mixWebsites').mockResolvedValue(resultFixture)
+  const single = vi.spyOn(api, 'analyzeWebsite').mockResolvedValue(resultFixture)
   render(<App />)
   fireEvent.click(screen.getByRole('tab', { name: 'Mix It' }))
   fireEvent.change(screen.getByLabelText('First website URL'), { target: { value: 'https://excluded.example/' } })
   fireEvent.change(screen.getByLabelText('Second website URL'), { target: { value: 'https://active.example/' } })
-  fireEvent.change(screen.getByLabelText('Mix balance'), { target: { value: '50' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Mix designs' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Mix designs' })).toBeEnabled())
+  fireEvent.change(screen.getByLabelText('Mix balance'), { target: { value: '0' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Analyze selected source' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Analyze selected source' })).toBeEnabled())
   await navigate('activity/1')
   fireEvent.click(screen.getByRole('button', { name: 'Use these URLs' }))
   await waitFor(() => expect(screen.getByLabelText('Second website URL')).toHaveValue('https://active.example/'))
   expect(screen.getByLabelText('First website URL')).toHaveValue('https://excluded.example/')
-  expect(mix).toHaveBeenCalledTimes(1)
+  expect(single).toHaveBeenCalledTimes(1)
 })
 
 it('offers key setup when an exhausted included allowance has no saved BYOK key', async () => {

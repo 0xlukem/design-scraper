@@ -66,16 +66,37 @@ try {
     assert.equal(new URL(await cover.getAttribute('src'), site).origin, new URL(site).origin, 'Cover artwork is served locally');
     assert.ok(await cover.evaluate(async image => { await image.decode(); return image.naturalWidth > 0 && image.naturalHeight > 0; }), `${id}: brand cover loads and decodes`);
     assert.equal(await card.getByRole('combobox').count(), 0, 'Cards no longer carry a format selector');
-    const downloadPromise = page.waitForEvent('download');
-    await card.getByRole('button', { name: `Download ${name} design.md`, exact: true }).click();
-    const download = await downloadPromise;
-    assert.equal(download.suggestedFilename(), 'design.md');
-    assert.equal(await readFile(await download.path(), 'utf8'), expected.documents.extended);
-    assert.equal(await page.locator('#saved-design-preview').count(), 0);
-    checks.push(`${id}: direct design.md download without opening report`);
-    await page.getByRole('button', { name: `View ${name} design`, exact: true }).click();
+    const quickDownloadPromise = page.waitForEvent('download');
+    await card.getByRole('button', { name: /Download/ }).click();
+    const quickDownload = await quickDownloadPromise;
+    assert.equal(quickDownload.suggestedFilename(), id + '-design.md');
+    assert.equal(await readFile(await quickDownload.path(), 'utf8'), expected.documents.extended);
+    assert.equal(new URL(page.url()).hash, '#/library');
+    assert.equal(analyses, 0, 'Quick downloads never submit an analysis');
+    checks.push(id + ': direct card download matches the saved file without leaving the library');
+    await page.getByRole('link', { name: `View ${name} design`, exact: true }).click();
+    assert.equal(new URL(page.url()).hash, `#/library/${id}`);
     const preview = page.locator('#saved-design-preview');
-    await preview.getByRole('heading', { name: 'Design findings' }).waitFor();
+    await preview.getByRole('button', { name: 'Export design', exact: true }).waitFor();
+    await preview.getByRole('heading', { name, exact: true, level: 1 }).waitFor();
+    await preview.getByRole('heading', { name: 'Overview' }).waitFor();
+    if (id === 'stripe') {
+      await page.setViewportSize({ width: 1280, height: 720 });
+      await preview.getByRole('button', { name: 'Spacing', exact: true }).click();
+      const name = 'measured-web-1-button-1-row-gap';
+      const row = preview.locator('.token-evidence-line').filter({ has: page.getByText(name, { exact: true }) });
+      await row.locator('xpath=ancestor::details[1]/summary').click();
+      await row.getByText('Evidence · Detected').click();
+      await row.getByRole('button', { name: 'View source & gaps' }).click();
+      const location = preview.locator('.measurement-locator code');
+      assert.equal(await location.textContent(), expected.design_system.metadata.measurement_locators['measured-web-1-button-1'].selector);
+      const bounds = await location.boundingBox();
+      const nav = await preview.locator('.inspector-nav').boundingBox();
+      assert.ok(bounds && nav && bounds.y >= nav.y + nav.height && bounds.y + bounds.height <= 720,
+        'The measured selector must be visible below the sticky navigation');
+      checks.push('Stripe: following a measured spacing token reveals its DOM locator in the viewport');
+    }
+    await preview.getByRole('button', { name: 'Export design', exact: true }).click();
     for (const [tab, variant, bytes, filename] of [
       ['DESIGN.md', 'Extended', expected.documents.extended, mixed ? 'mixed-design.md' : 'design.md'],
       ['DESIGN.md', 'Compact', expected.documents.compact, mixed ? 'mixed-design-compact.md' : 'design-compact.md'],
@@ -85,7 +106,6 @@ try {
     ]) {
       await preview.getByRole('tab', { name: tab, exact: true }).click();
         if (variant) await preview.getByRole('button', { name: variant, exact: true }).click();
-      await preview.getByRole('button', { name: 'View code', exact: true }).click();
       await preview.getByRole('button', { name: 'Copy', exact: true }).click();
       await preview.getByRole('button', { name: 'Copied', exact: true }).waitFor();
       assert.equal(await page.evaluate(() => navigator.clipboard.readText()), bytes);
@@ -96,13 +116,13 @@ try {
       assert.equal(await readFile(await download.path(), 'utf8'), bytes);
       checks.push(`${id}: ${variant || tab} clipboard/download matches`);
     }
-    await preview.getByRole('button', { name: 'View design', exact: true }).click();
+    await preview.getByRole('button', { name: 'Close export', exact: true }).click();
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await overflow(`${id}-${width}`);
-      if (id === 'milligram') await page.locator('#design-library').screenshot({ path: `${artifacts}/gallery-${width}.png` });
+      if (id === 'milligram') { await page.locator('#saved-design-preview').evaluate(el => el.scrollIntoView({ block: 'start' })); await page.screenshot({ path: `${artifacts}/gallery-${width}.png` }); }
     }
-    await page.getByRole('button', { name: 'Close design' }).click();
+    await page.getByRole('link', { name: /Back to library/ }).click();
   }
   assert.equal(analyses, 0);
   assert.equal(quotaRequests, quotaBeforeLibrary, 'Browsing the library never checks the shared allowance');
@@ -114,15 +134,26 @@ try {
   assert.equal(quotaRequests, quotaBeforeLibrary + 1, 'Opening activity checks the public counter');
   checks.push('Gallery: zero analysis requests and no session consumption');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
-  await page.getByRole('button', { name: 'View Bootstrap × Milligram design', exact: true }).click();
-  await page.locator('#saved-design-preview').getByRole('heading', { name: 'Design findings' }).waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Use these URLs in the form' }).count(), 0);
-  await page.getByRole('button', { name: 'Close design' }).click();
+  await page.getByRole('link', { name: 'View Bootstrap × Milligram design', exact: true }).click();
+  await page.reload();
+  await page.locator('#saved-design-preview').getByRole('button', { name: 'Export design', exact: true }).waitFor();
+  await page.goBack();
+  await page.getByRole('heading', { name: 'Design library', exact: true }).waitFor();
+  await page.goForward();
+  const beforeReference = quotaRequests;
+  await page.getByRole('button', { name: 'Use as reference' }).click();
+  await page.getByLabel('First website URL').waitFor();
+  assert.equal(await page.getByLabel('First website URL').inputValue(), 'https://getbootstrap.com/docs/5.3/examples/heroes/');
+  assert.equal(await page.getByLabel('Mix balance').inputValue(), '25');
   assert.equal(analyses, 0);
-  checks.push('Saved results remain independent of new analyses');
+  await page.getByText('17 of 20 shared analyses left today', { exact: false }).waitFor();
+  assert.equal(quotaRequests, beforeReference + 1, 'Focusing the reused reference checks the allowance once');
+  const afterReference = quotaRequests;
+  checks.push('Saved-design reload, back/forward and reference reuse preserve URLs and weights without submitting');
+  await page.getByRole('tab', { name: /Extract design/ }).click();
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).waitFor();
-  assert.equal(quotaRequests, quotaBeforeLibrary + 1, 'Opening the form never checks the shared allowance by itself');
+  assert.equal(quotaRequests, afterReference, 'Switching modes without focusing another input does not refresh the allowance');
   const quotaBeforeIntent = quotaRequests;
   const chips = page.getByRole('group', { name: 'Try a reference', exact: true });
   const firstSingle = catalog.find(entry => entry.mode === 'single');
@@ -130,7 +161,7 @@ try {
   assert.equal(await page.getByLabel('Website URL', { exact: true }).inputValue(), firstSingle.sources[0]);
   assert.equal(await page.getByLabel('Website URL', { exact: true }).evaluate(element => element === document.activeElement), true);
   await page.getByText('17 of 20 shared analyses left today', { exact: false }).waitFor();
-  assert.equal(quotaRequests, quotaBeforeIntent + 1, 'Showing intent checks the allowance exactly once');
+  assert.equal(quotaRequests, quotaBeforeIntent, 'Reusing a loaded allowance does not duplicate the intent request');
   assert.equal(analyses, 0, 'Suggestions never submit an analysis');
   checks.push('Suggestion chips prefill the form, focus it and reveal the remaining shared allowance without submitting');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
@@ -152,7 +183,7 @@ try {
   await page.getByRole('tab', { name: /Mix It/ }).click();
   assert.ok(await page.getByRole('button', { name: /mix designs/i }).isDisabled());
   await page.getByRole('tab', { name: /Extract design/ }).click();
-  await page.getByRole('button', { name: 'Stop waiting' }).click();
+  await page.getByRole('button', { name: 'Stop waiting for result' }).click();
   await page.getByText(/You stopped waiting/).waitFor();
   finishSlow?.();
   checks.push('Indeterminate loading, cross-mode duplicate guard, cancellation');
@@ -169,7 +200,7 @@ try {
   assert.equal(analyses, 2, 'No automatic retries');
   responseMode = 'success';
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
-  await page.getByRole('heading', { name: 'Design findings' }).waitFor();
+  await page.getByRole('heading', { name: 'Overview' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
   await spending.getByText('Estimated subtotals', { exact: true }).click();

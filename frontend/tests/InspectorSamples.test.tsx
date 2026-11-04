@@ -43,14 +43,17 @@ it('excludes resource-loading values and layout properties from component specim
   expect(componentPreviewStyle(component)).toEqual({ borderRadius: '6px' })
 })
 
-it('keeps detailed measurements available while giving sections a direct keyboard destination', () => {
+it('keeps measurements accessible in a selected section and restores that export trigger', () => {
   render(<ResultPanel mode="single" loading={false} error={null} result={github as unknown as AnalysisResult} onRetry={vi.fn()} />)
-  const measurements = screen.getByText(/Element measurements \(5 components\)/).closest('details')!
-  expect(measurements.open).toBe(false)
-  fireEvent.click(screen.getByRole('link', { name: 'Components', exact: true }))
-  expect(screen.getByRole('region', { name: 'Observed components' })).toHaveFocus()
-  fireEvent.click(screen.getByRole('button', { name: 'Export controls' }))
-  expect(screen.getByLabelText('Result controls')).toHaveFocus()
+  fireEvent.click(screen.getByRole('button', { name: 'Components', exact: true }))
+  expect(screen.getByRole('region', { name: 'Components' })).toHaveFocus()
+  expect(screen.getAllByText('Measured element')).toHaveLength(5)
+  const trigger = screen.getByRole('button', { name: 'Open export controls' })
+  trigger.focus()
+  fireEvent.click(trigger)
+  fireEvent.click(screen.getByRole('button', { name: 'Close export' }))
+  expect(trigger).toHaveFocus()
+  expect(screen.getByRole('heading', { name: 'Components' })).toBeVisible()
 })
 
 it('does not present sparse card properties as a reconstructed component', () => {

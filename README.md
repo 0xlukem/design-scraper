@@ -104,8 +104,9 @@ It neither visits entered URLs nor calls Cloudflare or AI providers, and accepts
 no credentials. The simulation is available only in the development server;
 Pages builds contain the real application without demo controls or transport.
 
-Single analysis replays the saved Example Domain result. Mix It replays fixed
-editorial contract samples for all five balances, including excluded sources.
+Single analysis replays the saved Example Domain result. Mix It uses the same
+single-source sample at 100/0 and 0/100. At 75/25, 50/50 and 25/75 it replays
+the editorial sample for the selected blend.
 Samples retain their original evidence URLs, confidence, gaps and exports;
 they are not analyses of the URLs you enter. Token usage and costs are zero.
 Reload clears the selected scenario and session activity. Capacity figures are

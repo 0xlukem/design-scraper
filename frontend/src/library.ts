@@ -1,5 +1,5 @@
 import catalog from './examples/catalog.json'
-import type { AnalysisResult, AppMode } from './types'
+import type { AnalysisResult, AppMode, MixBias } from './types'
 
 export interface LibraryExample {
   id: string
@@ -9,6 +9,7 @@ export interface LibraryExample {
   /** ISO date of the saved analysis. */
   date: string
   mode: AppMode
+  bias?: MixBias
   sources: string[]
   /** Local artwork from the reference site's public branding, with provenance. */
   cover: {
@@ -21,16 +22,22 @@ export interface LibraryExample {
   palette: string[]
   /** Cover background used by the Mix It world. */
   tone: string
+  preview: { colors: string[]; fonts: string[]; weights: number[] | null }
   load: () => Promise<AnalysisResult>
 }
 
 // Saved responses stay separate chunks; the catalog only carries their metadata.
 const modules = import.meta.glob<{ default: AnalysisResult }>(['./examples/*.json', '!./examples/catalog.json'])
 
-export const libraryExamples: LibraryExample[] = (catalog as Omit<LibraryExample, 'load'>[]).map(entry => {
-  const loader = modules[`./examples/${entry.id}.json`]
+const previews = import.meta.glob<LibraryExample['preview']>(['./examples/*.json', '!./examples/catalog.json'], {
+  query: '?library-preview', import: 'default', eager: true,
+})
+
+export const libraryExamples: LibraryExample[] = (catalog as Omit<LibraryExample, 'load' | 'preview'>[]).map(entry => {
+  const file = `./examples/${entry.id}.json`
+  const loader = modules[file]
   if (!loader) throw new Error(`Missing saved design for ${entry.id}`)
-  return { ...entry, load: async () => (await loader()).default }
+  return { ...entry, preview: previews[file], load: async () => (await loader()).default }
 })
 
 export function formatLibraryDate(date: string): string {

@@ -8,6 +8,7 @@ import DesignLibrary from './components/DesignLibrary'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { analyzeWebsite, mixWebsites } from './api'
 import MixForm from './components/MixForm'
+import { mixInputIssue } from './mixInput'
 import ModeToggle from './components/ModeToggle'
 import ResultPanel from './components/ResultPanel'
 import SingleForm from './components/SingleForm'
@@ -17,10 +18,11 @@ import MixWorld from './components/MixWorld'
 import WorldTransition from './components/WorldTransition'
 import HeroReveal from './components/HeroReveal'
 import AllowanceHint from './components/AllowanceHint'
-import { librarySuggestions } from './library'
+import { librarySuggestions, type LibraryExample } from './library'
 import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
 import ProviderControls from './components/ProviderControls'
 import type { ByokCredentials } from './byok'
+import { BIAS_WEIGHTS } from './types'
 import { cancelledDemoTelemetry } from './demo'
 import DemoControls from './components/DemoControls'
 import type {
@@ -120,7 +122,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 }
 
 const singleSuggestions = librarySuggestions('single', 3).map(example => ({ id: example.id, label: new URL(example.sources[0]).hostname.replace(/^www\./, ''), urls: example.sources }))
-const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: example.id, label: example.name, urls: example.sources }))
+const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: example.id, label: example.name, urls: example.sources, bias: example.bias }))
 const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
 
 function App() {
@@ -222,7 +224,7 @@ function App() {
     const id = ++requestId.current
     const startedAt = Date.now()
     const previousKeyStatus = keyStatus
-    const sources = mode === 'single' ? [state.single.url.trim()] : [state.mix.url1.trim(), state.mix.url2.trim()]
+    const sources = mode === 'single' ? [state.single.url.trim()] : [state.mix.url1.trim(), state.mix.url2.trim()].filter((_, index) => BIAS_WEIGHTS[state.mix.bias][index] > 0)
     if (providerAccess.current) { setKeyStatus('checking'); setKeyError('') }
     const funding = providerAccess.current ? 'byok' as const : 'demo' as const
     const provider = providerAccess.current?.provider || (isLocalDemo ? 'local-demo' : 'gemini')
@@ -271,17 +273,19 @@ function App() {
       analyzeWebsite(state.single.url.trim(), signal, providerAccess.current || undefined, onProgress),
     )
 
-  const submitMix = () =>
-    runRequest('mix', (signal, onProgress) =>
-      mixWebsites(
-        state.mix.url1.trim(),
-        state.mix.url2.trim(),
-        state.mix.bias,
-        signal,
-        providerAccess.current || undefined,
-        onProgress,
-      ),
-    )
+  const mixIssue = mixInputIssue(state.mix.url1, state.mix.url2, state.mix.bias)
+  const submitMix = () => {
+    if (mixIssue) return
+    return runRequest('mix', (signal, onProgress) => {
+      const credentials = providerAccess.current || undefined
+      const { url1, url2, bias } = state.mix
+      if (bias === -50 || bias === 50) {
+        const activeUrl = bias === -50 ? url1 : url2
+        return analyzeWebsite(activeUrl.trim(), signal, credentials, onProgress)
+      }
+      return mixWebsites(url1.trim(), url2.trim(), bias, signal, credentials, onProgress)
+    })
+  }
 
   const cancel = (mode: AppMode) => controllers.current[mode]?.abort()
 
@@ -313,6 +317,23 @@ function App() {
     window.scrollTo?.({ top: 0, behavior: 'instant' })
     main.current?.focus({ preventScroll: true })
   }
+  const useReference = (example: LibraryExample, result: AnalysisResult) => {
+    if (busy) return
+    if (example.mode === 'mix' && 'mode' in result.metadata) {
+      const first = result.metadata.sources.find(source => source.slot === 'web_1')
+      const second = result.metadata.sources.find(source => source.slot === 'web_2')
+      if (!first || !second) return
+      dispatch({ type: 'set-mix-url', field: 'url1', value: first.url })
+      dispatch({ type: 'set-mix-url', field: 'url2', value: second.url })
+      dispatch({ type: 'set-bias', value: result.metadata.bias })
+    } else {
+      dispatch({ type: 'set-single-url', value: example.sources[0] })
+    }
+    dispatch({ type: 'set-mode', mode: example.mode }); setTargetMode(example.mode)
+    window.location.hash = '/analyze'; setSection('analyze')
+    requestAnimationFrame(() => document.getElementById(example.mode === 'mix' ? 'mode' in result.metadata && result.metadata.bias === 50 ? 'mix-url-2' : 'mix-url-1' : 'single-url')?.focus())
+  }
+
   return <div data-experience={state.mode} className={`app-shell experience-shell min-h-[100dvh] ${state.mode === 'mix' ? 'theme-wild' : 'theme-sober'}`}>
     <WorldTransition target={targetMode} current={state.mode} paused={false} onCovered={mode => dispatch({ type: 'set-mode', mode })} />
     <header className="site-header">
@@ -368,7 +389,7 @@ function App() {
       <div className={section === 'analyze' ? 'reference-box' : 'activity-access'}>
       {section === 'analyze' && <><div className="reference-topline"><span>{state.mode === 'single' ? 'DESIGN SCRAPER / WORKSPACE' : 'THE MIXING DESK'}</span><span>{state.mode === 'single' ? '01—05' : 'MAKE A BEAUTIFUL MESS'}</span></div><ModeToggle mode={state.mode} onChange={changeMode} /></>}
       {section === 'analyze' && <div className="reference-heading">
-        <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : 'Good things collide.'}</h2></div>
+        <div><span className="reference-step">{state.mode === 'single' ? 'START WITH A WEBSITE' : Math.abs(state.mix.bias) === 50 ? 'YOUR SELECTED SOURCE' : '01 / POUR IN YOUR INGREDIENTS'}</span><h2>{state.mode === 'single' ? 'One URL. The whole system.' : Math.abs(state.mix.bias) === 50 ? 'One source. Its own design.' : 'Good things collide.'}</h2></div>
         <Globe size={24} aria-hidden="true" />
       </div>}
       <div hidden={section !== 'analyze'}>
@@ -376,7 +397,8 @@ function App() {
           {state.mode === 'single' ? <SingleForm url={state.single.url} loading={state.single.loading} disabled={!providerReady || busy || retryRemaining > 0}
             suggestions={singleSuggestions} onIntent={requestAllowance}
             onUrlChange={value => dispatch({ type: 'set-single-url', value })} onSubmit={submitSingle} onCancel={() => cancel('single')} />
-            : <MixForm url1={state.mix.url1} url2={state.mix.url2} bias={state.mix.bias} loading={state.mix.loading} disabled={!providerReady || busy || retryRemaining > 0}
+            : <MixForm url1={state.mix.url1} url2={state.mix.url2} bias={state.mix.bias} loading={state.mix.loading}
+              duplicate={mixIssue === 'duplicate'} disabled={!providerReady || busy || retryRemaining > 0 || Boolean(mixIssue)}
               suggestions={mixSuggestions} onIntent={requestAllowance}
               onUrlChange={(field, value) => dispatch({ type: 'set-mix-url', field, value })}
               onBiasChange={(value: MixBias) => dispatch({ type: 'set-bias', value })} onSubmit={submitMix} onCancel={() => cancel('mix')} />}
@@ -385,24 +407,24 @@ function App() {
         {retryRemaining > 0 && <p className="form-notice" role="status">New analyses are available in {retryRemaining}s. You can edit your URLs or browse saved designs while you wait.</p>}
         {!providerReady && <p className="form-notice" role="status">Finish setting up your key, or use Design Scraper to analyze.</p>}
         {busy && !state[state.mode].loading && <p role="status" className="form-notice">An analysis is running in the other mode. Switch back to see its progress.</p>}
-        {state[state.mode].cancelled && <p role="status" className="cancellation-note">{isLocalDemo ? 'Simulation stopped. No website or AI provider was called.' : 'You stopped waiting. Work already started may still use quota. See Activity & costs for the last available usage.'}</p>}
       </div>
       {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={isLocalDemo ? undefined : reviewSettings} />}
       {!isLocalDemo && <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />}
-      {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
+      {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' || Math.abs(state.mix.bias) === 50 ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
       </div>
       </div>
       <div hidden={section !== 'analyze'}>
         <div className="analysis-results">
           {(['single', 'mix'] as const).map(mode => <div key={mode} hidden={state.mode !== mode}>
             <ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
-              progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0}
-              onRetry={mode === 'single' ? submitSingle : submitMix} onReviewSettings={reviewSettings} />
+              progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0 || (mode === 'mix' && Boolean(mixIssue))}
+              active={section === 'analyze' && state.mode === mode} cancelled={state[mode].cancelled} onCancel={() => cancel(mode)}
+              onRetry={mode === 'single' ? submitSingle : submitMix} onReviewSettings={reviewSettings}
+              onReviewUrl={() => document.getElementById(mode === 'single' ? 'single-url' : state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()} />
           </div>)}
         </div>
       </div>
-      <div hidden={section !== 'library'}><DesignLibrary /></div>
-
+      <div hidden={section !== 'library'}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></div>
     </main>
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
   </div>
