@@ -17,7 +17,7 @@ export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewS
     <WarningOctagon size={32} weight="bold" aria-hidden="true" />
     <div className="min-w-0">
       <h2 className="mt-2 text-2xl font-semibold tracking-tight">{issue.category}</h2>
-      {!issue.guidance.startsWith(issue.message) && <p className="mt-3 max-w-[62ch] text-sm leading-relaxed break-words">{issue.message}</p>}
+      <p className="mt-3 max-w-[62ch] text-sm leading-relaxed break-words">{issue.message}</p>
       <details className="provider-rates"><summary>Error details</summary><p className="mt-3 font-mono text-xs break-all">Issue: {issue.code}</p>{issue.telemetry && <TelemetrySummary telemetry={issue.telemetry} />}</details>
       <p className="mt-4 max-w-[65ch] text-sm leading-relaxed">{issue.guidance}</p>
       <div className="mt-5 flex flex-wrap gap-3">
