@@ -477,10 +477,12 @@ path. The default remains `sections`; no public request parameter selects it.
 Controlled local Chromium tests exercise both strategies without Browser Run or
 provider calls. Success on local fixtures does not establish remote site support.
 
-The experimental path collects up to three independent 1440×900 viewport images
-per active source within the initial 4000 px region. It selects complementary
-content using generic DOM heuristics, resolves anchors after scrolling, and checks
-local geometry and styles before and after each photograph. Changes to document
+The experimental path returns the first useful 1440×900 viewport per active
+source. It starts at the top and validates the photograph against visible,
+measured elements. After a recoverable failure, it tries once more within the
+shared allowance, selecting content lower in the initial 4000 px region when
+available. A short page can be observed again at the top. A successful first
+viewport ends sampling immediately. Taller pages report partial coverage. Changes to document
 height outside the photographed region do not invalidate it. Images are never
 stitched into an apparently continuous page. Context and controls are not hidden
 or rearranged. Viewport Web Animations are temporarily paused at their current
@@ -503,8 +505,8 @@ for a scoped result, not observation of the entire website or its responsive sta
 Computed font-family stacks describe CSS declarations, not proof that every listed
 font was rendered.
 
-All four provider adapters receive an ordered source/sample manifest with up to
-six images for Mix. Excluded sources contribute none. The full multimodal input
+All four provider adapters receive an ordered source/sample manifest with one
+accepted image per active source (up to two for Mix). Excluded sources contribute none. The full multimodal input
 is counted where required, and the input guard and estimated usage include all
 images. Binary images stay out of textual evidence. The canonical DesignSystem
 schema and historical fixtures are unchanged; sampled measurement locators add an

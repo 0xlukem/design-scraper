@@ -17,6 +17,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
   const rejected: RejectedSample[] = [];
   let bytes = 0;
   let inspected = 0;
+  let documentHeight = 0;
   let sampleAttempts = 0;
   let dialogBlockedAttempts = 0;
   let firstUsefulMs: number | null = null;
@@ -31,6 +32,8 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
   };
   // Wait for observable content, including delayed hydration, before fixing the
   // bounded element set. Neither network silence nor a loading heading suffices.
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
+  let contextReady = true;
   try {
     await page.waitForFunction(limit => {
       const visible = (element: Element) => {
@@ -46,7 +49,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
   } catch (error) {
     assertHealthy();
     if (!(error instanceof Error) || error.name !== 'TimeoutError') throw error;
-    throw new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'The page did not render usable content within the readiness budget.', 422, true);
+    contextReady = false;
   }
   // Anchor selection is bounded. Each attempt binds its own current node set
   // after resources settle, before extracting any measurements or photograph.
@@ -73,31 +76,23 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       while (nodes.length < limit && walker.nextNode()) nodes.push(walker.currentNode as Element);
       return nodes;
     };
-    const elements = collect();
-    const kinds: [string, string][] = [['heading', 'h1,h2,h3,[role="heading"]'], ['control', 'button,input:not([type="hidden"]),a[href]'],
-      ['card', 'article,[class~="card"]'], ['content', 'p,li,section,main']];
-    const candidates = elements.flatMap(element => {
-      const box = element.getBoundingClientRect();
-      const y = box.top + scrollY;
-      const kind = kinds.find(([, query]) => element.matches(query))?.[0];
-      const css = getComputedStyle(element);
-      if (!kind || box.width <= 0 || box.height <= 0 || y < 800 || y >= maxHeight ||
-        css.display === 'none' || css.visibility === 'hidden' || css.opacity === '0') return [];
-      const anchor = selector(element);
-      return anchor && anchor.length <= 1600 ? [{ element, anchor, kind, y }] : [];
-    });
-    const anchors: typeof candidates = [];
-    const covered: number[] = [0];
-    const kindsUsed = new Set<string>();
-    for (let index = 0; index < 2; index++) {
-      const ranked = candidates.filter(candidate => !anchors.includes(candidate) && covered.every(y => Math.abs(candidate.y - y) >= 650))
-        .sort((a, b) => {
-          const score = (candidate: typeof a) => (kindsUsed.has(candidate.kind) ? 0 : 500) + Math.min(...covered.map(y => Math.abs(candidate.y - y)));
-          return score(b) - score(a) || a.y - b.y;
-        });
-      if (!ranked.length) break;
-      anchors.push(ranked[0]); covered.push(ranked[0].y); kindsUsed.add(ranked[0].kind);
-    }
+    // Only search below the fold after the initial viewport has failed.
+    const positionFallback = () => {
+      let best: Element | undefined;
+      let bestY = 0;
+      for (const element of collect()) {
+        if (!element.matches('h1,h2,h3,[role="heading"],button,input:not([type="hidden"]),a[href],article,[class~="card"],p,li,section,main')) continue;
+        const box = element.getBoundingClientRect();
+        const y = box.top + scrollY;
+        if (y < 800 || y >= maxHeight || y <= bestY || box.width <= 0 || box.height <= 0 ||
+          !element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+        best = element;
+        bestY = y;
+      }
+      // A short page gets one fresh observation of its only viewport.
+      window.scrollTo({ top: Math.min(Math.max(0, bestY - innerHeight / 3), maxHeight - innerHeight), left: 0, behavior: 'instant' });
+      return best ? selector(best) ?? 'optional-region-1' : 'context';
+    };
     // Compare observations inside Chromium. Only the revision number crosses the
     // protocol, even when thousands of elements inherit a very long CSS value.
     let previousRows: (Element | string | number)[][] = [];
@@ -105,7 +100,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     let observedModal: Element | null = null;
     type DialogDiagnostic = { viewportPercent: number; nativeModal: boolean; dialogHits: number; outsideMainHits: number };
     type Snapshot = { revision: number; useful: boolean; blocked: string | null;
-      visibleCount: number; textLength: number; region: { x: number; y: number; width: number; height: number };
+      visibleCount: number; textLength: number; documentHeight: number; region: { x: number; y: number; width: number; height: number };
       viewport: { width: number; height: number } };
     const visible = (element: Element) => {
       if (!element.isConnected) return false;
@@ -136,7 +131,8 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         return element.matches('[aria-busy="true"],[role="progressbar"]') && r.width * r.height >= innerWidth * innerHeight / 2;
       });
     const textNodes = shown.filter(element => element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button,[role="heading"]') && !element.closest('[aria-busy="true"],[role="progressbar"]'));
-    const text = textNodes.map(element => (element.textContent || '').trim()).join(' ');
+    const text = textNodes.map(element => (element.textContent || '').trim())
+      .filter(value => !/^(?:loading|please wait|cargando)[.\s…]*$/i.test(value)).join(' ');
     const rows = shown.map(element => {
       const r = element.getBoundingClientRect(), css = getComputedStyle(element);
       // Clip geometry to the photograph, but compare every measured CSS property.
@@ -151,10 +147,11 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     previousRows = rows;
     return { revision, useful: !challenge && !modal && !busy && text.replace(/\s+/g, ' ').trim().length >= 20,
       blocked: challenge ? 'challenge' : modal ? 'modal' : busy ? 'loading' : null, visibleCount: shown.length, textLength: text.length,
+      documentHeight: document.documentElement.scrollHeight,
       region: { x: 0, y: scrollY, width: innerWidth, height: Math.min(innerHeight, maxHeight - scrollY) },
       viewport: { width: innerWidth, height: innerHeight } };
     };
-    const binding = { elements, visibleElements: [] as Element[], anchors, documentHeight: document.documentElement.scrollHeight, paused: [] as Animation[],
+    const binding = { elements: [] as Element[], visibleElements: [] as Element[], positionFallback, paused: [] as Animation[],
       snapshot,
       // Run the short stability loop inside Chromium. Remote protocol latency
       // must not multiply every 100 ms observation into another network trip.
@@ -207,98 +204,81 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
   type ExtractSample = (options: { maxElements: number; maxHeight: number; skipStylesheets: boolean; sampleElements: Element[] }) => Record<string, unknown>;
   const extract = await page.evaluateHandle<ExtractSample>(`(${extractionScript})`);
   try {
-    const info = await page.evaluate(state => ({ anchors: state.anchors.map(a => a.anchor), documentHeight: state.documentHeight }), state);
-    for (const [index, anchor] of ['context', ...info.anchors].entries()) {
-      if (index > 0 && (Date.now() - started >= 45000 || deadline - Date.now() < 2000 || inspected >= c.elements)) {
-        reject(anchor, 'CAPTURE_SAMPLE_UNAVAILABLE', 'The shared capture allowance cannot admit another sample.'); continue;
+    for (let index = 0; index < 2; index++) {
+      if (index > 0 && (Date.now() - started >= 45000 || deadline - Date.now() < 2000 || inspected >= c.elements)) break;
+      sampleAttempts++;
+      if (index === 0 && !contextReady) {
+        reject('context', 'CAPTURE_SAMPLE_UNAVAILABLE', 'The initial viewport did not render usable content within the readiness budget.');
+        continue;
       }
       const until = Math.min(deadline, Date.now() + (index === 0 ? 20000 : 8000));
-      let accepted = false;
-      for (let attempt = 0; attempt < 2 && !accepted; attempt++) {
-        sampleAttempts++;
-        try {
-          remaining(until);
-          const positioned = await page.evaluate(({ state, index, maxHeight }) => {
-            let element = index ? state.anchors[index - 1]?.element : null;
-            if (index && !element?.isConnected) {
-              element = document.querySelector(state.anchors[index - 1].anchor);
-              if (!element) return false;
-              state.anchors[index - 1].element = element;
-            }
-            const anchorY = element ? element.getBoundingClientRect().top + scrollY : 0;
-            if (anchorY < 0 || anchorY >= maxHeight) return false;
-            // Include the context around a selected control/card, not only the
-            // blank space below it. Resolve its live location after every scroll.
-            const target = element ? Math.max(0, anchorY - innerHeight / 3) : 0;
-            window.scrollTo({ top: Math.min(target, Math.max(0, maxHeight - innerHeight)), left: 0, behavior: 'instant' });
-            return true;
-          }, { state, index, maxHeight: c.height });
-          if (!positioned) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The selected content is no longer in the capture region.', 422, true);
-          await ready(Math.max(1, remaining(until) - 2000));
-          const read = () => page.evaluate(state => state.snapshot(), state);
-          const previous = await page.evaluate(({ state, settleMs }) => state.prepare(settleMs),
-            { state, settleMs: Math.min(1500, remaining(until)) });
-          if (previous.region.y < 0 || previous.region.y + previous.viewport.height > c.height) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
-          if (previous.blocked === 'modal' && previous.dialog) {
-            assertHealthy();
-            dialogBlockedAttempts++;
-            const { viewportPercent, nativeModal, dialogHits, outsideMainHits } = previous.dialog;
-            reject(index === 0 ? 'context' : `optional-region-${index}`, 'CAPTURE_SAMPLE_UNAVAILABLE',
-              `Dialog box intersects ${viewportPercent}% of viewport; native modal: ${nativeModal}; 3x3 hit test: ${dialogHits}/9 dialog, ${outsideMainHits}/9 main/article outside dialog.`);
-            break;
-          }
-          if (!previous.useful) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', previous.blocked
-            ? `The sample is obscured by ${previous.blocked} content.`
-            : `The sample has insufficient unobstructed content (${previous.visibleCount} visible nodes, ${previous.textLength} text characters).`, 422, true);
-          if (!previous.stable && previous.waitedForDialog)
-            throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The page did not stabilize after the dialog cleared within the sample time budget.', 422, true);
-          if (!previous.stable) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content did not stabilize.', 422, true);
-          if (previous.viewport.width !== 1440 || previous.viewport.height !== 900)
-            throw new ApiError('CAPTURE_COMPOSITION_FAILED', 'The capture viewport changed.', 502, true);
-          const data = await page.evaluate(({ state, extract, revision, maxElements, maxHeight }) => {
-            if (state.snapshot().revision !== revision) return 'changed';
-            const evidence = extract({ maxElements, maxHeight, skipStylesheets: true, sampleElements: state.visibleElements });
-            return JSON.stringify(evidence).length > 200000 ? null : evidence;
-          }, { state, extract, revision: previous.revision, maxElements: c.elements - inspected, maxHeight: c.height });
-          if (data === 'changed') throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed before measurement.', 422, true);
-          if (!data) throw new ApiError('SCRAPE_EVIDENCE_LIMIT', 'The page evidence exceeded the capture limit.', 422);
-          inspected += Number((data.extraction as { inspectedElements: number }).inspectedElements);
-          const photograph = await page.screenshot({ type: 'jpeg', quality: 85, fullPage: false,
-            animations: 'allow', timeout: Math.min(5000, remaining(until)) });
-          bytes += photograph.byteLength;
-          if (bytes > c.screenshotBytes) throw new ApiError('SCREENSHOT_TOO_LARGE', 'The aggregate sample image budget was exceeded.', 413);
-          remaining(until);
-          const after = await read();
-          if (after.revision !== previous.revision) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during capture.', 422, true);
-          if (after.region.y < 0 || after.region.y + after.viewport.height > c.height)
-            throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
-          const measurementCount = (data.measurements as { samples: unknown[] }).samples.length;
-          if (!measurementCount) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'No corresponding element measurements were captured.', 422, true);
-          // Seal this image/measurement pair only after auditing events that
-          // arrived during the photograph. Later regions get their own checks.
-          await checkpoints.validate?.();
-          remaining(until);
-          if ((await read()).revision !== after.revision)
-            throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during resource validation.', 422, true);
-          samples.push({ id: `sample-${samples.length + 1}`, anchor, sequence: index + 1, image: Buffer.from(photograph).toString('base64'),
-            viewport: previous.viewport, region: previous.region, scroll_y_after: after.region.y, bytes: photograph.byteLength, data });
-          firstUsefulMs ??= Date.now() - started;
-          checkpoints.accepted?.(); report();
-          accepted = true;
-        } catch (error) {
-          assertHealthy(); // Never downgrade a safety, resource, or outer deadline failure.
-          if (error instanceof Error && error.name === 'TimeoutError') {
-            reject(anchor, 'CAPTURE_SAMPLE_UNAVAILABLE', 'The sample operation timed out.'); break;
-          }
-          if (!(error instanceof ApiError) || !recoverable.has(error.code)) throw error;
-          if (attempt === 0 && error.code === 'CAPTURE_SAMPLE_UNSTABLE' && until - Date.now() >= 500) continue;
-          reject(anchor, error.code, error.message.slice(0, 200)); break;
-        } finally {
-          await page.evaluate(state => {
-            for (const animation of state.paused) if (animation.playState === 'paused') animation.play();
-            state.paused = [];
-          }, state).catch(() => {}); // Context teardown may already be in progress.
+      const anchor = index === 0 ? 'context' : await page.evaluate(state => state.positionFallback(), state);
+      try {
+        await ready(Math.max(1, remaining(until) - 2000));
+        const read = () => page.evaluate(state => state.snapshot(), state);
+        const previous = await page.evaluate(({ state, settleMs }) => state.prepare(settleMs),
+          { state, settleMs: Math.min(1500, remaining(until)) });
+        if (previous.region.y < 0 || previous.region.y + previous.viewport.height > c.height) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
+        if (previous.blocked === 'modal' && previous.dialog) {
+          assertHealthy();
+          dialogBlockedAttempts++;
+          const { viewportPercent, nativeModal, dialogHits, outsideMainHits } = previous.dialog;
+          reject(index === 0 ? 'context' : `optional-region-${index}`, 'CAPTURE_SAMPLE_UNAVAILABLE',
+            `Dialog box intersects ${viewportPercent}% of viewport; native modal: ${nativeModal}; 3x3 hit test: ${dialogHits}/9 dialog, ${outsideMainHits}/9 main/article outside dialog.`);
+          continue;
         }
+        if (!previous.useful) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', previous.blocked
+          ? `The sample is obscured by ${previous.blocked} content.`
+          : `The sample has insufficient unobstructed content (${previous.visibleCount} visible nodes, ${previous.textLength} text characters).`, 422, true);
+        if (!previous.stable && previous.waitedForDialog)
+          throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The page did not stabilize after the dialog cleared within the sample time budget.', 422, true);
+        if (!previous.stable) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content did not stabilize.', 422, true);
+        if (previous.viewport.width !== 1440 || previous.viewport.height !== 900)
+          throw new ApiError('CAPTURE_COMPOSITION_FAILED', 'The capture viewport changed.', 502, true);
+        const data = await page.evaluate(({ state, extract, revision, maxElements, maxHeight }) => {
+          if (state.snapshot().revision !== revision) return 'changed';
+          const evidence = extract({ maxElements, maxHeight, skipStylesheets: true, sampleElements: state.visibleElements });
+          return JSON.stringify(evidence).length > 200000 ? null : evidence;
+        }, { state, extract, revision: previous.revision, maxElements: c.elements - inspected, maxHeight: c.height });
+        if (data === 'changed') throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed before measurement.', 422, true);
+        if (!data) throw new ApiError('SCRAPE_EVIDENCE_LIMIT', 'The page evidence exceeded the capture limit.', 422);
+        inspected += Number((data.extraction as { inspectedElements: number }).inspectedElements);
+        const photograph = await page.screenshot({ type: 'jpeg', quality: 85, fullPage: false,
+          animations: 'allow', timeout: Math.min(5000, remaining(until)) });
+        bytes += photograph.byteLength;
+        if (bytes > c.screenshotBytes) throw new ApiError('SCREENSHOT_TOO_LARGE', 'The aggregate sample image budget was exceeded.', 413);
+        remaining(until);
+        const after = await read();
+        if (after.revision !== previous.revision) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during capture.', 422, true);
+        if (after.region.y < 0 || after.region.y + after.viewport.height > c.height)
+          throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
+        const measurementCount = (data.measurements as { samples: unknown[] }).samples.length;
+        if (!measurementCount) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'No corresponding element measurements were captured.', 422, true);
+        // Seal this image/measurement pair only after auditing events that
+        // arrived during the photograph.
+        await checkpoints.validate?.();
+        remaining(until);
+        const validated = await read();
+        if (validated.revision !== after.revision)
+          throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during resource validation.', 422, true);
+        documentHeight = validated.documentHeight;
+        samples.push({ id: 'sample-1', anchor, sequence: index + 1, image: Buffer.from(photograph).toString('base64'),
+          viewport: previous.viewport, region: previous.region, scroll_y_after: after.region.y, bytes: photograph.byteLength, data });
+        firstUsefulMs ??= Date.now() - started;
+        checkpoints.accepted?.(); report();
+        break;
+      } catch (error) {
+        assertHealthy(); // Never downgrade a safety, resource, or outer deadline failure.
+        if (error instanceof Error && error.name === 'TimeoutError') {
+          reject(anchor, 'CAPTURE_SAMPLE_UNAVAILABLE', 'The sample operation timed out.'); continue;
+        }
+        if (!(error instanceof ApiError) || !recoverable.has(error.code)) throw error;
+        reject(anchor, error.code, error.message.slice(0, 200));
+      } finally {
+        await page.evaluate(state => {
+          for (const animation of state.paused) if (animation.playState === 'paused') animation.play();
+          state.paused = [];
+        }, state).catch(() => {}); // Context teardown may already be in progress.
       }
     }
     if (!samples.length) {
@@ -306,12 +286,12 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         throw new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'A dialog blocked every attempted sample. Try another publicly accessible page.', 422);
       throw new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'No coherent visual sample and corresponding design measurements were captured.', 422, true);
     }
-    const quality = rejected.length || (info.documentHeight > 900 && samples.length < 2) ? 'partial' : 'sufficient';
+    const quality = rejected.length || documentHeight > samples[0].region.height ? 'partial' : 'sufficient';
     const data = mergeSampleData(samples, c.elements);
     // Include work spent on rejected attempts in the shared inspection allowance.
     data.extraction = { ...(data.extraction as object), inspectedElements: inspected,
       truncated: inspected >= c.elements || Boolean((data.extraction as { truncated?: boolean }).truncated) };
-    return { samples, rejected, quality, firstUsefulMs, documentHeight: info.documentHeight, data };
+    return { samples, rejected, quality, firstUsefulMs, documentHeight, data };
   } finally {
     await Promise.all([state.dispose(), extract.dispose()]);
   }

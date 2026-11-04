@@ -37,9 +37,9 @@ it.each([29, 71, 113])('retains coherent samples when document height changes by
   };
   try {
     const result = await run(p);
-    expect(result.samples.length).toBeGreaterThan(1);
+    expect(result.samples).toHaveLength(1);
     expect(result.rejected).toEqual([]);
-    expect(result.quality).toBe('sufficient');
+    expect(result.quality).toBe('partial');
     expect(result.samples.every(sample => sample.viewport.width === 1440 && sample.region.y + 900 <= 4000)).toBe(true);
     expect((result.data.measurements as { samples: unknown[] }).samples.length).toBeLessThanOrEqual(24);
     expect(JSON.stringify(result.data)).not.toContain('Outside the sampled region');
@@ -50,23 +50,17 @@ it.each([29, 71, 113])('retains coherent samples when document height changes by
   } finally { await p.close(); }
 });
 
-it('retains valid context and rejects only optional regions that change during their photograph', async () => {
+it('stops at the first useful viewport without scrolling or preparing another sample', async () => {
   const p = await page();
-  const screenshot = p.screenshot.bind(p);
-  p.screenshot = async options => {
-    const photograph = await screenshot(options);
-    await p.evaluate(() => {
-      if (scrollY > 0) for (const heading of document.querySelectorAll('section h2'))
-        (heading as HTMLElement).style.paddingTop = `${parseInt((heading as HTMLElement).style.paddingTop || '0') + 5}px`;
-    });
-    return photograph;
-  };
+  const ready = vi.fn(async () => {});
+  const shot = vi.spyOn(p, 'screenshot');
   try {
-    const result = await run(p);
-    expect(result.quality).toBe('partial');
-    expect(result.samples).toHaveLength(1);
-    expect(result.samples[0].anchor).toBe('context');
-    expect(result.rejected.every(sample => sample.code === 'CAPTURE_SAMPLE_UNSTABLE')).toBe(true);
+    const result = await run(p, ready);
+    expect(ready).toHaveBeenCalledOnce();
+    expect(shot).toHaveBeenCalledOnce();
+    expect(await p.evaluate(() => scrollY)).toBe(0);
+    expect(result.samples).toMatchObject([{ anchor: 'context', sequence: 1 }]);
+    expect(result.rejected).toEqual([]);
   } finally { await p.close(); }
 });
 
@@ -77,7 +71,8 @@ it('rejects a dependency that fails during the photograph before sealing that sa
     const result = await captureSamples(p as unknown as CapturePage, profile, Date.now() + 12000, Date.now(), async () => {}, () => {}, {
       validate: async () => { if (++checked === 1) throw new ApiError('CAPTURE_INCOMPLETE', 'A visible resource failed during this photograph.', 422, true); },
     });
-    expect(result.samples.length).toBeGreaterThan(0);
+    expect(checked).toBe(2);
+    expect(result.samples).toMatchObject([{ sequence: 2 }]);
     expect(result.samples.every(sample => sample.anchor !== 'context')).toBe(true);
     expect(result.rejected).toEqual([{ anchor: 'context', code: 'CAPTURE_INCOMPLETE', reason: 'A visible resource failed during this photograph.' }]);
   } finally { await p.close(); }
@@ -97,8 +92,10 @@ it('accepts browser scroll anchoring when outside growth leaves the photographed
     return photograph;
   };
   try {
-    const result = await run(p);
-    expect(result.rejected).toEqual([]);
+    const result = await run(p, async () => {
+      if (await p.evaluate(() => scrollY === 0)) throw new ApiError('CAPTURE_INCOMPLETE', 'Initial viewport unavailable.', 422, true);
+    });
+    expect(result.rejected).toHaveLength(1);
     expect(result.samples.some(sample => sample.scroll_y_after > sample.region.y)).toBe(true);
   } finally { await p.close(); }
 });
@@ -141,7 +138,7 @@ it('retries when measured letter spacing changes during a photograph without mov
 });
 
 it('re-extracts changed local styles instead of retaining measurements from a different image state', async () => {
-  const p = await page();
+  const p = await page('<h1>A changing design reference</h1><p>Visible useful content and typography.</p>');
   const screenshot = p.screenshot.bind(p);
   let first = true;
   p.screenshot = async options => {
@@ -187,7 +184,7 @@ it.each([
     expect(photograph).not.toHaveBeenCalled();
     const { accepted, rejected } = updates.at(-1)!;
     expect(accepted).toBe(0);
-    expect(rejected.map(sample => sample.anchor)).toEqual(['context', 'optional-region-1', 'optional-region-2']);
+    expect(rejected.map(sample => sample.anchor)).toEqual(['context', 'optional-region-1']);
     for (const sample of rejected) {
       expect(sample.reason).toContain(`Dialog box intersects ${percent}% of viewport; native modal: ${native}; 3x3 hit test: `);
       if (expectedHits) expect(sample.reason).toContain(expectedHits);
@@ -238,7 +235,7 @@ it('keeps mixed dialog and resource failures retryable when no sample was accept
     });
     await expect(capture).rejects.toMatchObject({ code: 'CAPTURE_EVIDENCE_INSUFFICIENT', status: 422, retryable: true,
       message: 'No coherent visual sample and corresponding design measurements were captured.' });
-    expect(attempts).toBe(3);
+    expect(attempts).toBe(2);
   } finally { await p.close(); }
 });
 
@@ -271,7 +268,7 @@ it('pauses local Web Animations for paired image and CSS evidence, then restores
 it('does not convert safety failures into partial success', async () => {
   const p = await page();
   let calls = 0;
-  const ready = vi.fn(async () => { if (++calls > 1) throw new ApiError('UNSAFE_URL', 'Unsafe fixture destination', 422); });
+  const ready = vi.fn(async () => { if (++calls === 1) throw new ApiError('CAPTURE_INCOMPLETE', 'Initial viewport unavailable.', 422, true); throw new ApiError('UNSAFE_URL', 'Unsafe fixture destination', 422); });
   try { await expect(run(p, ready)).rejects.toMatchObject({ code: 'UNSAFE_URL' }); }
   finally { await p.close(); }
 });
@@ -279,42 +276,27 @@ it('does not convert safety failures into partial success', async () => {
 it('enforces an aggregate image byte ceiling instead of applying it separately per sample', async () => {
   const p = await page();
   const screenshot = p.screenshot.bind(p);
-  p.screenshot = async options => { await screenshot(options); return Buffer.alloc(6000); };
+  p.screenshot = async options => {
+    await screenshot(options);
+    if (await p.evaluate(() => scrollY === 0)) await p.locator('h1').evaluate(element => { element.style.fontSize = '50px'; });
+    return Buffer.alloc(6000);
+  };
   try {
     await expect(run(p, undefined, { ...profile, screenshotBytes: 10000 })).rejects.toMatchObject({ code: 'SCREENSHOT_TOO_LARGE' });
   } finally { await p.close(); }
 });
 
-it('retains evidence when an optional region becomes unavailable, sharing the original inspection budget', async () => {
-  const p = await page();
-  let calls = 0;
-  try {
-    const result = await run(p, async () => {
-      if (++calls > 1) throw new ApiError('CAPTURE_INCOMPLETE', 'Optional image unavailable', 422, true);
-    });
-    expect(result.samples).toHaveLength(1); expect(result.quality).toBe('partial');
-    expect((result.data.extraction as { inspectedElements: number }).inspectedElements).toBeLessThanOrEqual(profile.elements);
-  } finally { await p.close(); }
-});
-
-it('does not attribute a replaced node to measurements from its predecessor', async () => {
+it('rejects both attempts if a photographed node is replaced before validation', async () => {
   const p = await page();
   const screenshot = p.screenshot.bind(p);
-  p.screenshot = async options => {
+  const shot = vi.spyOn(p, 'screenshot').mockImplementation(async options => {
     const image = await screenshot(options);
-    await p.evaluate(() => {
-      if (!scrollY) return;
-      for (const element of document.querySelectorAll('section')) {
-        const replacement = element.cloneNode(true) as HTMLElement;
-        replacement.style.fontSize = '99px'; element.replaceWith(replacement);
-      }
-    });
+    await p.locator('body').evaluate(body => { body.replaceWith(body.cloneNode(true)); });
     return image;
-  };
+  });
   try {
-    const result = await run(p);
-    expect(result.quality).toBe('partial'); expect(result.samples).toHaveLength(1);
-    expect(JSON.stringify(result.data.measurements)).not.toContain('99px');
+    await expect(run(p)).rejects.toMatchObject({ code: 'CAPTURE_EVIDENCE_INSUFFICIENT' });
+    expect(shot).toHaveBeenCalledTimes(2);
   } finally { await p.close(); }
 });
 
@@ -373,10 +355,9 @@ it.each([
   const p = await page(html);
   try {
     const result = await run(p);
-    expect(result.samples.length).toBeGreaterThan(1);
-    expect(result.samples.length).toBeLessThanOrEqual(3);
+    expect(result.samples).toHaveLength(1);
     expect(result.rejected).toEqual([]);
-    expect(result.quality).toBe('sufficient');
+    expect(result.quality).toBe('partial');
   } finally { await p.close(); }
 });
 
