@@ -124,6 +124,7 @@ export default function ResultPanel({
 }: ResultPanelProps) {
   const panelId = useId().replace(/:/g, '')
   const controls = useRef<HTMLHeadingElement>(null)
+  const previousResult = useRef<AnalysisResult | null>(null)
   const exportOrigin = useRef<HTMLElement | null>(null)
   const exportScroll = useRef({ x: 0, y: 0 })
   const dialog = useRef<HTMLDialogElement>(null)
@@ -141,7 +142,9 @@ export default function ResultPanel({
 
   const exportsOpen = Boolean(result && (selection.result === result ? selection.view === 'raw' : !result.design_system))
   useEffect(() => {
-    if (active && result && !loading && !error && !cancelled && !controls.current?.closest('[hidden]')) {
+    const isNew = result !== previousResult.current
+    previousResult.current = result
+    if (isNew && active && result && !loading && !error && !cancelled && !controls.current?.closest('[hidden]')) {
       controls.current?.focus({ preventScroll: true })
       controls.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
     }

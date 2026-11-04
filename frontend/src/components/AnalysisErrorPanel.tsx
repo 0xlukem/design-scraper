@@ -11,7 +11,7 @@ export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewS
     return () => window.clearInterval(timer)
   }, [issue.retryAt])
   const remaining = Math.max(0, Math.ceil(((issue.retryAt || 0) - now) / 1000))
-  const needsSettings = /PROVIDER|AI_|BYOK|AUTH/.test(issue.code)
+  const needsSettings = issue.reviewSettings
   const summary = issue.guidance.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || issue.guidance
   return <section className="error-state" role="alert">
     <WarningOctagon size={32} weight="bold" aria-hidden="true" />

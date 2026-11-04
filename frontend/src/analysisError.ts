@@ -10,6 +10,7 @@ export interface AnalysisIssue {
   retryAt: number | null
   category: string
   guidance: string
+  reviewSettings?: boolean
 }
 
 export class AnalysisError extends Error {
@@ -41,6 +42,7 @@ function consumptionGuidance({ telemetry, requestSent }: IssueContext) {
 
 export function makeIssue(code: string, message: string, retryable = false, retryAt: number | null = null, context: IssueContext = {}): AnalysisIssue {
   const funding = context.funding || context.telemetry?.funding
+  let reviewSettings = false
   let category = 'Analysis interrupted'
   let guidance = 'Review the issue or explore the design library.'
   if (/^BYOK_LOCAL_/.test(code)) {
@@ -64,6 +66,7 @@ export function makeIssue(code: string, message: string, retryable = false, retr
     category = 'This URL cannot be analyzed'
     guidance = 'Use a public HTTP or HTTPS page without embedded credentials or private network addresses.'
   } else if (/AUTH|BYOK_|MODEL_UNAVAILABLE|REQUEST_REJECTED/.test(code)) {
+    reviewSettings = true
     category = funding === 'demo' && !code.startsWith('BYOK_') ? 'Design Scraper needs attention' : 'Provider settings need attention'
     guidance = funding === 'demo' && !code.startsWith('BYOK_')
       ? 'Design Scraper’s AI service needs the site owner’s attention. You can use your own key or explore a saved design.'
@@ -72,6 +75,7 @@ export function makeIssue(code: string, message: string, retryable = false, retr
     category = 'The design result could not be validated'
     guidance = 'The provider response could not be completed or validated. Retry if available, or open a saved design. This does not mean your key was rejected.'
   } else if (/^PROVIDER_|^AI_/.test(code)) {
+    reviewSettings = true
     category = /QUOTA/.test(code) ? funding === 'demo' ? 'Included AI limit reached' : 'Provider quota reached' : 'AI provider interrupted'
     guidance = funding === 'demo'
       ? 'Design Scraper’s AI service is unavailable. Wait before retrying; persistent configuration or quota issues need the site owner’s attention. You can use your own key or a saved design.'
@@ -83,7 +87,7 @@ export function makeIssue(code: string, message: string, retryable = false, retr
     category = 'The result could not be received'
     guidance = 'The server may still be working. Check your connection before trying again; a new analysis can consume additional quota.'
   }
-  return { code, message, retryable, retryAt, category, guidance: `${guidance} ${consumptionGuidance(context)}`, ...context, funding }
+  return { code, message, retryable, retryAt, category, reviewSettings, guidance: `${guidance} ${consumptionGuidance(context)}`, ...context, funding }
 }
 
 export function toIssue(error: unknown, funding?: 'demo' | 'byok'): AnalysisIssue {

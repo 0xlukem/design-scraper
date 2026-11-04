@@ -137,3 +137,5 @@
  .type-entry > summary { gap: 12px; }
  .type-entry > summary span { text-align: right; }
 }
+
+.measurement-locator code { overflow-wrap: anywhere; white-space: normal; }
