@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises'
 
 // Vite builds compact card metadata while keeping complete responses lazy-loaded.
+const previewPrefix = '\0library-preview:'
+
 export function libraryPreviews() {
   return {
     name: 'library-previews',
@@ -8,11 +10,11 @@ export function libraryPreviews() {
     async resolveId(source, importer) {
       if (!source.endsWith('.json?library-preview')) return
       const file = await this.resolve(source.split('?')[0], importer, { skipSelf: true })
-      if (file) return file.id + '.library-preview.js'
+      if (file) return previewPrefix + file.id.slice(0, -'.json'.length)
     },
     async load(id) {
-      if (!id.endsWith('.json.library-preview.js')) return
-      const file = id.slice(0, -'.library-preview.js'.length)
+      if (!id.startsWith(previewPrefix)) return
+      const file = id.slice(previewPrefix.length) + '.json'
       this.addWatchFile(file)
       const { design_system: system, metadata } = JSON.parse(await readFile(file, 'utf8'))
       const colors = [...system.colors.brand, ...system.colors.accent, ...system.colors.surfaces, ...system.colors.text]
