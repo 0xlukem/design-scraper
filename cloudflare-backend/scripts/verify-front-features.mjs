@@ -80,6 +80,22 @@ try {
     await preview.getByRole('button', { name: 'Export design', exact: true }).waitFor();
     await preview.getByRole('heading', { name, exact: true, level: 1 }).waitFor();
     await preview.getByRole('heading', { name: 'Overview' }).waitFor();
+    if (id === 'stripe') {
+      await page.setViewportSize({ width: 1280, height: 720 });
+      await preview.getByRole('button', { name: 'Spacing', exact: true }).click();
+      const name = 'measured-web-1-button-1-row-gap';
+      const row = preview.locator('.token-evidence-line').filter({ has: page.getByText(name, { exact: true }) });
+      await row.locator('xpath=ancestor::details[1]/summary').click();
+      await row.getByText('Evidence · Detected').click();
+      await row.getByRole('button', { name: 'View source & gaps' }).click();
+      const location = preview.locator('.measurement-locator code');
+      assert.equal(await location.textContent(), expected.design_system.metadata.measurement_locators['measured-web-1-button-1'].selector);
+      const bounds = await location.boundingBox();
+      const nav = await preview.locator('.inspector-nav').boundingBox();
+      assert.ok(bounds && nav && bounds.y >= nav.y + nav.height && bounds.y + bounds.height <= 720,
+        'The measured selector must be visible below the sticky navigation');
+      checks.push('Stripe: following a measured spacing token reveals its DOM locator in the viewport');
+    }
     await preview.getByRole('button', { name: 'Export design', exact: true }).click();
     for (const [tab, variant, bytes, filename] of [
       ['DESIGN.md', 'Extended', expected.documents.extended, mixed ? 'mixed-design.md' : 'design.md'],
