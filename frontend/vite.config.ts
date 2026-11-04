@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig, loadEnv } from 'vite'
+import { libraryPreviews } from './scripts/library-previews.mjs'
 import react from '@vitejs/plugin-react'
 import { readFileSync } from 'node:fs'
 import { localDemoApi } from './scripts/demo-api.mjs'
@@ -16,7 +17,7 @@ export default defineConfig(({ mode, isPreview, command }) => {
   const api = demo ? undefined : process.env.VITE_API_URL || loadEnv(mode, process.cwd(), 'VITE_').VITE_API_URL || builtApi
   const publicApi = api && new URL(api).protocol === 'https:' && new URL(api).origin === api && !new URL(api).username ? api : undefined
   return {
-    plugins: [react(), ...(demo ? [localDemoApi()] : [])],
+    plugins: [react(), libraryPreviews(), ...(demo ? [localDemoApi()] : [])],
     ...(demo ? { define: { 'import.meta.env.VITE_API_URL': JSON.stringify('') } } : {}),
     build: {
       rolldownOptions: {

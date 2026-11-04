@@ -63,7 +63,7 @@ links forward to the matching application section. Unknown paths return a real 4
   Values retain their source, confidence and detected/inferred status. Missing
   evidence appears as explicit gaps.
 
-The shared allowance uses Gemini. Choose **Use your own key** to use Gemini, Claude,
+The shared allowance uses Gemini. Choose **Use my API key** to use Gemini, Claude,
 OpenAI or Grok through your provider account. The UI shows the configured model
 before analysis. Costs are always estimates, not invoices; models without
 configured pricing show an unavailable estimate.
@@ -104,8 +104,9 @@ It neither visits entered URLs nor calls Cloudflare or AI providers, and accepts
 no credentials. The simulation is available only in the development server;
 Pages builds contain the real application without demo controls or transport.
 
-Single analysis replays the saved Example Domain result. Mix It replays fixed
-editorial contract samples for all five balances, including excluded sources.
+Single analysis replays the saved Example Domain result. Mix It uses the same
+single-source sample at 100/0 and 0/100. At 75/25, 50/50 and 25/75 it replays
+the editorial sample for the selected blend.
 Samples retain their original evidence URLs, confidence, gaps and exports;
 they are not analyses of the URLs you enter. Token usage and costs are zero.
 Reload clears the selected scenario and session activity. Capacity figures are
@@ -277,12 +278,14 @@ exclusions appear in Known Gaps and do not replace required CSS, fonts or images
 
 ## Use your own key
 
-On the HTTPS site, choose **Use your own key**, select a provider, paste its API
-key and accept responsibility for your provider's charges and terms. The key
+On the HTTPS site, choose **Use my API key**, select a provider, paste its API
+key, accept your provider's charges and terms, then choose **Save key**. The key
 stays in tab memory and travels over HTTPS to the Worker and selected provider
 only for analysis. The application does not save it to browser storage, cookies,
-logs or a database. Reloading, navigating away, closing the tab, switching
-provider, choosing Shared allowance or clicking **Clear key** clears the key.
+logs or a database. Switching providers while editing clears the draft. **Cancel**
+keeps the previously saved provider and key. Reloading, leaving the page, closing
+the tab or choosing **Use Design Scraper** clears the saved key. **Clear key**
+removes it and pauses analysis until you save a new key or choose Design Scraper.
 Page screenshots and extracted evidence are processed under your provider's terms.
 
 BYOK uses one AI attempt per analysis and never falls back to the shared key.
@@ -322,9 +325,9 @@ prefill URLs. Focusing a URL field reads the public `/api/quotas` endpoint once
 and shows the remaining shared analyses next to the submit button; nothing is
 requested on page load. Opening the page never contacts the API.
 
-Open the key settings and expand **Models & estimated rates** to read the server's
+Open **Activity & costs** and choose **Models & rates** to read the server's
 configured models and USD rates per million input/output tokens. Unconfigured
-prices remain unavailable. **Session spending** records completed, failed and
+prices remain unavailable. **Session activity** records completed, failed and
 cancelled requests in tab memory, separates demo/BYOK and provider subtotals,
 and reports partial totals when costs are unknown. Reload clears this history.
 This is neither a provider invoice nor global account spending. Each request
@@ -343,7 +346,7 @@ Errors retain their issue code and cause; retry is offered only when the backend
 marks the error retryable and its `Retry-After` deadline has elapsed. Cancel
 stops waiting and does not guarantee remote work or charges have stopped.
 
-**Site API availability** loads the public counter when Activity & costs opens.
+**Service availability** loads the public counter when Activity & costs opens.
 It shows analyses left today, capture time, running analyses, shared AI capacity,
 visitor limits and the daily reset. Refreshing never starts an analysis or uses
 AI credit. Failed refreshes retain clearly labeled last-known values; an unknown

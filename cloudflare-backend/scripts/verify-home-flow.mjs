@@ -146,7 +146,7 @@ try {
   await page.screenshot({path:`${artifacts}/after-analysis-loading.png`});
   await waitForMock(()=>releaseAnalysis);
   releaseAnalysis();
-  await page.getByRole('heading',{name:'Design findings',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Export design',exact:true}).waitFor();
   assert.equal(analyses(),1);
   analysisMode='error';
   await page.getByRole('button',{name:'Analyze design',exact:true}).click();
@@ -173,7 +173,7 @@ try {
     const before=analyses();
     await page.goto(origin);
     await page.locator(`a[href="/app/#/library/${id}"]`).first().click();
-    await page.locator('#saved-design-preview').getByRole('heading',{name:'Design findings',exact:true}).waitFor();
+    await page.locator('#saved-design-preview').getByRole('button',{name:'Export design',exact:true}).waitFor();
     assert.equal(analyses(),before);
     await page.goBack();
     await page.locator('#hero-title').waitFor();

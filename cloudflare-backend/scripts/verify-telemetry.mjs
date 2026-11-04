@@ -37,10 +37,11 @@ const checks = [];
 try {
   await page.goto(site);
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-  const capacity = page.getByRole('region', { name: 'Site API availability', exact: true });
+  const capacity = page.getByRole('region', { name: 'Service availability', exact: true });
+  await capacity.getByText('Service limits', { exact: true }).click();
   await capacity.getByText('18', { exact: true }).waitFor();
-  await capacity.getByRole('button', { name: 'Refresh availability', exact: true }).click();
-  await capacity.getByRole('button', { name: 'Refresh availability', exact: true }).waitFor({ state: 'visible' });
+  await capacity.getByRole('button', { name: 'Check availability', exact: true }).click();
+  await capacity.getByRole('button', { name: 'Check availability', exact: true }).waitFor({ state: 'visible' });
   assert.ok(requests.every(r => !r.authenticated));
   checks.push('Public quota without credential, analysis, or protected budget');
   assert.equal(await page.getByLabel('Administrative token').count(), 0);
@@ -50,13 +51,13 @@ try {
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).fill('https://example.com');
   await page.getByRole('button', { name: /Analyze design/ }).click();
-  await page.getByRole('heading', { name: 'Design findings' }).waitFor();
+  await page.getByRole('heading', { name: 'Overview' }).waitFor();
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
   await spending.locator('summary').filter({ hasText: 'Run details' }).click();
   await spending.getByLabel('Analysis telemetry').waitFor();
   assert.match(await spending.getByLabel('Analysis telemetry').innerText(), /Provider calls: 2.*Generation attempts: 1.*Auxiliary calls: 1/);
-  checks.push('NDJSON result and measured provider/generation/auxiliary calls in spending table');
+  checks.push('NDJSON result and measured provider/generation/auxiliary calls in activity details');
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
