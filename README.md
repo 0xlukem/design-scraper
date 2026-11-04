@@ -486,6 +486,11 @@ stitched into an apparently continuous page. Context and controls are not hidden
 or rearranged. Viewport Web Animations are temporarily paused at their current
 state and resumed afterward; arbitrary JavaScript and canvas motion remain outside
 that guarantee. Blocking overlays and loading shells are not accepted as branding.
+If a dialog closes on its own during the existing stability window, capture can
+measure the content it reveals once that content is stable. If a dialog blocks
+every attempted sample, the API returns HTTP 422 with
+`CAPTURE_EVIDENCE_INSUFFICIENT` and `retryable: false`. The user can choose a
+different public page.
 
 Samples retain source and image identity, region, sequence, and corresponding CSS
 measurements. At most 24 distinct measurements and the configured element-inspection
