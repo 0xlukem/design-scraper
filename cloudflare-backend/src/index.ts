@@ -9,6 +9,8 @@ import { targetUrl } from "./url-safety";
 import { providerConfig, analyze } from "./providers";
 import { normalize, type Source } from "./domain/normalize";
 import { renderDocuments, renderExports } from "./domain/renderers";
+import { extractDeclared, retainDeclaredStyles, type DeclaredResult } from './declared-styles';
+import { RELAY } from './relay-protocol';
 import { capture } from "./capture";
 import { RelayBudget, RelayResources } from "./relay-resources";
 import { withBrowser } from "./browser-session";
@@ -139,6 +141,8 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
     const browserControl = { sent_messages: 0, sent_bytes: 0 };
     let providerExternalCalls = 0, generationAttempts = 0, auxiliaryCalls = 0;
     let reportedUsage: AnalysisTelemetry['usage'] = null;
+    let declared: DeclaredResult | null = null;
+    let previewBytes = 0, previewRequests = 0;
     let completedSteps = 1;
     const activeSources = sources.filter(s => s.weight > 0);
     const totalSteps = activeSources.length + 3;
@@ -156,7 +160,8 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
       browser_ms: final ? browserMs : null,
       browser_reserved_ms: !final || browserMs === null ? (c.scrapeMs + 15000) * activeSources.length : 0,
     });
-    const progress = (stage: AnalysisProgress['stage'], source: string | null = null) => emit?.({
+    const progress = (stage: AnalysisProgress['stage'], source: string | null = null, preview?: DeclaredResult) => emit?.({
+      ...(preview ? { preview } : {}),
       stage, source, completed_steps: completedSteps, total_steps: totalSteps,
       percent: Math.floor(completedSteps * 100 / totalSteps), telemetry: telemetry(),
     });
@@ -191,6 +196,24 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
     };
     try {
       progress('admitted');
+      if (!captureOnly && bias === null) {
+        const deadline = Date.now() + 5500;
+        const previewSignal = AbortSignal.any([total, AbortSignal.timeout(5500)]);
+        const transport = new RelayResources(() => this.env.RESOURCE_RELAY.get(this.env.RESOURCE_RELAY.newUniqueId()),
+          previewSignal, deadline, relayBudget, 2_000_000);
+        try {
+          declared = await extractDeclared(sources[0].url, transport);
+        } catch (error) {
+          if (!(error instanceof ApiError) && !previewSignal.aborted) throw error;
+          if (error instanceof ApiError && ['UNSAFE_URL', 'DNS_VALIDATION_FAILED'].includes(error.code)) throw error;
+          total.throwIfAborted();
+        } finally {
+          await transport.close();
+          previewBytes = transport.transport.metrics_complete ? transport.metrics.bytes_received : 2_000_000;
+          previewRequests = transport.transport.invocations.length + 1;
+        }
+        if (declared) progress('capture', sources[0].label, declared);
+      }
       for (const source of activeSources) {
         progress('capture', source.label);
         subrequests++;
@@ -208,11 +231,12 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
             capture(
               browser,
               source.url,
-              c,
+              { ...c, requests: c.requests - previewRequests },
               captureSignal,
               undefined,
               new RelayResources(() => this.env.RESOURCE_RELAY.get(this.env.RESOURCE_RELAY.newUniqueId()),
-                captureSignal, start + c.scrapeMs, relayBudget),
+                captureSignal, start + c.scrapeMs, relayBudget, RELAY.totalBytes - previewBytes),
+              start,
             ),
         ).catch((error: unknown) => {
           if (error instanceof ApiError) {
@@ -222,6 +246,7 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
           throw error;
         });
         source.screenshot = result.screenshot;
+        if (result.screenshots) source.screenshots = result.screenshots;
         source.data = result.data;
         metrics.push({ ...result.metrics });
         capturedMs += Date.now() - start;
@@ -320,6 +345,7 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
         system = normalize(result.raw, sources);
       }
       providerSuccess = true;
+      if (declared) retainDeclaredStyles(system, declared.design_system);
       const documents = renderDocuments(system);
       const exports = renderExports(system);
       const metadata =
@@ -419,9 +445,13 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
         )
           failure = "transient";
       }
+      const visualFailure = err instanceof ApiError && ['CAPTURE_EVIDENCE_INSUFFICIENT', 'CAPTURE_INCOMPLETE',
+        'CAPTURE_LAYOUT_CHANGED', 'SCRAPE_FAILED', 'SCRAPE_TIMEOUT'].includes(err.code);
+      const keepDeclared = declared && visualFailure && browserMs !== null && !providerExternalCalls &&
+        metrics.at(-1)?.close_confirmed === true && (metrics.at(-1)?.transport as { cleanup_confirmed?: boolean } | undefined)?.cleanup_confirmed === true;
       console.log(
         JSON.stringify({
-          event: "analysis_failed",
+          event: keepDeclared ? "analysis_partial" : "analysis_failed",
           id,
           code: err instanceof ApiError ? err.code : "INTERNAL_ERROR",
           wall_ms: Date.now() - started,
@@ -443,6 +473,11 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
         }),
       );
       finalTelemetry = telemetry(true);
+      if (declared && keepDeclared && err instanceof ApiError) {
+        resultReady = true;
+        return Response.json({ ...declared, metadata: { ...declared.metadata, visual_issue: err.code },
+          telemetry: finalTelemetry }, { headers: { 'cache-control': 'no-store', 'x-analysis-id': id } });
+      }
       const failureResponse = errorResponse(err);
       const payload = await failureResponse.json() as object;
       return Response.json({ ...payload, telemetry: finalTelemetry }, failureResponse);

@@ -7,11 +7,14 @@ import { config } from "../src/config";
 import { analyze } from "../src/providers";
 import { providerSettings } from "../src/byok";
 
+vi.mock('../src/declared-styles', async importOriginal => ({
+  ...await importOriginal<typeof import('../src/declared-styles')>(), extractDeclared: vi.fn(async () => null),
+}));
 vi.mock("../src/browser-session", () => ({ withBrowser: vi.fn(async (_binding, _signal, callback) => callback({})) }));
 vi.mock("../src/capture", () => ({ capture: vi.fn(async () => ({ screenshot: "YWJj", data: fixtures[0].sources[0].data, metrics: { requests: 1, external_hosts: 0 } })) }));
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 const ownKey = "byok-session-test-secret";
-const sources = () => structuredClone(fixtures[0].sources) as Source[];
+const sources = () => structuredClone(fixtures[0].sources).map(source => ({ ...source, screenshot: "YWJj" })) as Source[];
 const scoped = providerSettings({ GEMINI_API_KEY: "shared-key", AI_INPUT_PRICE_USD_PER_MILLION: "0.75", AI_OUTPUT_PRICE_USD_PER_MILLION: "3.75" }, { provider: "openai", key: ownKey });
 
 it("keeps BYOK credentials out of capture, results, logs and ledger settlement", async () => {
@@ -42,6 +45,26 @@ it("keeps BYOK credentials out of capture, results, logs and ledger settlement",
   expect(JSON.stringify(finish.mock.calls)).not.toContain(ownKey);
   expect(JSON.stringify(vi.mocked(capture).mock.calls)).not.toContain(ownKey);
   expect(env.GEMINI_API_KEY).toBe("shared-secret");
+});
+it('forwards all accepted sample images through the analysis session and reports their count', async () => {
+  vi.mocked(capture).mockResolvedValueOnce({ screenshot: 'YWJj', screenshots: [1, 2, 3].map(n => ({ id: `sample-${n}`, image: 'YWJj' })),
+    data: fixtures[0].sources[0].data, metrics: { requests: 1, external_hosts: 0 } } as never);
+  const env = { QUOTA: { getByName: () => ({ providerCall: async () => {}, browserStart: async () => 0, finish: async () => {} }) },
+    BROWSER: { fetch: vi.fn() } } as unknown as RuntimeEnv;
+  const fetcher = vi.fn(async (_url, options) => {
+    const body = JSON.parse(String(options?.body));
+    expect(body.input[0].content.filter((part: { type: string }) => part.type === 'input_image')).toHaveLength(3);
+    return Response.json({ output: [{ content: [{ type: 'output_text', text: JSON.stringify(fixtures[0].raw) }] }], usage: { input_tokens: 10, output_tokens: 20, total_tokens: 30 } });
+  });
+  vi.stubGlobal('fetch', fetcher);
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+  const session = new AnalysisSession({ storage: {} } as DurableObjectState, env);
+  const response = await session.run(sources(), 'samples', null, false, { provider: 'openai', key: ownKey });
+  expect(response.status).toBe(200);
+  const payload = await response.json() as { metadata: { usage: { sources_count: number; screenshots_sent: number } } };
+  expect(payload.metadata.usage).toMatchObject({ sources_count: 1, screenshots_sent: 3 });
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(JSON.stringify(log.mock.calls)).not.toContain(ownKey);
 });
 it.each([401, 429, 503])("returns safe BYOK provider errors (%s) with exactly one attempt", async status => {
   const f = vi.fn(async () => Response.json({ error: { message: `unsafe upstream ${ownKey}` } }, { status }));

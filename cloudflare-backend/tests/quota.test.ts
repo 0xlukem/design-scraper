@@ -11,6 +11,20 @@ const r = {
   provider: "gemini",
   version: "1",
 };
+it("admits unlimited local test counts while accounting for each analysis and enforcing capture budgets", () => {
+  const settings = { LOCAL_UNLIMITED_ANALYSES: 'true', ALLOWED_ORIGINS: 'http://localhost:5173' };
+  const local = config(settings);
+  const s = newState(now);
+  s.count = 100;
+  s.dailyIps = { hash: 100 };
+  s.ips.hash = { count: 100, expires: now + 60000 };
+  expect(reserve(s, r, local)).toEqual({ ok: true });
+  expect(s.count).toBe(101);
+  expect(reserve(s, { ...r, id: 'next' }, local)).toMatchObject({ code: 'CAPACITY_REACHED' });
+  expect(reserve(newState(now), r, { ...local, browserDaily: 100 })).toMatchObject({ code: 'BROWSER_QUOTA_EXHAUSTED' });
+  expect(() => config({ ...settings, ALLOWED_ORIGINS: 'https://public.example' })).toThrow();
+});
+
 it("atomically reserves concurrency and maximum AI/browser budgets", () => {
   const s = newState(now);
   expect(reserve(s, r, c)).toEqual({ ok: true });

@@ -198,7 +198,8 @@ Open `http://localhost:5173/` for the landing or
 `http://localhost:5173/app/#/analyze` for the application. The landing and saved
 library remain accessible in both modes. In `dev:live`, all `/api` requests,
 including model rates and quotas, proxy to the local Worker at `127.0.0.1:8787`;
-the default local frontend API URL is empty for this purpose. Local quotas
+the default local frontend API URL is empty for this purpose. Local live testing has unlimited analysis counts. Browser time, AI budgets,
+concurrency and provider limits still apply. Local quotas
 live in `.wrangler/`, separate from the deployed SQLite state.
 
 After a Pages build, `npm run preview` from `frontend/` can serve the home and
@@ -472,6 +473,62 @@ are normalized for photographs, inline styles are restored and finite CSS
 transitions are completed. JavaScript animation states and excluded media remain
 explicit limitations. Up to 24 distinct measured elements retain source locators,
 computed properties and source influence through normalization and every export.
+
+### Source CSS before visual analysis
+
+Single-URL analysis first reads the public HTML, inline declarations and up to
+two linked stylesheets through the validated resource relay. The pass has a
+5.5-second deadline and a 2 MB download allowance within the source budget.
+When supported literal values are present, the progress stream includes an
+exportable DesignSystem marked `declared-css`. The application shows its
+stylesheet evidence and all five formats while visual verification runs.
+The final visual analysis replaces this preview. If a recoverable capture
+error occurs after confirmed cleanup, the response retains the source-only
+exports and identifies the visual issue in metadata. Source CSS does not
+establish the active theme, rendered font, responsive state or selector usage.
+
+### Experimental independent samples
+
+The server-only `CAPTURE_STRATEGY=samples` option selects an experimental capture
+path. The default remains `sections`; no public request parameter selects it.
+Controlled local Chromium tests exercise both strategies without Browser Run or
+provider calls. Success on local fixtures does not establish remote site support.
+
+The experimental path returns the first useful 1440×900 viewport per active
+source. It starts at the top and validates the photograph against visible,
+measured elements. After a recoverable failure, it tries once more within the
+shared allowance, selecting content lower in the initial 4000 px region when
+available. The fallback favors viewports with fewer unresolved content images and
+rechecks every visible dependency after scrolling. A short page can be observed again at the top. A successful first
+viewport ends sampling immediately. Taller pages report partial coverage. Changes to document
+height outside the photographed region do not invalidate it. Images are never
+stitched into an apparently continuous page. Context and controls are not hidden
+or rearranged. Viewport Web Animations are temporarily paused at their current
+state and resumed afterward; arbitrary JavaScript and canvas motion remain outside
+that guarantee. Blocking overlays and loading shells are not accepted as branding.
+If a dialog closes on its own during the existing stability window, capture can
+measure the content it reveals once that content is stable. If a dialog blocks
+every attempted sample, the API returns HTTP 422 with
+`CAPTURE_EVIDENCE_INSUFFICIENT` and `retryable: false`. The user can choose a
+different public page.
+
+Samples retain source and image identity, region, sequence, and corresponding CSS
+measurements. At most 24 distinct measurements and the configured element-inspection
+allowance are shared across a source's images. Image bytes are bounded in aggregate
+by `MAX_SCREENSHOT_BYTES`; download, request, time, cleanup and safety limits remain
+in force. Optional regions have bounded local attempts within the same source
+deadline. Insufficient evidence fails before AI; partial coverage preserves useful
+observations with explicit Known Gaps. Sufficient coverage means enough evidence
+for a scoped result, not observation of the entire website or its responsive states.
+Computed font-family stacks describe CSS declarations, not proof that every listed
+font was rendered.
+
+All four provider adapters receive an ordered source/sample manifest with one
+accepted image per active source (up to two for Mix). Excluded sources contribute none. The full multimodal input
+is counted where required, and the input guard and estimated usage include all
+images. Binary images stay out of textual evidence. The canonical DesignSystem
+schema and historical fixtures are unchanged; sampled measurement locators add an
+image association in existing metadata, Markdown evidence and the technical exports.
 
 For a new single-source result, proposed colors unmatched by the bounded
 captured evidence keep their value and inference status, but confidence is

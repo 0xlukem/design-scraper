@@ -109,8 +109,8 @@ export function renderDocuments(s: DesignSystem) {
   ] : [];
   const measurementEvidence = s.metadata.measurements_version === 1 ? [
     '', '### Measurement locators', '',
-    ...Object.entries(s.metadata.measurement_locators as Record<string,{selector:string;source:string}> || {}).map(([name,record])=>
-      `- \`${name}\` (${record.source}): \`${record.selector}\``),
+    ...Object.entries(s.metadata.measurement_locators as Record<string,{selector:string;source:string;capture_sample?:string}> || {}).map(([name,record])=>
+      `- \`${name}\` (${record.source}${record.capture_sample ? `, ${record.capture_sample}` : ""}): \`${record.selector}\``),
   ] : [];
   const overview = [
     "## Overview",
@@ -149,7 +149,7 @@ export function renderDocuments(s: DesignSystem) {
   const footer = "<!-- Generated from the normalized DesignSystem model. -->";
   const colorGroups: Array<[string, TokenValue[]]> = [
     ["Brand", s.colors.brand],
-    ["Accent", s.colors.accent],
+    [s.metadata.extraction_method === "declared-css" ? "Declared colors" : "Accent", s.colors.accent],
     ["Surfaces", s.colors.surfaces],
     ["Text", s.colors.text],
     ["Borders", s.colors.borders],
@@ -166,6 +166,10 @@ export function renderDocuments(s: DesignSystem) {
       colorGroups.flatMap((x) => x[1]),
       true,
     ),
+    ...(s.metadata.extraction_method === "declared-css" ? [...group("Declared radii", s.shapes.radii), ...group("Declared spacing", s.spacing.tokens)] :
+      s.known_gaps.some(g => g.code === 'source-declarations-retained') ? [
+        ...group("Radii", s.shapes.radii), ...group("Spacing", s.spacing.tokens),
+      ] : []),
     ...typography(s, true),
     ...components(s, true),
     "## Key Rules",

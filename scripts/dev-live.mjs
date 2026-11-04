@@ -45,5 +45,5 @@ function start(cwd, binary, args, env = process.env) {
 }
 process.once('SIGINT', () => stop());
 process.once('SIGTERM', () => stop());
-start(backend, worker, ['dev', '--ip', '127.0.0.1', '--port', '8787', '--var', 'ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173']);
+start(backend, worker, ['dev', '--ip', '127.0.0.1', '--port', '8787', '--var', 'LOCAL_UNLIMITED_ANALYSES:true', '--var', 'ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173']);
 start(frontend, vite, ['--mode', 'live', '--strictPort'], { ...process.env, VITE_API_URL: '' });

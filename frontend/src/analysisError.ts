@@ -56,6 +56,9 @@ export function makeIssue(code: string, message: string, retryable = false, retr
     guidance = code === 'PROJECT_BUDGET_EXHAUSTED'
       ? 'Included AI capacity needs the site owner’s attention. Your own key can fund AI, but shared capture and admission limits still apply.'
       : 'Wait until the allowance renews or open a saved design. Your own key still shares capture and admission limits.'
+  } else if (code === 'CAPTURE_EVIDENCE_INSUFFICIENT') {
+    category = 'Insufficient visual evidence'
+    guidance = message
   } else if (/^(CAPTURE_|SCRAPE_|SCREENSHOT_|BROWSER_CLOSE)/.test(code) || code === 'AI_INPUT_LIMIT') {
     category = /LIMIT|TOO_LARGE/.test(code) ? 'Website exceeds capture limits' : /TIMEOUT/.test(code) ? 'Website capture timed out' : 'Website capture interrupted'
     if (code === 'AI_INPUT_LIMIT') category = 'Website exceeds analysis input limits'

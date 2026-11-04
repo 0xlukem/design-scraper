@@ -1,16 +1,17 @@
 import { captureRegionPredicate } from "./capture-region";
-export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly = false }) => {
-  const inRegion = element => {
-    if (!((${captureRegionPredicate})(element, height))) return false;
-    const box = element.getBoundingClientRect();
-    return !viewportOnly || (box.bottom > 0 && box.top < innerHeight);
-  };
+export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly = false, localFonts = false, pendingStylesheets = null }) => {
+  const inRegion = element => (${captureRegionPredicate})(element, height, viewportOnly);
+  const fontsReady = () => !localFonts ? document.fonts.status === 'loaded' :
+    [...document.querySelectorAll('h1,h2,h3,p,li,a,button,input')].filter(inRegion).every(element => {
+      const css = getComputedStyle(element);
+      return document.fonts.check(css.font || (css.fontSize + ' ' + css.fontFamily), (element.textContent || 'BESbswy').slice(0, 32));
+    });
   const start = Date.now();
   let stable = 0;
   while (Date.now() - start < waitMs) {
     const images = [...document.images].filter(inRegion);
     const pending = images.filter(image => !image.complete);
-    if (document.fonts.status === 'loaded' && !pending.length) {
+    if (fontsReady() && !pending.length) {
       if (++stable >= 3) break;
     } else stable = 0;
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -28,8 +29,23 @@ export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly
       for (const match of style.backgroundImage.matchAll(/url\(["']?(.*?)["']?\)/g)) backgrounds.push(match[1]);
     }
   }
-  return { fontsLoaded: document.fonts.status === 'loaded',
-    pending: images.filter(image => !image.complete || !image.naturalWidth).length,
+  // A dynamically inserted sheet may still be in flight at DOMContentLoaded.
+  // Imports have their own stylesheet requests without an equivalent link node.
+  const links = pendingStylesheets === null ? [] : [...document.querySelectorAll('link[rel~="stylesheet" i][href]')];
+  const activeLinks = links.filter(link => !link.disabled && (!link.media || matchMedia(link.media).matches));
+  const inactiveUrls = new Set(links.map(link => link.href));
+  for (const link of activeLinks) inactiveUrls.delete(link.href);
+  const stylesLoaded = pendingStylesheets === null || (activeLinks.every(link => link.sheet) &&
+    pendingStylesheets.every(url => inactiveUrls.has(url)));
+  const unresolved = images.filter(image => !image.complete || !image.naturalWidth);
+  // Identify a DOM resource without logging a request path, query, alt text or page content.
+  const first = unresolved[0];
+  const imageProblem = first ? 'img #' + (Array.prototype.indexOf.call(document.images, first) + 1) +
+    ' (' + (!first.currentSrc && !first.getAttribute('src') && !first.getAttribute('srcset') ? 'no selected source' : first.complete ? 'no intrinsic width' : 'loading') + ', ' +
+    Math.round(first.getBoundingClientRect().width) + 'x' + Math.round(first.getBoundingClientRect().height) +
+    ', ' + (first.closest('article') ? 'inside article' : 'outside article') + ')' : null;
+  return { fontsLoaded: fontsReady(), stylesLoaded,
+    pending: unresolved.length, imageProblem,
     outside: [...document.images].filter(image => !((${captureRegionPredicate})(image, height))).length,
     imageUrls,
     backgroundUrls: [...new Set(backgrounds)],

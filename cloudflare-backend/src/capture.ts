@@ -1,3 +1,5 @@
+import { captureSamples } from './capture-samples';
+import type { CaptureImage, RejectedSample } from './capture-evidence';
 import {screenshotSections, SectionLayoutError} from "./capture-sections";
 import type { Browser, Request as BrowserRequest, Response as BrowserResponse } from "@cloudflare/playwright";
 import { Buffer } from "node:buffer";
@@ -29,6 +31,8 @@ export interface CaptureMetrics {
   failed_async_scripts?: number;
   required_image_failures?: { kind: string; origin: string; status: number | null; browser_error: string | null }[];
   outside_images: number;
+  sample_evidence?: { quality: string; accepted: number; rejected: string[]; rejected_details?: RejectedSample[]; first_useful_ms: number | null };
+  rendering_failures?: { kind: string; frame: 'main' | 'embedded'; origin: string; status: number | null; browser_error: string | null; sequence: number }[];
   close_confirmed: boolean;
   dns_requests: number | null;
   resource_downloads: number | null;
@@ -45,6 +49,7 @@ export interface CaptureMetrics {
 }
 export interface CaptureResult {
   screenshot: string;
+  screenshots?: CaptureImage[];
   data: Record<string, unknown>;
   metrics: CaptureMetrics;
 }
@@ -52,8 +57,9 @@ export async function capture(
   browser: Browser, url: string, c: Config, signal: AbortSignal,
   network: NetworkPolicy = new PublicNetwork(fetch, signal),
   resources?: ResourceTransport,
+  acquisitionStartedAt?: number,
 ): Promise<CaptureResult> {
-  const started = Date.now();
+  const started = c.captureStrategy === 'samples' && acquisitionStartedAt !== undefined ? acquisitionStartedAt : Date.now();
   const metrics: CaptureMetrics = {
     requests: 0, browser_wall_ms: 0, external_hosts: 0, stage: "context",
     stage_ms: {}, blocked: {}, css_characters: 0, css_sheets: 0,
@@ -94,7 +100,27 @@ export async function capture(
   const imageStatuses = new Map<string, number>();
   const pendingImages = new Set<string>();
   const failedScripts = new Map<string, { origin: string; status: number | null; browser_error: string | null }>();
+  const allowedAsyncScripts = new Map<string, { origin: string; status: number | null; browser_error: string | null }>();
+  const failedStylesheets = new Set<string>();
+  const pendingStylesheets = new Set<BrowserRequest>();
+  let mainFrame: ReturnType<BrowserRequest['frame']>;
+  const inMainFrame = (request: BrowserRequest) => { try { return request.frame() === mainFrame; } catch { return true; } };
+  const renderingFailures = new Map<string, NonNullable<CaptureMetrics['rendering_failures']>[number]>();
+  let failureSequence = 0, acceptedFailureSequence = 0;
+  const renderingFailure = (request: BrowserRequest, status: number | null = null, browserError: string | null = null) => {
+    const kind = request.resourceType();
+    let initial = request;
+    for (let prior = initial.redirectedFrom(); prior; prior = initial.redirectedFrom()) initial = prior;
+    if (kind === 'stylesheet' && inMainFrame(request)) failedStylesheets.add(initial.url());
+    const key = `${inMainFrame(request) ? 'main' : 'embedded'}:${kind}:${initial.url()}`, previous = renderingFailures.get(key);
+    renderingFailures.set(key, { kind, frame: inMainFrame(request) ? 'main' : 'embedded', origin: new URL(request.url()).origin,
+      status: status ?? previous?.status ?? null,
+      browser_error: browserError && /^net::[A-Z0-9_]+$/.test(browserError) ? browserError : previous?.browser_error ?? null,
+      sequence: previous?.sequence ?? ++failureSequence });
+    metrics.rendering_failures = [...renderingFailures.values()].slice(0, 16);
+  };
   const recordScriptFailure = (request: BrowserRequest, status: number | null = null, browserError: string | null = null) => {
+    if (c.captureStrategy === 'samples' && !inMainFrame(request)) { renderingFailure(request, status, browserError); return; }
     // Match the DOM's original src after redirects, without exposing URL paths,
     // query credentials or upstream exception messages in capture diagnostics.
     let initial = request;
@@ -104,6 +130,7 @@ export async function capture(
     failedScripts.set(key, { origin: new URL(request.url()).origin,
       status: status ?? previous?.status ?? null,
       browser_error: browserError && /^net::[A-Z0-9_]+$/.test(browserError) ? browserError : previous?.browser_error ?? null });
+    renderingFailure(request, status, browserError);
   };
   const fulfilled = new WeakSet<object>();
   let activeRoutes = 0;
@@ -118,8 +145,13 @@ export async function capture(
       }, true);
     });
     const page = await context.newPage();
-    page.on("request", request => { if (request.resourceType() === "image") pendingImages.add(request.url()); });
-    page.on("requestfinished", request => { pendingImages.delete(request.url()); });
+    mainFrame = page.mainFrame();
+    page.on("request", request => {
+      if (request.resourceType() === "image") pendingImages.add(request.url());
+      if (c.captureStrategy === 'samples' && request.resourceType() === 'stylesheet' && inMainFrame(request))
+        pendingStylesheets.add(request);
+    });
+    page.on("requestfinished", request => { pendingImages.delete(request.url()); pendingStylesheets.delete(request); });
     await context.routeWebSocket("**/*", route => { blocked("websocket"); route.close(); });
     await context.route("**/*", async route => {
       const request = route.request();
@@ -183,18 +215,25 @@ export async function capture(
           // from its response event (for example an XML error blocked by ORB).
           if (request.resourceType() === "image") imageStatuses.set(request.url(), status);
           if (request.resourceType() === "script" && status >= 400) recordScriptFailure(request, status);
+          if (['stylesheet', 'font'].includes(request.resourceType()) && status >= 400) renderingFailure(request, status);
           setPhase("fulfill");
           fulfilled.add(request);
           await route.fulfill(result);
         } else await route.continue();
       } catch (error) {
-        if (!fatal && !signal.aborted) {
-          const e = error instanceof ApiError ? error : new ApiError("SCRAPE_FAILED", "A required resource could not be loaded.", 502, true);
-          if (request.resourceType() === "script" && e.code === "SCRAPE_FAILED") recordScriptFailure(request);
+        const e = error instanceof ApiError ? error : new ApiError("SCRAPE_FAILED", "A required resource could not be loaded.", 502, true);
+        const safetyFailure = ['UNSAFE_URL', 'DNS_VALIDATION_FAILED', 'SCRAPE_REQUEST_LIMIT', 'SCRAPE_RESOURCE_LIMIT', 'SCRAPE_REDIRECT_LIMIT'].includes(e.code);
+        if (!fatal && !signal.aborted && ((!closing && !abortClosing) || safetyFailure)) {
+          const embeddedFailure = c.captureStrategy === 'samples' && request.isNavigationRequest() && !inMainFrame(request) &&
+            ['SCRAPE_FAILED', 'SCRAPE_TIMEOUT', 'CAPTURE_INCOMPLETE'].includes(e.code);
+          const localRenderingFailure = c.captureStrategy === 'samples' && ['stylesheet', 'font', 'script'].includes(request.resourceType()) &&
+            ['SCRAPE_FAILED', 'SCRAPE_TIMEOUT', 'CAPTURE_INCOMPLETE'].includes(e.code);
+          if (request.resourceType() === "script" && (e.code === "SCRAPE_FAILED" || localRenderingFailure)) recordScriptFailure(request);
+          else if (localRenderingFailure || embeddedFailure) renderingFailure(request);
           else blocked(e.code);
           // Safety and budget failures are fatal even on fetch/XHR resources.
-          if (request.isNavigationRequest() || ["stylesheet", "font"].includes(request.resourceType()) ||
-              (request.resourceType() === "script" && e.code !== "SCRAPE_FAILED") ||
+          if ((request.isNavigationRequest() && !embeddedFailure) || (!localRenderingFailure && (["stylesheet", "font"].includes(request.resourceType()) ||
+              (request.resourceType() === "script" && e.code !== "SCRAPE_FAILED"))) ||
               ["UNSAFE_URL", "DNS_VALIDATION_FAILED", "SCRAPE_REQUEST_LIMIT", "SCRAPE_RESOURCE_LIMIT", "SCRAPE_REDIRECT_LIMIT"].includes(e.code)) fail(e);
           else if (request.resourceType() === "image") failedImages.add(request.url());
         }
@@ -211,10 +250,13 @@ export async function capture(
       }
     });
     page.on("requestfailed", request => {
+      pendingStylesheets.delete(request);
       pendingImages.delete(request.url());
-      if (fatal || signal.aborted) return;
-      if (["stylesheet", "font"].includes(request.resourceType()))
-        fail(new ApiError("CAPTURE_INCOMPLETE", "A required stylesheet or font failed to load.", 422, true));
+      if (fatal || signal.aborted || closing || abortClosing) return;
+      if (["stylesheet", "font"].includes(request.resourceType())) {
+        renderingFailure(request, null, request.failure()?.errorText);
+        if (c.captureStrategy !== 'samples') fail(new ApiError("CAPTURE_INCOMPLETE", "A required stylesheet or font failed to load.", 422, true));
+      }
       if (request.resourceType() === "script") recordScriptFailure(request, null, request.failure()?.errorText);
       if (request.resourceType() === "image") {
         failedImages.add(request.url());
@@ -241,9 +283,12 @@ export async function capture(
             if (metrics.routes.failures.length < 8) metrics.routes.failures.push({
               origin: new URL(response.url()).origin, type, status: response.status(),
             });
-            if (["stylesheet", "font"].includes(type))
-              fail(new ApiError("CAPTURE_INCOMPLETE", "A required stylesheet or font failed to load.", 422, true));
+            if (["stylesheet", "font"].includes(type)) {
+              renderingFailure(response.request(), response.status());
+              if (c.captureStrategy !== 'samples') fail(new ApiError("CAPTURE_INCOMPLETE", "A required stylesheet or font failed to load.", 422, true));
+            }
             if (type === "script") recordScriptFailure(response.request(), response.status());
+            if (c.captureStrategy === 'samples' && type === 'document' && !inMainFrame(response.request())) renderingFailure(response.request(), response.status());
             if (type === "image") failedImages.add(response.url());
           }
         } catch (error) {
@@ -253,7 +298,9 @@ export async function capture(
     });
     const cdp = await context.newCDPSession(page);
     const sheets = new Map<string, string>();
+    const parentFrameId = c.captureStrategy === 'samples' ? (await cdp.send('Page.getFrameTree')).frameTree.frame.id : null;
     cdp.on("CSS.styleSheetAdded", event => {
+      if (parentFrameId !== null && event.header.frameId !== parentFrameId) return;
       if (sheets.size < 160) sheets.set(event.header.styleSheetId, event.header.sourceURL);
       else metrics.css_omitted++;
     });
@@ -261,7 +308,7 @@ export async function capture(
     await cdp.send("DOM.enable");
     await cdp.send("CSS.enable");
     stage("navigation");
-    const response = await page.goto(url, { waitUntil: "load", timeout: Math.max(1000, c.scrapeMs - 5000) });
+    const response = await page.goto(url, { waitUntil: c.captureStrategy === "samples" ? "domcontentloaded" : "load", timeout: Math.max(1000, c.scrapeMs - 5000) });
     metrics.navigation = { response_received: !!response, status: response?.status() ?? null,
       final_origin: response ? new URL(response.url()).origin : null };
     if (!response || response.status() >= 400)
@@ -269,7 +316,7 @@ export async function capture(
         ? `The source website returned HTTP ${response.status()}.`
         : "The source website did not return a navigation response.", 502, true);
     stage("region");
-    await page.evaluate(async height => {
+    if (c.captureStrategy !== "samples") await page.evaluate(async height => {
       // Let hydration run, then trigger lazy assets only within the capture region.
       await new Promise(resolve => setTimeout(resolve, 250));
       for (let y = 0; y < Math.min(document.documentElement.scrollHeight, height); y += 700) {
@@ -279,37 +326,39 @@ export async function capture(
       window.scrollTo({ left: 0, top: 0, behavior: "instant" });
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }, c.height);
-    let readiness!: {fontsLoaded:boolean;pending:number;outside:number;required:string[];imageUrls:string[];backgroundUrls:string[]};
+    type Readiness = {
+      stylesLoaded: boolean; fontsLoaded: boolean; pending: number; imageProblem: string | null;
+      outside: number; required: string[]; imageUrls: string[]; backgroundUrls: string[];
+    };
+    let readiness!: Readiness;
     const missingBackgroundsSet = new Set<string>();
     const checkFailedScripts = async () => {
       if (!failedScripts.size) return;
-      const usable = await page.evaluate(`(${assessFailedScripts})(${JSON.stringify({ urls: [...failedScripts.keys()], height: c.height })})`);
+      const usable = await page.evaluate(`(${assessFailedScripts})(${JSON.stringify({ urls: [...failedScripts.keys()], height: c.height, viewportOnly: c.captureStrategy === 'samples' })})`);
       if (!usable) throw new ApiError("CAPTURE_INCOMPLETE", "A required script failed to load or left insufficient rendered design evidence.", 422, true);
+      for (const [url, failure] of failedScripts) allowedAsyncScripts.set(url, failure);
       metrics.failed_async_scripts = failedScripts.size;
     };
-    const waitForResources = async () => {
+    const waitForResources = async (sampleMs = 10000) => {
     stage("resources");
     const readReadiness = (waitMs: number) => page.evaluate(`(${captureReadiness})(${JSON.stringify({ height: c.height,
-      viewportOnly: true, waitMs })})`) as Promise<{
-        fontsLoaded: boolean; pending: number; outside: number; required: string[];
-        imageUrls: string[]; backgroundUrls: string[];
-      }>;
-    const readinessDeadline = Math.min(started + c.scrapeMs - 3000, Date.now() + 8000);
+      viewportOnly: true, localFonts: c.captureStrategy === "samples", pendingStylesheets: c.captureStrategy === "samples" ? [...pendingStylesheets].map(request => request.url()) : null, waitMs })})`) as Promise<Readiness>;
+    const readinessDeadline = Math.min(started + c.scrapeMs - 3000, Date.now() + Math.max(0, Math.min(8000, sampleMs - 1000)));
     readiness = await readReadiness(Math.max(0, readinessDeadline - Date.now()));
     // Backgrounds have no HTMLImageElement.complete flag. Wait for their
     // observed network completion too, without waiting for off-region assets.
-    const backgroundDeadline = Math.min(started + c.scrapeMs - 2000, Date.now() + 3000);
+    const backgroundDeadline = Math.min(started + c.scrapeMs - 2000, Date.now() + Math.max(0, Math.min(3000, sampleMs - 500)));
     while (readiness.required.some(url => pendingImages.has(url)) && Date.now() < backgroundDeadline)
       await page.waitForTimeout(50);
     // Resources can complete during the network wait. Inspect current DOM state,
     // rather than rejecting using the earlier pending-image snapshot.
-    readiness = await readReadiness(0);
+    if (sampleMs > 0) readiness = await readReadiness(0);
     // Completing a background or hydration step can introduce a new font or
     // image after the first stable snapshot. Spend the remaining bounded wait
     // on that current state instead of treating it as a failed resource.
-    while ((!readiness.fontsLoaded || readiness.pending ||
+    while ((!readiness.stylesLoaded || !readiness.fontsLoaded || readiness.pending ||
             readiness.required.some(url => pendingImages.has(url))) &&
-           Date.now() < readinessDeadline) {
+           !failedStylesheets.size && Date.now() < readinessDeadline) {
       if (fatal) throw fatal;
       await page.waitForTimeout(50);
       readiness = await readReadiness(Math.max(0, readinessDeadline - Date.now()));
@@ -319,6 +368,8 @@ export async function capture(
     metrics.outside_images = readiness.outside;
     await Promise.all(audits);
     if (fatal) throw fatal;
+    if (c.captureStrategy === 'samples' && (failedStylesheets.size || !readiness.stylesLoaded))
+      throw new ApiError('CAPTURE_INCOMPLETE', 'A stylesheet dependency was unavailable before this sample was sealed.', 422, true);
     await checkFailedScripts();
     // A confirmed HTTP 404 used only as a CSS background may remain absent,
     // exactly as in the source browser. Never exempt the same URL when it is
@@ -332,8 +383,20 @@ export async function capture(
       origin: (() => { try { return new URL(url).origin; } catch { return 'invalid'; } })(),
       status: imageStatuses.get(url) ?? null, browser_error: imageErrors.get(url) ?? null,
     }));
-    if (!readiness.fontsLoaded || metrics.pending_images || requiredFailures.length)
-      throw new ApiError("CAPTURE_INCOMPLETE", "Required fonts, stylesheets or visible images did not load.", 422, true);
+    if (!readiness.fontsLoaded || metrics.pending_images || requiredFailures.length) {
+      let detail = 'Required fonts, stylesheets or visible images did not load.';
+      if (c.captureStrategy === 'samples') {
+        const problems = [];
+        if (!readiness.fontsLoaded) problems.push('a viewport font is unavailable');
+        if (readiness.imageProblem) problems.push(readiness.imageProblem);
+        if (requiredFailures.length) problems.push(requiredFailures.length + ' failed image dependencies');
+        const pendingNetwork = readiness.required.filter(url => pendingImages.has(url));
+        if (pendingNetwork.length) problems.push(pendingNetwork.length + ' pending image requests (' +
+          (readiness.imageUrls.includes(pendingNetwork[0]) ? 'content image or poster' : 'CSS background') + ')');
+        detail = 'Viewport resources: ' + problems.join(', ') + '.';
+      }
+      throw new ApiError("CAPTURE_INCOMPLETE", detail, 422, true);
+    }
       for(const url of newMissingBackgrounds) missingBackgroundsSet.add(url);
       metrics.missing_background_images = missingBackgroundsSet.size;
       stage("screenshot");
@@ -341,8 +404,24 @@ export async function capture(
     // Each photographed viewport is checked after scrolling/overlay normalization.
     // Requiring lazy images in later tiles now would wait for untriggered loads.
     stage("screenshot");
-    const sectionResult = await screenshotSections(page,c.height,Math.max(1,c.scrapeMs-(Date.now()-started)-2500),waitForResources);
-    const screenshot = sectionResult.screenshot;
+    const assertHealthy = () => {
+      if (fatal) throw fatal;
+      if (signal.aborted || Date.now() >= started + c.scrapeMs)
+        throw new ApiError('SCRAPE_TIMEOUT', 'A source website took too long to load.', 504, true);
+    };
+    const sampled = c.captureStrategy === 'samples'
+      ? await captureSamples(page, c, started + c.scrapeMs - 2500, started, waitForResources, assertHealthy, {
+        validate: () => waitForResources(0),
+        accepted: () => { acceptedFailureSequence = failureSequence; },
+        progress: value => { metrics.sample_evidence = { quality: value.rejected.length ? 'partial' : 'pending',
+          accepted: value.accepted, rejected: value.rejected.map(sample => sample.code),
+          rejected_details: value.rejected, first_useful_ms: value.first_useful_ms }; },
+      }) : null;
+    const sectionResult = sampled ? null
+      : await screenshotSections(page,c.height,Math.max(1,c.scrapeMs-(Date.now()-started)-2500),() => waitForResources());
+    if (sampled) metrics.sample_evidence = { quality: sampled.quality, accepted: sampled.samples.length,
+      rejected: sampled.rejected.map(sample => sample.code), rejected_details: sampled.rejected, first_useful_ms: sampled.firstUsefulMs };
+    const screenshot = sampled ? Buffer.from(sampled.samples[0].image, 'base64') : sectionResult!.screenshot;
     const missingBackgrounds = [...missingBackgroundsSet];
     stage("css");
     const variables: Record<string, string> = {};
@@ -378,7 +457,7 @@ export async function capture(
       for (const bp of selected.breakpoints) if (breakpoints.size < 40) breakpoints.add(bp);
     }
     stage("extraction");
-    const data = await page.evaluate(`(() => { const result = (${extractionScript})(${JSON.stringify({ maxElements: c.elements, maxHeight: c.height, skipStylesheets: true })});
+    const data = sampled?.data || await page.evaluate(`(() => { const result = (${extractionScript})(${JSON.stringify({ maxElements: c.elements, maxHeight: c.height, skipStylesheets: true })});
       if (JSON.stringify(result).length > 200000) throw new Error('evidence-limit'); return result; })()`) as Record<string, unknown>;
     data.cssVariables = variables;
     data.cssEvidence = Object.values(cssEvidence);
@@ -388,32 +467,54 @@ export async function capture(
       throw new ApiError("SCREENSHOT_TOO_LARGE", "The screenshot exceeded the configured byte limit.", 413);
     await Promise.all(audits);
     if (fatal) throw fatal;
-    await checkFailedScripts();
+    if (!sampled) await checkFailedScripts();
+    // Accepted pairs are immutable. Rendering failures in later, unobserved
+    // states qualify coverage; security/budget failures above remain fatal.
+    const lateFailures = sampled ? [...renderingFailures.values()].filter(failure => failure.sequence > acceptedFailureSequence) : [];
+    if (sampled && lateFailures.length) {
+      sampled.quality = 'partial';
+      metrics.sample_evidence!.quality = 'partial';
+      // This enrichment was read after the photographs. Do not attribute a
+      // changed/failed later stylesheet state to their measured evidence.
+      data.cssVariables = {}; data.cssEvidence = []; data.breakpoints = []; data.token_candidates = classifyVariables({});
+      metrics.css_omitted++;
+    }
     data.capture = {
-      height_truncated: sectionResult.documentHeight > c.height, region_height: sectionResult.height,
-      composition_attempts: sectionResult.attempts,
+      height_truncated: (sampled?.documentHeight ?? sectionResult!.documentHeight) > c.height,
+      region_height: sampled ? Math.max(...sampled.samples.map(s => s.region.y + s.region.height)) : sectionResult!.height,
+      ...(sampled ? { quality: sampled.quality, first_useful_ms: sampled.firstUsefulMs,
+        samples: sampled.samples.map(({ image, data: sampleData, ...sample }) => ({ ...sample,
+          measurement_ids: ((data.measurements as { samples: { id: string; capture_sample?: string }[] }).samples)
+            .filter(m => m.capture_sample === sample.id).map(m => m.id) })), rejected_samples: sampled.rejected }
+        : { composition_attempts: sectionResult!.attempts }),
       blocked_subresources: Object.entries(metrics.blocked).filter(([key]) => !["media", "eventsource", "websocket", "prefetch"].includes(key)).reduce((sum, [, n]) => sum + n, 0),
       media_policy: "static-branding",
       excluded_media_resources: metrics.blocked.media || 0,
       excluded_prefetch_resources: metrics.blocked.prefetch || 0,
       excluded_streaming_resources: (metrics.blocked.eventsource || 0) + (metrics.blocked.websocket || 0),
-      request_limit_reached: false, fonts_loaded: readiness.fontsLoaded,
+      request_limit_reached: false, fonts_loaded: sampled ? true : readiness.fontsLoaded,
       external_stylesheets_inspected: metrics.css_sheets, css_evidence_omitted: metrics.css_omitted,
-      outside_region_images: readiness.outside, animations_disabled: true, method: "viewport-sections", section_count: sectionResult.tiles.length,
-      overlay_policy: "sticky-in-flow-fixed-once",
+      outside_region_images: readiness.outside, animations_disabled: !sampled, method: sampled ? 'independent-samples' : 'viewport-sections',
+      ...(sampled ? { overlay_policy: 'observed-without-modification', motion_policy: 'viewport-web-animations-paused-and-restored' }
+        : { section_count: sectionResult!.tiles.length, overlay_policy: 'sticky-in-flow-fixed-once' }),
       missing_background_images_count: missingBackgrounds.length,
       missing_background_images: missingBackgrounds.slice(0, 16).map(raw => {
         const resource = new URL(raw);
         return { url: `${resource.origin}${resource.pathname}`.slice(0, 2048), status: 404 };
       }),
       missing_background_images_omitted: Math.max(0, missingBackgrounds.length - 16),
-      failed_async_scripts_count: failedScripts.size,
-      failed_async_scripts: [...failedScripts.values()].slice(0, 16),
-      failed_async_scripts_omitted: Math.max(0, failedScripts.size - 16),
+      failed_async_scripts_count: allowedAsyncScripts.size,
+      failed_async_scripts: [...allowedAsyncScripts.values()].slice(0, 16),
+      failed_async_scripts_omitted: Math.max(0, allowedAsyncScripts.size - 16),
+      ...(sampled ? { rendering_failures_count: renderingFailures.size,
+        rendering_failures: [...renderingFailures.values()].slice(0, 16),
+        embedded_resource_failures: [...renderingFailures.values()].filter(failure => failure.frame === 'embedded').length,
+        later_unobserved_resource_failures: lateFailures.length } : {}),
     };
     if (JSON.stringify(data).length > 200000)
       throw new ApiError("SCRAPE_EVIDENCE_LIMIT", "The page evidence exceeded the capture limit.", 422);
-    return { screenshot: Buffer.from(screenshot).toString("base64"), data, metrics };
+    return { screenshot: Buffer.from(screenshot).toString("base64"),
+      ...(sampled ? { screenshots: sampled.samples.map(({ id, image }) => ({ id, image })) } : {}), data, metrics };
   } catch (error) {
     if (error instanceof SectionLayoutError) metrics.composition_failure = error.geometry;
     // Preserve the first fatal cause even if teardown or the outer deadline races.
@@ -436,6 +537,10 @@ export async function capture(
         timer = setTimeout(() => reject(new ApiError("BROWSER_CLOSE_FAILED", "Browser context cleanup could not be confirmed.", 503, true)), 5000);
       })]);
       metrics.close_confirmed = true;
+      // A safety audit may finish while teardown drains outstanding requests.
+      // It must still override a previously assembled partial result.
+      await Promise.all(audits);
+      if (fatal) { fatal.captureMetrics = metrics; throw fatal; }
     } catch (error) {
       if (error instanceof ApiError) error.captureMetrics = metrics;
       throw error;

@@ -160,7 +160,7 @@ export default function ResultPanel({
     else dialog.current?.close()
   }, [exportsOpen, active])
 
-  if (loading) return <LoadingSkeleton isMix={mode === 'mix'} startedAt={startedAt} progress={progress} onCancel={onCancel} />
+  if (loading && !result) return <LoadingSkeleton isMix={mode === 'mix'} startedAt={startedAt} progress={progress} onCancel={onCancel} />
 
   if (error) return <AnalysisErrorPanel issue={error} onRetry={onRetry} disabled={retryDisabled} onReviewSettings={onReviewSettings} onReviewUrl={onReviewUrl} />
 
@@ -244,6 +244,9 @@ export default function ResultPanel({
 
   return (
     <section className={`result-shell ${mixResult ? 'result-shell-wild' : ''}`}>
+      {result.design_system?.metadata?.extraction_method === 'declared-css' &&
+        <p className="form-notice" role="status">{loading ? 'Source CSS is ready to inspect and export. Visual analysis is running.' :
+          'Source CSS only. Visual verification was unavailable. These values are declared in the page styles.'}</p>}
       <div className="result-heading">
         <Heading ref={controls} tabIndex={-1} className="result-title">{resultTitle}</Heading>
         <button type="button" className="action-button" aria-expanded={exportsOpen} aria-controls={`${panelId}-exports`} onClick={openExport}>Export design</button>

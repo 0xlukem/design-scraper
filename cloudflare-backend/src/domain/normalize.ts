@@ -1,3 +1,4 @@
+import type { CaptureImage } from '../capture-evidence';
 import { preserveMeasurements, omitNullStateProperties } from "./measurements";
 import { cssLikeColor } from "./css-color";
 import validate from "./validate.js";
@@ -8,6 +9,7 @@ export interface Source {
   url: string;
   weight: number;
   screenshot?: string;
+  screenshots?: CaptureImage[];
   data: Record<string, unknown>;
 }
 // validationDetail names the rejected field and a bounded copy of its value for
@@ -321,6 +323,19 @@ export function normalize(raw: string, sources: Source[]): DesignSystem {
       add("media-content-excluded", "Capture targets static branding: media downloads and playback are excluded. Existing video boxes and available posters are retained; video frames, motion and media-dependent content are not evidence of the design system.", src.label);
     if (Number(capture?.excluded_prefetch_resources) > 0)
       add("navigation-prefetch-excluded", "Speculative requests for future navigation were excluded; the current page's ordinary rendering resources remain required.", src.label);
+    if (capture?.method === 'independent-samples') {
+      if (Number(capture.embedded_resource_failures) > 0)
+        add('capture-embedded-content-unavailable', 'Resources in embedded frames were unavailable. Embedded frame content, including any error or placeholder in the photographs, supplies no design-system evidence; retained measurements describe the parent page only.', src.label);
+      if (Number(capture.later_unobserved_resource_failures) > 0)
+        add('capture-later-resources-unavailable', 'Rendering resources failed after the retained samples were validated. Those later states and their dependencies were not observed; retained images and measurements describe their own earlier viewport states. Later stylesheet enrichment was omitted.', src.label);
+      add('capture-independent-samples', 'Evidence consists of separately captured viewport samples with associated measurements, not a continuous photograph. CSS/Web Animations in the viewport were temporarily paused at their observed state and restored; JavaScript/canvas motion is not frozen. Content between samples, later interactions and responsive states were not observed. Sample associations are retained in measurement evidence.', src.label);
+      if (capture.quality === 'partial')
+        add('capture-partial-coverage', 'Some regions could not provide coherent visual evidence within the capture limits. Only accepted samples support detected values; missing regions and their component roles remain unverified.', src.label);
+      if (Array.isArray(capture.rejected_samples)) for (const [index, rejected] of capture.rejected_samples.slice(0, 3).entries()) {
+        if (typeof rejected?.anchor === 'string' && typeof rejected?.code === 'string' && /^[A-Z0-9_]+$/.test(rejected.code))
+          add(`capture-region-unavailable-${index + 1}`, `Unobserved region ${rejected.anchor.slice(0, 1600)}: ${rejected.code}. This region supplies no visual or measured evidence.`, src.label);
+      }
+    }
     if (capture?.method === "viewport-sections")
       add("capture-sections", capture.overlay_policy === "sticky-in-flow-fixed-once"
         ? capture.media_policy === "static-branding"

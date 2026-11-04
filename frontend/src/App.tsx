@@ -72,7 +72,7 @@ function reducer(state: AppState, action: AppAction): AppState {
     case 'set-bias':
       return { ...state, mix: { ...state.mix, bias: action.value } }
     case 'request-progress':
-      return { ...state, [action.mode]: { ...state[action.mode], progress: action.progress } }
+      return { ...state, [action.mode]: { ...state[action.mode], progress: action.progress, result: action.progress.preview || state[action.mode].result } }
     case 'request-start':
       return {
         ...state,
@@ -241,7 +241,7 @@ function App() {
         dispatch({ type: 'request-progress', mode, progress })
       })
       if (controllers.current[mode] !== controller) return
-      if (funding === 'byok' && providerAccess.current) setKeyStatus('verified')
+      if (funding === 'byok' && providerAccess.current) setKeyStatus(result.telemetry?.usage_status === 'not_called' ? previousKeyStatus : 'verified')
       recordUsage('completed', result.metadata.usage, result.telemetry, true, result)
       dispatch({ type: 'request-success', mode, result })
     } catch (error) {

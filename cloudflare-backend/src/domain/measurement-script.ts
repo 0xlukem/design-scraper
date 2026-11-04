@@ -1,3 +1,10 @@
+export const measurementProperties = ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing',
+    'color','backgroundColor','borderRadius','border','boxShadow',
+    'paddingTop','paddingRight','paddingBottom','paddingLeft',
+    'marginTop','marginRight','marginBottom','marginLeft',
+    'display','width','maxWidth','gap','rowGap','columnGap','gridTemplateColumns',
+    'flexDirection','justifyContent','alignItems','objectFit'] as const;
+
 /** Runs in Chromium, on the already bounded visible element set. No site rules. */
 export const measurementScript = String.raw`(elements, height) => {
   const selectors = {
@@ -8,12 +15,7 @@ export const measurementScript = String.raw`(elements, height) => {
     section: 'main,section', navigation: 'nav,[role="navigation"]',
     layout: '', image: 'img', footer: 'footer,[role="contentinfo"]'
   };
-  const properties = ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing',
-    'color','backgroundColor','borderRadius','border','boxShadow',
-    'paddingTop','paddingRight','paddingBottom','paddingLeft',
-    'marginTop','marginRight','marginBottom','marginLeft',
-    'display','width','maxWidth','gap','rowGap','columnGap','gridTemplateColumns',
-    'flexDirection','justifyContent','alignItems','objectFit'];
+  const properties = ${JSON.stringify(measurementProperties)};
   const buckets = Object.fromEntries(Object.keys(selectors).map(k => [k, []]));
   const counts = Object.fromEntries(Object.keys(selectors).map(k => [k, 0]));
   const seen = Object.fromEntries(Object.keys(selectors).map(k => [k, new Set()]));

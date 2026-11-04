@@ -19,6 +19,7 @@ const page = await context.newPage();
 page.setDefaultTimeout(15000);
 const errors=[],checks=[],metrics=[],requests=[];
 let ratesMode='success',analysisMode='slow',releaseRates,releaseAnalysis;
+const blockedCapture = 'A dialog blocked every attempted sample. Try another publicly accessible page.';
 page.on('pageerror', e => errors.push(e.message));
 await context.route('**/api/**', async route => {
   const req=route.request(), path=new URL(req.url()).pathname;
@@ -34,6 +35,10 @@ await context.route('**/api/**', async route => {
   assert.equal(path,'/api/analyze'); assert.equal(req.method(),'POST');
   assert.equal(JSON.parse(req.postData()).url,'https://example.com');
   if(analysisMode==='slow') await new Promise(resolve => {releaseAnalysis=resolve;});
+  if (analysisMode === 'blocked') return route.fulfill({ status: 200,
+    headers: { ...headers, 'content-type': 'application/x-ndjson' },
+    body: JSON.stringify({ type: 'error', payload: { detail: { code: 'CAPTURE_EVIDENCE_INSUFFICIENT', message: blockedCapture, retryable: false } } }) + '\n',
+  });
   if(analysisMode==='error') return route.fulfill({status:504,headers,json:{detail:{code:'SCRAPE_TIMEOUT',message:'The source website took too long to load.',retryable:true}}});
   return route.fulfill({headers,json:sample}).catch(()=>{});
 });
@@ -151,6 +156,18 @@ try {
   assert.equal(await page.locator('#single-url').inputValue(),'https://example.com');
   await page.screenshot({path:`${artifacts}/after-analysis-error.png`,fullPage:true});
   checks.push('Home → focused form → local URL validation → loading → saved response; simulated timeout retains URL and Review URL restores focus');
+
+  analysisMode='blocked';
+  await page.getByRole('button',{name:'Analyze design',exact:true}).click();
+  const blockedAlert = page.getByRole('alert').filter({ hasText: 'Insufficient visual evidence' });
+  await blockedAlert.waitFor();
+  assert.ok((await blockedAlert.innerText()).includes('A dialog blocked every attempted sample.'),
+    'The cause must be visible with the technical details closed');
+  assert.equal(await blockedAlert.getByRole('button', { name: /^Retry/ }).count(), 0);
+  await blockedAlert.getByRole('button', { name: 'Review URL', exact: true }).click();
+  assert.equal(await page.evaluate(()=>document.activeElement.id),'single-url');
+  assert.equal(await page.locator('#single-url').inputValue(),'https://example.com');
+  checks.push('An obstructed capture shows its reason without opening diagnostics or offering retry, and returns focus to the URL');
 
   for(const id of ['stripe','github','milligram','bootstrap-milligram','example-domain']) {
     const before=analyses();

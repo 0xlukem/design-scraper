@@ -45,14 +45,14 @@ export default function SharedBudget({ revision, active, usingOwnKey = false, on
     <details className="availability-disclosure"><summary>Service limits</summary>
     {error && <p className="field-help">{error}</p>}
     <dl className="availability-metrics" aria-label={error && quota ? 'Last known site capacity' : 'Site capacity'} aria-busy={loading}>
-      <div><dt>Analyses left today</dt><dd>{quota ? quota.analyses.remaining : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${quota.analyses.limit} analyses site-wide` : 'Not available yet'}</dd></div>
+      <div><dt>Analyses left today</dt><dd>{quota ? quota.analyses.remaining ?? 'Unlimited' : '—'}</dd><dd className="availability-metric-note">{quota ? (quota.analyses.limit === null ? 'Local testing' : `of ${quota.analyses.limit} analyses site-wide`) : 'Not available yet'}</dd></div>
       <div><dt>Capture time left</dt><dd>{quota ? `${Number((quota.capture.remaining_ms / 60000).toFixed(2))} min` : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${Number((quota.capture.limit_ms / 60000).toFixed(2))} minutes today` : 'Not available yet'}</dd></div>
       <div><dt>Analyses running</dt><dd>{quota ? `${quota.concurrency.active} / ${quota.concurrency.limit}` : '—'}</dd><dd className="availability-metric-note">Shared processing capacity</dd></div>
       <div><dt>Included AI</dt><dd className="availability-budget">{quota ? quota.demo_budget_available ? 'Available' : 'At capacity' : '—'}</dd><dd className="availability-metric-note">Covered by Design Scraper</dd></div>
     </dl>
     {quota && <div className="availability-details">
       <p><strong>Daily reset</strong> <time dateTime={quota.resets_at}>{new Date(quota.resets_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}, {time(new Date(quota.resets_at))}</time></p>
-      <p><strong>Per visitor</strong> Up to {quota.per_ip.hourly_limit} analyses/hour and {quota.per_ip.daily_limit}/day.</p>
+      <p><strong>Per visitor</strong> {quota.per_ip.hourly_limit === null ? 'Unlimited local analyses.' : `Up to ${quota.per_ip.hourly_limit} analyses/hour and ${quota.per_ip.daily_limit}/day.`}</p>
       {updatedAt && <p className="availability-updated">Last updated <time dateTime={updatedAt.toISOString()}>{time(updatedAt)}</time>. Counts include reserved capacity and may change before you submit.</p>}
     </div>}
     <p className="availability-key-note">Site limits apply to both Design Scraper and your own API key.</p></details>
