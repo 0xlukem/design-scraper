@@ -1,5 +1,5 @@
 import { captureRegionPredicate } from "./capture-region";
-export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly = false, localFonts = false }) => {
+export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly = false, localFonts = false, pendingStylesheets = null }) => {
   const inRegion = element => {
     if (!((${captureRegionPredicate})(element, height))) return false;
     const box = element.getBoundingClientRect();
@@ -33,7 +33,15 @@ export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly
       for (const match of style.backgroundImage.matchAll(/url\(["']?(.*?)["']?\)/g)) backgrounds.push(match[1]);
     }
   }
-  return { fontsLoaded: fontsReady(),
+  // A dynamically inserted sheet may still be in flight at DOMContentLoaded.
+  // Imports have their own stylesheet requests without an equivalent link node.
+  const links = pendingStylesheets === null ? [] : [...document.querySelectorAll('link[rel~="stylesheet" i][href]')];
+  const activeLinks = links.filter(link => !link.disabled && (!link.media || matchMedia(link.media).matches));
+  const inactiveUrls = new Set(links.map(link => link.href));
+  for (const link of activeLinks) inactiveUrls.delete(link.href);
+  const stylesLoaded = pendingStylesheets === null || (activeLinks.every(link => link.sheet) &&
+    pendingStylesheets.every(url => inactiveUrls.has(url)));
+  return { fontsLoaded: fontsReady(), stylesLoaded,
     pending: images.filter(image => !image.complete || !image.naturalWidth).length,
     outside: [...document.images].filter(image => !((${captureRegionPredicate})(image, height))).length,
     imageUrls,

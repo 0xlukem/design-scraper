@@ -102,6 +102,7 @@ export async function capture(
   const failedScripts = new Map<string, { origin: string; status: number | null; browser_error: string | null }>();
   const allowedAsyncScripts = new Map<string, { origin: string; status: number | null; browser_error: string | null }>();
   const failedStylesheets = new Set<string>();
+  const pendingStylesheets = new Set<BrowserRequest>();
   let mainFrame: ReturnType<BrowserRequest['frame']>;
   const inMainFrame = (request: BrowserRequest) => { try { return request.frame() === mainFrame; } catch { return true; } };
   const renderingFailures = new Map<string, NonNullable<CaptureMetrics['rendering_failures']>[number]>();
@@ -145,8 +146,12 @@ export async function capture(
     });
     const page = await context.newPage();
     mainFrame = page.mainFrame();
-    page.on("request", request => { if (request.resourceType() === "image") pendingImages.add(request.url()); });
-    page.on("requestfinished", request => { pendingImages.delete(request.url()); });
+    page.on("request", request => {
+      if (request.resourceType() === "image") pendingImages.add(request.url());
+      if (c.captureStrategy === 'samples' && request.resourceType() === 'stylesheet' && inMainFrame(request))
+        pendingStylesheets.add(request);
+    });
+    page.on("requestfinished", request => { pendingImages.delete(request.url()); pendingStylesheets.delete(request); });
     await context.routeWebSocket("**/*", route => { blocked("websocket"); route.close(); });
     await context.route("**/*", async route => {
       const request = route.request();
@@ -245,6 +250,7 @@ export async function capture(
       }
     });
     page.on("requestfailed", request => {
+      pendingStylesheets.delete(request);
       pendingImages.delete(request.url());
       if (fatal || signal.aborted || closing || abortClosing) return;
       if (["stylesheet", "font"].includes(request.resourceType())) {
@@ -292,7 +298,9 @@ export async function capture(
     });
     const cdp = await context.newCDPSession(page);
     const sheets = new Map<string, string>();
+    const parentFrameId = c.captureStrategy === 'samples' ? (await cdp.send('Page.getFrameTree')).frameTree.frame.id : null;
     cdp.on("CSS.styleSheetAdded", event => {
+      if (parentFrameId !== null && event.header.frameId !== parentFrameId) return;
       if (sheets.size < 160) sheets.set(event.header.styleSheetId, event.header.sourceURL);
       else metrics.css_omitted++;
     });
@@ -318,7 +326,7 @@ export async function capture(
       window.scrollTo({ left: 0, top: 0, behavior: "instant" });
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }, c.height);
-    let readiness!: {fontsLoaded:boolean;pending:number;outside:number;required:string[];imageUrls:string[];backgroundUrls:string[]};
+    let readiness!: {stylesLoaded:boolean;fontsLoaded:boolean;pending:number;outside:number;required:string[];imageUrls:string[];backgroundUrls:string[]};
     const missingBackgroundsSet = new Set<string>();
     const checkFailedScripts = async () => {
       if (!failedScripts.size) return;
@@ -330,8 +338,8 @@ export async function capture(
     const waitForResources = async (sampleMs = 10000) => {
     stage("resources");
     const readReadiness = (waitMs: number) => page.evaluate(`(${captureReadiness})(${JSON.stringify({ height: c.height,
-      viewportOnly: true, localFonts: c.captureStrategy === "samples", waitMs })})`) as Promise<{
-        fontsLoaded: boolean; pending: number; outside: number; required: string[];
+      viewportOnly: true, localFonts: c.captureStrategy === "samples", pendingStylesheets: c.captureStrategy === "samples" ? [...pendingStylesheets].map(request => request.url()) : null, waitMs })})`) as Promise<{
+        stylesLoaded: boolean; fontsLoaded: boolean; pending: number; outside: number; required: string[];
         imageUrls: string[]; backgroundUrls: string[];
       }>;
     const readinessDeadline = Math.min(started + c.scrapeMs - 3000, Date.now() + Math.max(0, Math.min(8000, sampleMs - 1000)));
@@ -347,9 +355,9 @@ export async function capture(
     // Completing a background or hydration step can introduce a new font or
     // image after the first stable snapshot. Spend the remaining bounded wait
     // on that current state instead of treating it as a failed resource.
-    while ((!readiness.fontsLoaded || readiness.pending ||
+    while ((!readiness.stylesLoaded || !readiness.fontsLoaded || readiness.pending ||
             readiness.required.some(url => pendingImages.has(url))) &&
-           Date.now() < readinessDeadline) {
+           !failedStylesheets.size && Date.now() < readinessDeadline) {
       if (fatal) throw fatal;
       await page.waitForTimeout(50);
       readiness = await readReadiness(Math.max(0, readinessDeadline - Date.now()));
@@ -359,7 +367,7 @@ export async function capture(
     metrics.outside_images = readiness.outside;
     await Promise.all(audits);
     if (fatal) throw fatal;
-    if (c.captureStrategy === 'samples' && failedStylesheets.size)
+    if (c.captureStrategy === 'samples' && (failedStylesheets.size || !readiness.stylesLoaded))
       throw new ApiError('CAPTURE_INCOMPLETE', 'A stylesheet dependency was unavailable before this sample was sealed.', 422, true);
     await checkFailedScripts();
     // A confirmed HTTP 404 used only as a CSS background may remain absent,

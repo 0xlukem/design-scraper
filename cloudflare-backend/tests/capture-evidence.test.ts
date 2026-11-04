@@ -42,7 +42,10 @@ it('preserves distinct sampled styles with unique legacy-compatible measurement 
     expect(document).toContain('32px'); expect(document).toContain('24px');
     expect(document).toContain('CAPTURE_SAMPLE_UNSTABLE');
   }
-  for (const output of Object.values(renderExports(system))) expect(output).toContain('24px');
+  for (const output of Object.values(renderExports(system))) {
+    expect(output).toContain('24px');
+    expect(output).toMatch(/measured-web-1-heading-2[^\n]*sample-2/);
+  }
 });
 
 it('caps the merged measurement set without reusing an ID or multiplying per-source limits', () => {

@@ -110,7 +110,7 @@ export function preserveMeasurements(system: DesignSystem, sources: Source[]) {
     for (const sample of values) {
       const name = prefix(source.label, sample.id), style = sample.styles;
       locators[name] = {selector:sample.selector,tag:sample.tag,kind:sample.kind,source:source.label,influence:source.weight,...(sample.capture_sample ? {capture_sample:sample.capture_sample} : {})};
-      const where = `${name} (${sample.tag}, static; ${source.label}, influence ${source.weight}%; locator in Evidence)`;
+      const where = `${name} (${sample.tag}, static; ${source.label}, influence ${source.weight}%${sample.capture_sample ? `, ${sample.capture_sample}` : ''}; locator in Evidence)`;
       const token = (property: string, value: string): TokenValue => ({name:`${name}-${property}`,value,
         role:`Observed ${property} on ${where}`,source:[source.label],status:'detected',confidence:1});
       const dim = (property: string, value: string | undefined): DimensionToken | null =>

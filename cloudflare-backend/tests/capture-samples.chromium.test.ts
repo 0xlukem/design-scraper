@@ -102,6 +102,43 @@ it('accepts browser scroll anchoring when outside growth leaves the photographed
   } finally { await p.close(); }
 });
 
+it('compares large repeated computed values inside Chromium and returns compact stability observations', async () => {
+  const family = 'A'.repeat(20_000);
+  const p = await page(`<style>body{font-family:"${family}";line-height:16px}p{margin:0}</style><h1>A large-font design reference</h1>
+    ${'<p>Readable repeated content</p>'.repeat(35)}`);
+  const evaluate = p.evaluate.bind(p);
+  const observationBytes: number[] = [];
+  p.evaluate = (async (...args: Parameters<typeof evaluate>) => {
+    const result = await evaluate(...args);
+    if (result && typeof result === 'object' && 'region' in result && 'useful' in result)
+      observationBytes.push(JSON.stringify(result).length);
+    return result;
+  }) as typeof p.evaluate;
+  try {
+    const result = await run(p);
+    expect(result.samples).toHaveLength(1);
+    expect(observationBytes.length).toBeGreaterThanOrEqual(3);
+    expect(Math.max(...observationBytes)).toBeLessThan(512);
+  } finally { await p.close(); }
+});
+
+it('retries when measured letter spacing changes during a photograph without moving the element', async () => {
+  const p = await page('<h1 style="width:1000px">A stable width reference</h1><p>Visible text with measured typography.</p>');
+  const screenshot = p.screenshot.bind(p);
+  let attempts = 0;
+  p.screenshot = async options => {
+    if (++attempts === 1) await p.locator('h1').evaluate(element => { element.style.letterSpacing = '8px'; });
+    return screenshot(options);
+  };
+  try {
+    const result = await run(p);
+    expect(attempts).toBe(2);
+    expect(result.data.measurements).toMatchObject({ samples: expect.arrayContaining([
+      expect.objectContaining({ tag: 'h1', styles: expect.objectContaining({ letterSpacing: '8px' }) }),
+    ]) });
+  } finally { await p.close(); }
+});
+
 it('re-extracts changed local styles instead of retaining measurements from a different image state', async () => {
   const p = await page();
   const screenshot = p.screenshot.bind(p);

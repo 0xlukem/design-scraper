@@ -2,6 +2,7 @@ import type { Page } from '@cloudflare/playwright';
 import { Buffer } from 'node:buffer';
 import type { Config } from './config';
 import { ApiError } from './errors';
+import { measurementProperties } from './domain/measurement-script';
 import { extractionScript } from './domain/extraction-script';
 import { mergeSampleData, type CaptureSample, type RejectedSample, type SampleProgress } from './capture-evidence';
 
@@ -47,7 +48,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
   }
   // Anchor selection is bounded. Each attempt binds its own current node set
   // after resources settle, before extracting any measurements or photograph.
-  const state = await page.evaluateHandle(({ limit, maxHeight }) => {
+  const state = await page.evaluateHandle(({ limit, maxHeight, properties }) => {
     const selector = (element: Element) => {
       const path: string[] = [];
       for (let node: Element | null = element; node; node = node.parentElement) {
@@ -95,12 +96,11 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       if (!ranked.length) break;
       anchors.push(ranked[0]); covered.push(ranked[0].y); kindsUsed.add(ranked[0].kind);
     }
-    const located: Element[] = [], selectors: string[] = [];
-    for (const element of elements) {
-      const path = selector(element);
-      if (path) { located.push(element); selectors.push(path); }
-    }
-    type Snapshot = { signature: string; selectors: string[]; useful: boolean; blocked: string | null;
+    // Compare observations inside Chromium. Only the revision number crosses the
+    // protocol, even when thousands of elements inherit a very long CSS value.
+    let previousRows: (Element | string | number)[][] = [];
+    let revision = 0;
+    type Snapshot = { revision: number; useful: boolean; blocked: string | null;
       visibleCount: number; textLength: number; region: { x: number; y: number; width: number; height: number };
       viewport: { width: number; height: number } };
     const snapshot = (): Snapshot => {
@@ -117,34 +117,39 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         const top = document.elementFromPoint(x, y);
         return top !== null && (element === top || element.contains(top));
     };
-    const shown = binding.elements.map((element, i) => ({ element, selector: binding.selectors[i] })).filter(({ element }) => visible(element));
+    const shown = binding.elements.filter(visible);
+    binding.visibleElements = shown;
     const challenge = /^(?:just a moment|access denied|verify (?:that )?you are human|checking your browser)(?:[.\s…]|$)/i.test(document.title.trim());
     const modal = [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).some(visible);
-    const busy = shown.some(({ element }) => {
+    const busy = shown.some(element => {
         const r = element.getBoundingClientRect();
         return element.matches('[aria-busy="true"],[role="progressbar"]') && r.width * r.height >= innerWidth * innerHeight / 2;
       });
-    const textNodes = shown.filter(({ element }) => element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button,[role="heading"]') && !element.closest('[aria-busy="true"],[role="progressbar"]'));
-    const text = textNodes.map(({ element }) => (element.textContent || '').trim()).join(' ');
-    const fingerprint = shown.map(({ element, selector }) => {
+    const textNodes = shown.filter(element => element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button,[role="heading"]') && !element.closest('[aria-busy="true"],[role="progressbar"]'));
+    const text = textNodes.map(element => (element.textContent || '').trim()).join(' ');
+    const rows = shown.map(element => {
       const r = element.getBoundingClientRect(), css = getComputedStyle(element);
-      // Clip geometry to this photograph: movement outside it is irrelevant.
-      return [selector, Math.max(0, r.left), Math.max(0, r.top), Math.min(innerWidth, r.right), Math.min(innerHeight, r.bottom),
-        css.fontFamily, css.fontSize, css.fontWeight, css.lineHeight, css.color, css.backgroundColor,
-        css.border, css.borderRadius, css.padding, css.boxShadow, element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button') ? (element.textContent || '').slice(0, 120) : ''];
+      // Clip geometry to the photograph, but compare every measured CSS property.
+      return [element, Math.max(0, r.left), Math.max(0, r.top), Math.min(innerWidth, r.right), Math.min(innerHeight, r.bottom),
+        ...properties.map(property => css[property]), css.borderColor, css.borderStyle, element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button') ? (element.textContent || '').slice(0, 120) : ''];
     });
-    return { signature: JSON.stringify([innerWidth, innerHeight, fingerprint]),
-      selectors: shown.map(value => value.selector), useful: !challenge && !modal && !busy && text.replace(/\s+/g, ' ').trim().length >= 20,
+    const body = getComputedStyle(document.body);
+    rows.push([innerWidth, innerHeight, Number(challenge), Number(modal), Number(busy),
+      body.color, body.backgroundColor, body.fontFamily, body.fontSize, body.lineHeight, body.margin, body.padding]);
+    if (rows.length !== previousRows.length || rows.some((row, index) =>
+      row.some((value, column) => value !== previousRows[index][column]))) revision++;
+    previousRows = rows;
+    return { revision, useful: !challenge && !modal && !busy && text.replace(/\s+/g, ' ').trim().length >= 20,
       blocked: challenge ? 'challenge' : modal ? 'modal' : busy ? 'loading' : null, visibleCount: shown.length, textLength: text.length,
       region: { x: 0, y: scrollY, width: innerWidth, height: Math.min(innerHeight, maxHeight - scrollY) },
       viewport: { width: innerWidth, height: innerHeight } };
     };
-    const binding = { elements: located, selectors, anchors, documentHeight: document.documentElement.scrollHeight, paused: [] as Animation[],
+    const binding = { elements, visibleElements: [] as Element[], anchors, documentHeight: document.documentElement.scrollHeight, paused: [] as Animation[],
       snapshot,
       // Run the short stability loop inside Chromium. Remote protocol latency
       // must not multiply every 100 ms observation into another network trip.
       prepare: async (settleMs: number): Promise<Snapshot & { stable: boolean }> => {
-        binding.refresh();
+        binding.elements = collect();
         for (const animation of document.getAnimations()) {
           const element = (animation.effect as KeyframeEffect | null)?.target;
           if (!(element instanceof Element) || animation.playState !== 'running') continue;
@@ -157,22 +162,16 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         while (Date.now() - stableAt < 300 && Date.now() < until) {
           await new Promise(resolve => setTimeout(resolve, Math.min(100, Math.max(0, until - Date.now()))));
           const next = snapshot();
-          if (next.signature !== previous.signature) stableAt = Date.now();
+          if (next.revision !== previous.revision) stableAt = Date.now();
           previous = next;
         }
         return { ...previous, stable: Date.now() - stableAt >= 300 };
       },
-      refresh: (): void => {
-        const current = collect();
-        binding.elements = []; binding.selectors = [];
-        for (const element of current) {
-          const path = selector(element);
-          if (path) { binding.elements.push(element); binding.selectors.push(path); }
-        }
-      },
     };
     return binding;
-  }, { limit: c.elements, maxHeight: c.height });
+  }, { limit: c.elements, maxHeight: c.height, properties: measurementProperties });
+  type ExtractSample = (options: { maxElements: number; maxHeight: number; skipStylesheets: boolean; sampleElements: Element[] }) => Record<string, unknown>;
+  const extract = await page.evaluateHandle<ExtractSample>(`(${extractionScript})`);
   try {
     const info = await page.evaluate(state => ({ anchors: state.anchors.map(a => a.anchor), documentHeight: state.documentHeight }), state);
     for (const [index, anchor] of ['context', ...info.anchors].entries()) {
@@ -211,8 +210,13 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           if (!previous.stable) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content did not stabilize.', 422, true);
           if (previous.viewport.width !== 1440 || previous.viewport.height !== 900)
             throw new ApiError('CAPTURE_COMPOSITION_FAILED', 'The capture viewport changed.', 502, true);
-          const data = await page.evaluate(`(${extractionScript})(${JSON.stringify({ maxElements: c.elements - inspected,
-            maxHeight: c.height, skipStylesheets: true, sampleSelectors: previous.selectors })})`) as Record<string, unknown>;
+          const data = await page.evaluate(({ state, extract, revision, maxElements, maxHeight }) => {
+            if (state.snapshot().revision !== revision) return 'changed';
+            const evidence = extract({ maxElements, maxHeight, skipStylesheets: true, sampleElements: state.visibleElements });
+            return JSON.stringify(evidence).length > 200000 ? null : evidence;
+          }, { state, extract, revision: previous.revision, maxElements: c.elements - inspected, maxHeight: c.height });
+          if (data === 'changed') throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed before measurement.', 422, true);
+          if (!data) throw new ApiError('SCRAPE_EVIDENCE_LIMIT', 'The page evidence exceeded the capture limit.', 422);
           inspected += Number((data.extraction as { inspectedElements: number }).inspectedElements);
           const photograph = await page.screenshot({ type: 'jpeg', quality: 85, fullPage: false,
             animations: 'allow', timeout: Math.min(5000, remaining(until)) });
@@ -220,7 +224,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           if (bytes > c.screenshotBytes) throw new ApiError('SCREENSHOT_TOO_LARGE', 'The aggregate sample image budget was exceeded.', 413);
           remaining(until);
           const after = await read();
-          if (after.signature !== previous.signature) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during capture.', 422, true);
+          if (after.revision !== previous.revision) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during capture.', 422, true);
           if (after.region.y < 0 || after.region.y + after.viewport.height > c.height)
             throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
           const measurementCount = (data.measurements as { samples: unknown[] }).samples.length;
@@ -229,7 +233,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           // arrived during the photograph. Later regions get their own checks.
           await checkpoints.validate?.();
           remaining(until);
-          if ((await read()).signature !== after.signature)
+          if ((await read()).revision !== after.revision)
             throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content changed during resource validation.', 422, true);
           samples.push({ id: `sample-${samples.length + 1}`, anchor, sequence: index + 1, image: Buffer.from(photograph).toString('base64'),
             viewport: previous.viewport, region: previous.region, scroll_y_after: after.region.y, bytes: photograph.byteLength, data });
@@ -260,6 +264,6 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       truncated: inspected >= c.elements || Boolean((data.extraction as { truncated?: boolean }).truncated) };
     return { samples, rejected, quality, firstUsefulMs, documentHeight: info.documentHeight, data };
   } finally {
-    await state.dispose();
+    await Promise.all([state.dispose(), extract.dispose()]);
   }
 }

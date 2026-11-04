@@ -511,7 +511,7 @@ six images for Mix. Excluded sources contribute none. The full multimodal input
 is counted where required, and the input guard and estimated usage include all
 images. Binary images stay out of textual evidence. The canonical DesignSystem
 schema and historical fixtures are unchanged; sampled measurement locators add an
-optional image association in existing metadata and Markdown evidence.
+image association in existing metadata, Markdown evidence and the technical exports.
 
 For a new single-source result, proposed colors unmatched by the bounded
 captured evidence keep their value and inference status, but confidence is

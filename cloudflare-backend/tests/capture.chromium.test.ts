@@ -59,6 +59,24 @@ beforeAll(async () => {
   });
   assets = (await listen(cdn)).replace("127.0.0.1", "localhost");
   site = createServer((req, res) => {
+    if (req.url === '/sample-late-css') {
+      res.writeHead(200, { 'content-type': 'text/html' }).end(`<h1>A dynamic design reference</h1><p>Visible introductory content with a late brand stylesheet.</p>
+        <script>addEventListener('DOMContentLoaded',()=>{const link=document.createElement('link');link.rel='stylesheet';
+        link.href='/late-brand.css';document.head.append(link)})</script>`);
+      return;
+    }
+    if (req.url === '/late-brand.css') {
+      setTimeout(() => res.writeHead(200, { 'content-type': 'text/css' }).end('h1{font-size:88px}'), 2200);
+      return;
+    }
+    if (req.url === '/sample-frame-css') {
+      res.writeHead(200, { 'content-type': 'text/html' }).end('<style>:root{--parent-brand:#112233}</style><h1>Primary design reference</h1><p>Visible main-page copy for analysis.</p><iframe src="/sample-foreign-frame"></iframe>');
+      return;
+    }
+    if (req.url === '/sample-foreign-frame') {
+      res.writeHead(200, { 'content-type': 'text/html' }).end('<style>:root{--foreign-brand:#ccee55}</style><script src="/script-unavailable"></script><p>Embedded-only green branding</p>');
+      return;
+    }
     if (req.url?.startsWith('/sample-resource/')) {
       const kind = req.url.split('/').at(-1);
       res.setHeader('content-type', 'text/html');
@@ -233,6 +251,23 @@ const policy: NetworkPolicy = {
   },
   audit() {},
 };
+it('waits for a dynamically inserted parent stylesheet before sealing a sample', async () => {
+  const signal = AbortSignal.timeout(15000);
+  const result = await capture(captureBrowser(), `${origin}/sample-late-css`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal));
+  expect(result.data.capture).toMatchObject({ quality: 'sufficient' });
+  expect(result.data.measurements).toMatchObject({ samples: expect.arrayContaining([
+    expect.objectContaining({ tag: 'h1', styles: expect.objectContaining({ fontSize: '88px' }) }),
+  ]) });
+});
+
+it('excludes an embedded frame stylesheet from the parent evidence when its script fails', async () => {
+  const signal = AbortSignal.timeout(15000);
+  const result = await capture(captureBrowser(), `${origin}/sample-frame-css`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal));
+  expect(result.data.capture).toMatchObject({ embedded_resource_failures: 1 });
+  expect(result.data.cssVariables).toEqual({ '--parent-brand': '#112233' });
+  expect(JSON.stringify(result.data.cssEvidence)).not.toContain('foreign-brand');
+});
+
 it('runs the independent strategy through navigation, verified resource loading, CSS extraction and context cleanup', async () => {
   const signal = AbortSignal.timeout(15000);
   const result = await capture(captureBrowser(), origin, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal));
