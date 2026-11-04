@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AnalysisResult } from '../types'
 import { downloadFile, downloadFormats, savedContent } from '../download'
 import { formatLibraryDate, libraryExamples, type LibraryExample } from '../library'
@@ -40,11 +40,12 @@ export default function DesignLibrary() {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [missing, setMissing] = useState(false)
   const version = useRef(0)
   const preview = useRef<HTMLDivElement>(null)
-  async function open(example: LibraryExample) {
+  const open = useCallback(async (example: LibraryExample) => {
     const current = ++version.current
-    setSelected(example); setResult(null); setLoading(true); setError('')
+    setSelected(example); setResult(null); setLoading(true); setError(''); setMissing(false)
     requestAnimationFrame(() => {
       preview.current?.focus({ preventScroll: true })
       preview.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
@@ -54,15 +55,38 @@ export default function DesignLibrary() {
       if (current === version.current) setResult(payload)
     } catch { if (current === version.current) setError('This design could not be opened. Check your connection and try again.') }
     finally { if (current === version.current) setLoading(false) }
+  }, [])
+  useEffect(() => {
+    function sync() {
+      const match = /^#\/library\/([^/]+)$/.exec(window.location.hash)
+      if (match) {
+        const example = libraryExamples.find(item => item.id === match[1])
+        if (example) void open(example)
+        else {
+          version.current++; setSelected(null); setResult(null); setLoading(false); setMissing(true)
+        }
+      } else if (window.location.hash === '#/library') {
+        version.current++; setSelected(null); setResult(null); setLoading(false); setMissing(false)
+      }
+    }
+    sync()
+    window.addEventListener('hashchange', sync)
+    return () => { window.removeEventListener('hashchange', sync); version.current++ }
+  }, [open])
+  function select(example: LibraryExample) {
+    if (window.location.hash === `#/library/${example.id}`) void open(example)
+    else window.location.hash = `/library/${example.id}`
   }
   function close() {
     const id = selected?.id
     version.current++; setSelected(null); setResult(null); setLoading(false)
+    if (window.location.hash.startsWith('#/library/')) window.location.hash = '/library'
     requestAnimationFrame(() => document.getElementById(`open-${id}`)?.focus())
   }
   return <section id="design-library" className="design-library" aria-labelledby="library-title">
     <div className="page-intro library-intro" hidden={Boolean(selected)}><span className="section-kicker">A few good starting points</span><h1 id="library-title">Design library</h1><p>Open a reference. Take a closer look. Make something new.</p><p className="field-help">Saved designs from previously analyzed websites. Opening or downloading one needs no key and uses no analysis quota. Each design reflects its analysis date.</p></div>
-    <div className="library-grid" hidden={Boolean(selected)}>{libraryExamples.map(example => <DesignCard key={example.id} example={example} onOpen={() => void open(example)} />)}</div>
+    {missing && <p role="alert" className="form-notice">That saved design is not in the library. Choose one of the references below.</p>}
+    <div className="library-grid" hidden={Boolean(selected)}>{libraryExamples.map(example => <DesignCard key={example.id} example={example} onOpen={() => select(example)} />)}</div>
     {selected && <div id="saved-design-preview" ref={preview} tabIndex={-1} className="saved-preview" aria-label={`${selected.name} saved design`}>
       <div className="saved-notice"><div><span className="section-kicker">Design library / saved reference</span><h1>{selected.name}</h1><p>Analyzed {selected.date}. A saved snapshot, not an official brand guide.</p></div><button className="secondary-button" type="button" onClick={close}>Close design</button></div>
       {loading && <p role="status">Opening saved design…</p>}

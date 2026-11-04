@@ -21,6 +21,8 @@ import { librarySuggestions } from './library'
 import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
 import ProviderControls from './components/ProviderControls'
 import type { ByokCredentials } from './byok'
+import { cancelledDemoTelemetry } from './demo'
+import DemoControls from './components/DemoControls'
 import type {
   AnalysisResult,
   AnalysisProgress,
@@ -30,6 +32,9 @@ import type {
   AppState,
   MixBias,
 } from './types'
+
+// Keep the build guard local so it folds before entry chunks are separated.
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
 
 const initialRequest = {
   loading: false,
@@ -120,11 +125,11 @@ const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
 
 function App() {
   // The requested world; the paint transition decides when `state.mode` follows.
-  const [targetMode, setTargetMode] = useState<AppMode>('single')
+  const [targetMode, setTargetMode] = useState<AppMode>(readEntryMode)
   const [allowanceRequested, setAllowanceRequested] = useState(false)
   const [usageEntries, setUsageEntries] = useState<UsageEntry[]>([])
   const requestId = useRef(0)
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, initialState, state => ({ ...state, mode: readEntryMode() }))
   const controllers = useRef<Partial<Record<AppMode, AbortController>>>({})
   const providerAccess = useRef<ByokCredentials | null | undefined>(undefined)
   const [providerReady, setProviderReady] = useState(true)
@@ -171,10 +176,31 @@ function App() {
     previousRun.current = runId
   }, [section, runId])
   useEffect(() => {
+    const focusEntry = () => {
+      if (!['#/analyze/start', '#/analyze/mix'].includes(window.location.hash)) return
+      const entryHash = window.location.hash
+      const mode = readEntryMode()
+      setTargetMode(mode)
+      dispatch({ type: 'set-mode', mode })
+      requestAnimationFrame(() => {
+        if (window.location.hash !== entryHash) return
+        const input = document.getElementById(mode === 'mix' ? 'mix-url-1' : 'single-url')
+        input?.focus({ preventScroll: true })
+        document.getElementById('analysis-form')?.scrollIntoView({ block: 'center', behavior: 'instant' })
+      })
+    }
+    focusEntry()
+    window.addEventListener('hashchange', focusEntry)
+    return () => window.removeEventListener('hashchange', focusEntry)
+  }, [])
+  useEffect(() => {
     const brand = state.mode === 'mix' ? 'Mix It' : 'Design Scraper'
     document.title = section === 'analyze' ? `${brand} · ${state.mode === 'mix' ? 'Two references. Something new.' : 'Design, decoded.'}` : `${section === 'library' ? 'Design library' : 'Activity & costs'} · ${brand}`
   }, [section, state.mode])
-  const reviewSettings = () => { setSettingsRevision(n => n + 1) }
+  const reviewSettings = () => {
+    if (isLocalDemo) document.getElementById('demo-scenario')?.focus()
+    else setSettingsRevision(n => n + 1)
+  }
 
 
   useEffect(
@@ -199,10 +225,10 @@ function App() {
     const sources = mode === 'single' ? [state.single.url.trim()] : [state.mix.url1.trim(), state.mix.url2.trim()]
     if (providerAccess.current) { setKeyStatus('checking'); setKeyError('') }
     const funding = providerAccess.current ? 'byok' as const : 'demo' as const
-    const provider = providerAccess.current?.provider || 'gemini'
+    const provider = providerAccess.current?.provider || (isLocalDemo ? 'local-demo' : 'gemini')
     let lastTelemetry: AnalysisTelemetry | undefined
     const recordUsage = (outcome: UsageEntry['outcome'], usage?: AnalysisResult['metadata']['usage'], telemetry?: AnalysisTelemetry, requestSent?: boolean, result?: AnalysisResult, issue?: UsageEntry['issue']) =>
-      setUsageEntries(entries => [...entries, { id, mode, bias: mode === 'mix' ? state.mix.bias : undefined, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || provider, outcome, usage, telemetry, requestSent, result, issue }])
+      setUsageEntries(entries => [...entries, { id, mode, bias: mode === 'mix' ? state.mix.bias : undefined, sources, startedAt, durationMs: Date.now() - startedAt, funding, provider: usage?.provider || telemetry?.provider || provider, outcome, usage, telemetry, requestSent, result, issue }])
     dispatch({ type: 'request-start', mode, startedAt: Date.now() })
 
     try {
@@ -219,7 +245,7 @@ function App() {
       if (controllers.current[mode] !== controller) return
       if (error instanceof DOMException && error.name === 'AbortError') {
         if (funding === 'byok') setKeyStatus(previousKeyStatus === 'verified' ? 'verified' : 'unverified')
-        recordUsage('cancelled', undefined, lastTelemetry ? { ...lastTelemetry, final: false, usage_status: 'unavailable' } : undefined)
+        recordUsage('cancelled', undefined, isLocalDemo ? cancelledDemoTelemetry() : lastTelemetry ? { ...lastTelemetry, final: false, usage_status: 'unavailable' } : undefined)
         dispatch({ type: 'request-cancel', mode })
       } else {
         const issue = toIssue(error, funding)
@@ -292,7 +318,7 @@ function App() {
       <a href="#main-content" className="skip-link" onClick={e => { e.preventDefault(); main.current?.focus() }}>Skip to content</a>
       <div className="nav-inner">
         <a className="brand-link" href="#/analyze" aria-label={state.mode === 'single' ? 'Design Scraper home' : 'Mix It home'} onClick={() => window.scrollTo?.({ top: 0, behavior: 'instant' })}>
-          {state.mode === 'single' ? <><span className="studio-mark" aria-hidden="true"><i /><i /><i /><i /></span><span className="studio-wordmark">design<br />scraper<span className="brand-period">®</span></span></> : <span className="mix-wordmark">mix it<span>.</span></span>}
+          {state.mode === 'single' ? <><img src="/design-scraper.svg" width="36" height="36" alt="" /><span className="studio-wordmark">design<br />scraper<span className="brand-period">®</span></span></> : <span className="mix-wordmark">mix it<span>.</span></span>}
         </a>
         <nav aria-label="Main navigation">
           {sections.map(item => <a key={item.id} href={`#/${item.id}`} aria-current={section === item.id ? 'page' : undefined}>{item.label}</a>)}
@@ -303,6 +329,7 @@ function App() {
       </div>
     </header>
     <main ref={main} tabIndex={-1} id="main-content" className="workspace-main" data-page={section}>
+      {isLocalDemo && <DemoControls busy={busy} />}
       {section === 'activity' && <div className="page-intro activity-intro"><h1>Activity &amp; costs</h1></div>}
       <div className="activity-content" hidden={section !== 'activity'}>
         {runId !== null ? <SessionRun entry={usageEntries.find(entry => entry.id === runId)} busy={busy} onRestore={restoreRun} /> : <>
@@ -357,10 +384,10 @@ function App() {
         {retryRemaining > 0 && <p className="form-notice" role="status">New analyses are available in {retryRemaining}s. You can edit your URLs or browse saved designs while you wait.</p>}
         {!providerReady && <p className="form-notice" role="status">Finish setting up your key, or use Design Scraper to analyze.</p>}
         {busy && !state[state.mode].loading && <p role="status" className="form-notice">An analysis is running in the other mode. Switch back to see its progress.</p>}
-        {state[state.mode].cancelled && <p role="status" className="cancellation-note">You stopped waiting. Work already started may still use quota. See Activity &amp; costs for the last available usage.</p>}
+        {state[state.mode].cancelled && <p role="status" className="cancellation-note">{isLocalDemo ? 'Simulation stopped. No website or AI provider was called.' : 'You stopped waiting. Work already started may still use quota. See Activity & costs for the last available usage.'}</p>}
       </div>
-      {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={reviewSettings} />}
-      <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
+      {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={isLocalDemo ? undefined : reviewSettings} />}
+      {!isLocalDemo && <ProviderControls busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />}
       {section === 'analyze' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {state.mode === 'single' ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
       </div>
       </div>
@@ -380,14 +407,18 @@ function App() {
   </div>
 }
 
+function readEntryMode(): AppMode {
+  return window.location.hash === '#/analyze/mix' ? 'mix' : 'single'
+}
+
 const sections = [
   { id: 'analyze', label: 'Analyze' },
   { id: 'library', label: 'Design library' },
   { id: 'activity', label: 'Activity & costs' },
 ] as const
 function readSection(): 'analyze' | 'library' | 'activity' {
-  const value = window.location.hash.slice(2)
-  return value === 'library' ? 'library' : value === 'activity' || value.startsWith('activity/') ? 'activity' : 'analyze'
+  const value = window.location.hash.slice(2).split('/')[0]
+  return value === 'library' || value === 'activity' ? value : 'analyze'
 }
 function readRunId() {
   const match = window.location.hash.match(/^#\/activity\/(\d+)$/)

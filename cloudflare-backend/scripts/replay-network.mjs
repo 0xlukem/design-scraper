@@ -11,3 +11,11 @@ export async function isolateReplayNetwork(context, site) {
   });
   return unexpected;
 }
+
+// The local UI deliberately reads public quotas on its own origin; all other
+// requests still use the configured API origin. Intercept both without proxying.
+export function replayApiPattern(site, api) {
+  const siteOrigin = new URL(site).origin, apiOrigin = new URL(api).origin;
+  return url => url.origin === apiOrigin && url.pathname.startsWith('/api/') ||
+    url.origin === siteOrigin && url.pathname === '/api/quotas';
+}

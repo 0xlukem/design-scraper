@@ -3,6 +3,8 @@ import { ArrowClockwise, WarningOctagon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import type { AnalysisIssue } from '../analysisError'
 
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
+
 export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewSettings }: { issue: AnalysisIssue; onRetry: () => void; disabled: boolean; onReviewSettings?: () => void }) {
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
@@ -23,11 +25,11 @@ export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewS
           <ArrowClockwise size={18} aria-hidden="true" />{remaining > 0 ? `Retry in ${remaining}s` : 'Retry'}
         </button>}
         {/PROVIDER|AI_|BYOK|AUTH/.test(issue.code)
-          ? <button type="button" className="secondary-button" onClick={onReviewSettings}>Review settings</button>
+          ? <button type="button" className="secondary-button" onClick={onReviewSettings}>{isLocalDemo ? 'Review demo scenario' : 'Review settings'}</button>
           : <button type="button" className="secondary-button" onClick={() => (document.getElementById('single-url') || document.getElementById('mix-url-1'))?.focus()}>Review URL</button>}
         <a className="secondary-button" href="#/library">Open saved designs</a>
       </div>
-      <p className="mt-3 text-xs">A retry is a new analysis and may consume quota.</p>
+      <p className="mt-3 text-xs">{isLocalDemo ? 'Retry replays a successful sample without using quota.' : 'A retry is a new analysis and may consume quota.'}</p>
     </div>
   </section>
 }
