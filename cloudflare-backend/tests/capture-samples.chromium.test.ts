@@ -64,6 +64,19 @@ it('stops at the first useful viewport without scrolling or preparing another sa
   } finally { await p.close(); }
 });
 
+it('finds useful content below a blank first viewport within the same capture', async () => {
+  const p = await page('<header style="height:1300px"></header><main><h1>Lower editorial content</h1><p>A readable article with measured typography.</p></main>');
+  const shot = vi.spyOn(p, 'screenshot');
+  try {
+    const result = await run(p);
+    expect(shot).toHaveBeenCalledOnce();
+    expect(result.samples).toMatchObject([{ sequence: 2 }]);
+    expect(result.samples[0].region.y).toBeGreaterThan(0);
+    expect(result.data.measurements).toMatchObject({ samples: expect.arrayContaining([expect.objectContaining({ tag: 'h1' })]) });
+    expect(result.rejected).toMatchObject([{ anchor: 'context', code: 'CAPTURE_SAMPLE_UNAVAILABLE' }]);
+  } finally { await p.close(); }
+});
+
 it('rejects a dependency that fails during the photograph before sealing that sample', async () => {
   const p = await page();
   let checked = 0;

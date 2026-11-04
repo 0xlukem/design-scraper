@@ -363,9 +363,10 @@ it('retains images after a rendering failure during later CSS enrichment instead
 
 it('preserves rejection reasons and sanitized resource details when every sample fails', async () => {
   const signal = AbortSignal.timeout(15000);
+  const rejection = { anchor: 'context', code: 'CAPTURE_INCOMPLETE', reason: expect.stringContaining('script') };
   await expect(capture(captureBrowser(), `${origin}/script-quality/defer`, config({ CAPTURE_STRATEGY: 'samples' }), signal, policy, new PublicResources(fetch, signal)))
     .rejects.toMatchObject({ code: 'CAPTURE_EVIDENCE_INSUFFICIENT', captureMetrics: {
-      sample_evidence: { accepted: 0, rejected_details: [{ code: 'CAPTURE_INCOMPLETE', reason: expect.stringContaining('script') }] },
+      sample_evidence: { accepted: 0, rejected_details: [rejection, rejection] },
       rendering_failures: [{ kind: 'script', status: 404, origin }],
     } });
 });
