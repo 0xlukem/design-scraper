@@ -167,16 +167,18 @@ try {
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   const spending = page.getByRole('region', { name: 'Session activity', exact: true });
   await spending.getByText('Local simulation · US$0', { exact: true }).waitFor();
-  assert.ok((await spending.locator('tbody tr td:nth-child(5)').allTextContents()).every(cost => cost === 'US$0.00000'));
-  await page.getByRole('region', { name: 'Site API availability', exact: true }).getByRole('button', { name: 'Refresh availability', exact: true }).waitFor();
+  const costs = await spending.locator('.run-details div').filter({ has: page.getByText('Estimated AI cost', { exact: true }) }).locator('dd').allTextContents();
+  assert.ok(costs.length > 0);
+  assert.ok(costs.every(cost => cost.startsWith('US$0.00000')));
+  await page.getByRole('region', { name: 'Service availability', exact: true }).getByRole('button', { name: 'Check availability', exact: true }).waitFor();
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `No overflow at ${width}px`);
   }
   await page.getByLabel('Next demo run').selectOption('rate-limit');
-  await page.getByRole('button', { name: 'Refresh availability', exact: true }).click();
-  await page.getByText('Daily capacity reached', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Check availability', exact: true }).click();
+  await page.getByText('Daily limit reached', { exact: true }).waitFor();
   checks.push('Session activity, zero costs, refreshable simulated capacity and responsive demo controls');
   const calls = requests.filter(request => request.method === 'POST').length;
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
@@ -186,7 +188,7 @@ try {
   await page.reload();
   assert.equal(await page.getByLabel('Next demo run').inputValue(), 'success');
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
-  await page.getByText('No analyses yet.', { exact: false }).waitFor();
+  await page.getByText('No analyses in this session.', { exact: false }).waitFor();
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
   checks.push('Library is independent; reload clears scenarios/activity; browser storage remains empty');
 

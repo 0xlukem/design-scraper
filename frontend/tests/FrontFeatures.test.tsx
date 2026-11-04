@@ -60,10 +60,10 @@ it('separates funding and unknown costs without reporting a complete subtotal', 
     { id: 2, funding: 'demo', provider: 'gemini', outcome: 'cancelled' },
     { id: 3, funding: 'byok', provider: 'openai', outcome: 'failed' },
   ]} />)
-  expect(screen.getByText('Shared / gemini · 2 requests')).toBeInTheDocument()
-  expect(screen.getByText('BYOK / openai · 1 requests')).toBeInTheDocument()
+  expect(screen.getByText('Design Scraper / gemini · 2 requests')).toBeInTheDocument()
+  expect(screen.getByText('Your API key / openai · 1 requests')).toBeInTheDocument()
   expect(screen.getByText('1 with unknown or incomplete cost · partial subtotal')).toBeInTheDocument()
-  expect(within(screen.getByRole('row', { name: /#3/ })).getAllByText('Unknown')).toHaveLength(2)
+  expect(within(screen.getByText('for analysis #3').closest('li')!).getAllByText('Unknown')).toHaveLength(4)
 })
 
 it('opens a saved design and changes formats with no API calls', async () => {

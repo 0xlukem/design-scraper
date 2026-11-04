@@ -30,14 +30,14 @@ it('loads only in activity, refreshes on return, and never sends credentials', a
 it('shows unknown values on a network error, then recovers with real counts', async () => {
   const fetcher = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
   render(<SharedBudget revision={0} active />)
-  await screen.findByText('Could not update')
-  expect(screen.getByRole('status')).toHaveTextContent('does not mean the quota is used up')
+  await screen.findByText('Could not check')
+  expect(screen.getByRole('status')).toHaveTextContent('Try checking again')
   expect(screen.getAllByText('—')).toHaveLength(4)
   expect(screen.queryByText('0')).not.toBeInTheDocument()
   fetcher.mockResolvedValueOnce(Response.json(quota))
-  fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Check availability' }))
   await screen.findByText('17')
-  expect(screen.getByRole('button', { name: 'Refresh availability' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: 'Check availability' })).toBeEnabled()
 })
 
 it('labels the last successful values as stale if refresh fails', async () => {
@@ -45,9 +45,10 @@ it('labels the last successful values as stale if refresh fails', async () => {
   render(<SharedBudget revision={0} active />)
   await screen.findByText('17')
   fetcher.mockResolvedValueOnce(new Response('', { status: 503 }))
-  fireEvent.click(screen.getByRole('button', { name: 'Refresh availability' }))
-  await screen.findByText('Could not update')
-  expect(screen.getByRole('status')).toHaveTextContent('HTTP 503')
+  fireEvent.click(screen.getByRole('button', { name: 'Check availability' }))
+  await screen.findByText('Could not check')
+  expect(screen.getByText(/HTTP 503/)).toBeInTheDocument()
+  expect(screen.getByRole('status')).not.toHaveTextContent('HTTP 503')
   expect(screen.getByRole('status')).toHaveTextContent('last successful update')
   expect(within(screen.getByLabelText('Last known site capacity')).getByText('17')).toBeInTheDocument()
 })
@@ -58,18 +59,18 @@ it.each([
 ])('does not imply that a personal key bypasses exhausted shared capacity', async snapshot => {
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(snapshot))
   render(<SharedBudget revision={0} active />)
-  await screen.findByText('Daily capacity reached')
+  await screen.findByText('Daily limit reached')
   expect(screen.getByRole('status')).toHaveTextContent('Your own API key also uses')
-  expect(screen.queryByText('Your own key needed')).not.toBeInTheDocument()
+  expect(screen.queryByText('Included AI unavailable')).not.toBeInTheDocument()
 })
 
 it('distinguishes shared AI capacity from analysis and capture counts', async () => {
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ ...quota, demo_budget_available: false }))
   render(<SharedBudget revision={0} active />)
-  await screen.findByText('Your own key needed')
+  await screen.findByText('Included AI unavailable')
   expect(screen.getByText('17')).toBeInTheDocument()
   expect(screen.getByText('At capacity')).toBeInTheDocument()
-  expect(screen.getByRole('status')).toHaveTextContent('while analysis and capture capacity remain')
+  expect(screen.getByRole('status')).toHaveTextContent('You can continue with your own key')
 })
 
 it('aborts an unfinished request when leaving activity', async () => {

@@ -184,8 +184,7 @@ try {
   assert.deepEqual(credentialRequests, []);
   results.push("Reload keeps direct access; no session or Authorization requests from the browser");
   if (!live && new URL(site).protocol === "http:") {
-    await page.getByRole("button", { name: "Use your own key", exact: true }).click();
-    await page.getByRole("radio", { name: "Your own key", exact: true }).check();
+    await page.getByRole("button", { name: "Use my API key", exact: true }).click();
     await page.getByText(/Using your own key requires an HTTPS page and API/).waitFor();
     assert.equal(await page.getByLabel("Provider API key", { exact: true }).count(), 0);
     results.push("HTTP frontend refuses to collect a BYOK credential");
