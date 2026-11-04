@@ -17,6 +17,8 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
   const rejected: RejectedSample[] = [];
   let bytes = 0;
   let inspected = 0;
+  let sampleAttempts = 0;
+  let dialogBlockedAttempts = 0;
   let firstUsefulMs: number | null = null;
   const report = () => checkpoints.progress?.({ accepted: samples.length, rejected: [...rejected], first_useful_ms: firstUsefulMs });
   const reject = (anchor: string, code: string, reason?: string) => { rejected.push({ anchor, code, ...(reason ? { reason } : {}) }); report(); };
@@ -36,7 +38,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight &&
           element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
       };
-      if ([...document.querySelectorAll('[aria-modal="true"]')].some(visible)) return true;
+      if (document.querySelector('dialog:modal') || [...document.querySelectorAll('[aria-modal="true"]')].some(visible)) return true;
       return [...document.querySelectorAll('h1,h2,h3,p,li,a,button,[role="heading"]')].slice(0, limit).some(element =>
         visible(element) && !element.closest('[aria-busy="true"],[role="progressbar"]') &&
         (element.textContent || '').trim().length >= 12 && !/^(?:loading|please wait|cargando)[.\s…]*$/i.test((element.textContent || '').trim()));
@@ -100,6 +102,8 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     // protocol, even when thousands of elements inherit a very long CSS value.
     let previousRows: (Element | string | number)[][] = [];
     let revision = 0;
+    let observedModal: Element | null = null;
+    type DialogDiagnostic = { viewportPercent: number; nativeModal: boolean; dialogHits: number; outsideMainHits: number };
     type Snapshot = { revision: number; useful: boolean; blocked: string | null;
       visibleCount: number; textLength: number; region: { x: number; y: number; width: number; height: number };
       viewport: { width: number; height: number } };
@@ -120,7 +124,9 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     const shown = binding.elements.filter(visible);
     binding.visibleElements = shown;
     const challenge = /^(?:just a moment|access denied|verify (?:that )?you are human|checking your browser)(?:[.\s…]|$)/i.test(document.title.trim());
-    const modal = [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).some(visible);
+    // A native modal makes the document behind it inert even when a pointer hit misses the dialog.
+    const modal = document.querySelector('dialog:modal') ?? [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).find(visible);
+    observedModal = modal ?? null;
     const busy = shown.some(element => {
         const r = element.getBoundingClientRect();
         return element.matches('[aria-busy="true"],[role="progressbar"]') && r.width * r.height >= innerWidth * innerHeight / 2;
@@ -134,7 +140,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         ...properties.map(property => css[property]), css.borderColor, css.borderStyle, element.matches('h1,h2,h3,h4,h5,h6,p,li,a,button') ? (element.textContent || '').slice(0, 120) : ''];
     });
     const body = getComputedStyle(document.body);
-    rows.push([innerWidth, innerHeight, Number(challenge), Number(modal), Number(busy),
+    rows.push([innerWidth, innerHeight, Number(challenge), Number(Boolean(modal)), Number(busy),
       body.color, body.backgroundColor, body.fontFamily, body.fontSize, body.lineHeight, body.margin, body.padding]);
     if (rows.length !== previousRows.length || rows.some((row, index) =>
       row.some((value, column) => value !== previousRows[index][column]))) revision++;
@@ -148,7 +154,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       snapshot,
       // Run the short stability loop inside Chromium. Remote protocol latency
       // must not multiply every 100 ms observation into another network trip.
-      prepare: async (settleMs: number): Promise<Snapshot & { stable: boolean }> => {
+      prepare: async (settleMs: number): Promise<Snapshot & { stable: boolean; dialog: DialogDiagnostic | null }> => {
         binding.elements = collect();
         for (const animation of document.getAnimations()) {
           const element = (animation.effect as KeyframeEffect | null)?.target;
@@ -165,7 +171,22 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           if (next.revision !== previous.revision) stableAt = Date.now();
           previous = next;
         }
-        return { ...previous, stable: Date.now() - stableAt >= 300 };
+        let dialog: DialogDiagnostic | null = null;
+        if (previous.blocked === 'modal' && observedModal) {
+          const box = observedModal.getBoundingClientRect();
+          const width = Math.max(0, Math.min(innerWidth, box.right) - Math.max(0, box.left));
+          const height = Math.max(0, Math.min(innerHeight, box.bottom) - Math.max(0, box.top));
+          const viewportPercent = Math.round(1000 * width * height / (innerWidth * innerHeight)) / 10;
+          let dialogHits = 0, outsideMainHits = 0;
+          // Diagnostic only: hit tests do not establish which pixels a backdrop paints.
+          for (let row = 0; row < 3; row++) for (let column = 0; column < 3; column++) {
+            const hit = document.elementFromPoint((column + 0.5) * innerWidth / 3, (row + 0.5) * innerHeight / 3);
+            if (hit && observedModal.contains(hit)) dialogHits++;
+            else if (hit?.closest('main,article,[role="main"]') && !hit.closest('dialog,[aria-modal="true"],iframe')) outsideMainHits++;
+          }
+          dialog = { viewportPercent, nativeModal: observedModal.matches(':modal'), dialogHits, outsideMainHits };
+        }
+        return { ...previous, stable: Date.now() - stableAt >= 300, dialog };
       },
     };
     return binding;
@@ -181,6 +202,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       const until = Math.min(deadline, Date.now() + (index === 0 ? 20000 : 8000));
       let accepted = false;
       for (let attempt = 0; attempt < 2 && !accepted; attempt++) {
+        sampleAttempts++;
         try {
           remaining(until);
           const positioned = await page.evaluate(({ state, index, maxHeight }) => {
@@ -204,6 +226,14 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           const previous = await page.evaluate(({ state, settleMs }) => state.prepare(settleMs),
             { state, settleMs: Math.min(1500, remaining(until)) });
           if (previous.region.y < 0 || previous.region.y + previous.viewport.height > c.height) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The viewport moved beyond the capture region.', 422, true);
+          if (previous.blocked === 'modal' && previous.dialog) {
+            assertHealthy();
+            dialogBlockedAttempts++;
+            const { viewportPercent, nativeModal, dialogHits, outsideMainHits } = previous.dialog;
+            reject(index === 0 ? 'context' : `optional-region-${index}`, 'CAPTURE_SAMPLE_UNAVAILABLE',
+              `Dialog box intersects ${viewportPercent}% of viewport; native modal: ${nativeModal}; 3x3 hit test: ${dialogHits}/9 dialog, ${outsideMainHits}/9 main/article outside dialog.`);
+            break;
+          }
           if (!previous.useful) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', previous.blocked
             ? `The sample is obscured by ${previous.blocked} content.`
             : `The sample has insufficient unobstructed content (${previous.visibleCount} visible nodes, ${previous.textLength} text characters).`, 422, true);
@@ -256,7 +286,11 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
         }
       }
     }
-    if (!samples.length) throw new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'No coherent visual sample and corresponding design measurements were captured.', 422, true);
+    if (!samples.length) {
+      if (sampleAttempts > 0 && dialogBlockedAttempts === sampleAttempts)
+        throw new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'A dialog blocked every attempted sample. Try another publicly accessible page.', 422);
+      throw new ApiError('CAPTURE_EVIDENCE_INSUFFICIENT', 'No coherent visual sample and corresponding design measurements were captured.', 422, true);
+    }
     const quality = rejected.length || (info.documentHeight > 900 && samples.length < 2) ? 'partial' : 'sufficient';
     const data = mergeSampleData(samples, c.elements);
     // Include work spent on rejected attempts in the shared inspection allowance.

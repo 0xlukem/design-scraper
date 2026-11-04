@@ -4,7 +4,8 @@ import type { Page as CapturePage } from '@cloudflare/playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { captureSamples } from '../src/capture-samples';
 import { config } from '../src/config';
-import { ApiError } from '../src/errors';
+import { ApiError, errorResponse } from '../src/errors';
+import type { SampleProgress } from '../src/capture-evidence';
 import { captureReadiness } from '../src/capture-readiness';
 
 let browser: Browser;
@@ -163,6 +164,49 @@ it.each([
   const p = await page(html);
   try { await expect(run(p)).rejects.toMatchObject({ code: 'CAPTURE_EVIDENCE_INSUFFICIENT' }); }
   finally { await p.close(); }
+});
+
+it.each([
+  { native: false, css: 'inset:0', percent: 100, expectedHits: '9/9 dialog, 0/9 main/article outside dialog.' },
+  { native: false, css: 'top:0;left:0;width:30vw;height:30vh', percent: 9, expectedHits: '1/9 dialog, 8/9 main/article outside dialog.' },
+  { native: true, css: 'top:0;left:-25vw;width:50vw;height:50vh;pointer-events:none', percent: 12.5, expectedHits: null },
+])('reports persistent visible dialogs without retaining their text or selectors ($native, $percent%)', async ({ native, css, percent, expectedHits }) => {
+  const tag = native ? 'dialog' : 'div';
+  const p = await page(`<main>${fixture()}</main><${tag} id="private-marker" ${native ? '' : 'role="dialog" aria-modal="true"'}
+    style="position:fixed;margin:0;padding:0;border:0;z-index:99;background:white;${css}">Unpublished dialog text</${tag}>`);
+  if (native) await p.locator('dialog').evaluate(element => (element as HTMLDialogElement).showModal());
+  const updates: SampleProgress[] = [];
+  const photograph = vi.spyOn(p, 'screenshot');
+  try {
+    const capture = captureSamples(p as unknown as CapturePage, profile, Date.now() + 12000, Date.now(), async () => {}, () => {},
+      { progress: update => updates.push(update) });
+    const response = await capture.then(() => { throw new Error('Expected capture to fail'); }, errorResponse);
+    expect(response.status).toBe(422);
+    expect(await response.json()).toEqual({ detail: { code: 'CAPTURE_EVIDENCE_INSUFFICIENT', retryable: false,
+      message: 'A dialog blocked every attempted sample. Try another publicly accessible page.' } });
+    expect(photograph).not.toHaveBeenCalled();
+    const { accepted, rejected } = updates.at(-1)!;
+    expect(accepted).toBe(0);
+    expect(rejected.map(sample => sample.anchor)).toEqual(['context', 'optional-region-1', 'optional-region-2']);
+    for (const sample of rejected) {
+      expect(sample.reason).toContain(`Dialog box intersects ${percent}% of viewport; native modal: ${native}; 3x3 hit test: `);
+      if (expectedHits) expect(sample.reason).toContain(expectedHits);
+    }
+    expect(JSON.stringify(rejected)).not.toMatch(/private-marker|Unpublished dialog text/);
+  } finally { await p.close(); }
+});
+
+it('keeps mixed dialog and resource failures retryable when no sample was accepted', async () => {
+  const p = await page(fixture() + '<div aria-modal="true" style="position:fixed;inset:0;background:white">A blocking dialog</div>');
+  let attempts = 0;
+  try {
+    const capture = run(p, async () => {
+      if (++attempts > 1) throw new ApiError('CAPTURE_INCOMPLETE', 'A required resource was unavailable.', 422, true);
+    });
+    await expect(capture).rejects.toMatchObject({ code: 'CAPTURE_EVIDENCE_INSUFFICIENT', status: 422, retryable: true,
+      message: 'No coherent visual sample and corresponding design measurements were captured.' });
+    expect(attempts).toBe(3);
+  } finally { await p.close(); }
 });
 
 it('accepts a genuinely short page without requiring external stylesheets or absent components', async () => {
