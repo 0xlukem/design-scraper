@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig, loadEnv } from 'vite'
+import { libraryPreviews } from './scripts/library-previews.mjs'
 import react from '@vitejs/plugin-react'
 import { readFileSync } from 'node:fs'
 
@@ -13,7 +14,7 @@ export default defineConfig(({ mode, isPreview }) => {
   const api = process.env.VITE_API_URL || loadEnv(mode, process.cwd(), 'VITE_').VITE_API_URL || builtApi
   const publicApi = api && new URL(api).protocol === 'https:' && new URL(api).origin === api && !new URL(api).username ? api : undefined
   return {
-    plugins: [react()],
+    plugins: [react(), libraryPreviews()],
     server: {
       host: '127.0.0.1',
       port: 5173,
