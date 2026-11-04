@@ -115,7 +115,7 @@ try {
   checks.push('Gallery: zero analysis requests and no session consumption');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
   await page.getByRole('button', { name: 'View Bootstrap × Milligram design', exact: true }).click();
-  await page.locator('#saved-design-preview').getByRole('heading', { name: 'Design findings' }).waitFor();
+  await page.locator('#saved-design-preview').getByRole('button', { name: 'Export design', exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Use these URLs in the form' }).count(), 0);
   await page.getByRole('button', { name: 'Close design' }).click();
   assert.equal(analyses, 0);

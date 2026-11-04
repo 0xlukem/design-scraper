@@ -160,20 +160,22 @@ try {
   await page.goto(origin);
   await page.getByRole('link',{name:'Inspect the Stripe result'}).click();
   const preview=page.locator('#saved-design-preview');
-  await preview.getByRole('heading',{name:'Design findings'}).waitFor();
+  await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
   assert.match(page.url(),/\/app\/#\/library\/stripe$/);
   await page.reload();
-  await preview.getByRole('heading',{name:'Design findings'}).waitFor();
+  await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
+  await preview.getByRole('button',{name:'Export design',exact:true}).click();
   await preview.getByRole('tab',{name:'CSS Variables',exact:true}).click();
   const downloadPromise=page.waitForEvent('download');
   await preview.getByRole('button',{name:/^Download/}).click();
   const download=await downloadPromise;
   assert.equal(await readFile(await download.path(),'utf8'),stripe.exports.css_variables);
+  await preview.getByRole('button',{name:'Close export',exact:true}).click();
   await preview.getByRole('button',{name:'Close design',exact:true}).click();
   await page.waitForURL('**/#/library');
   await page.waitForFunction(()=>document.activeElement.id==='open-stripe');
   await page.goBack();
-  await preview.getByRole('heading',{name:'Design findings'}).waitFor();
+  await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
   await page.goForward();
   await page.waitForURL('**/#/library');
   checks.push('Landing → saved Stripe → reload → exact CSS download; close and history preserve the result');
@@ -186,12 +188,12 @@ try {
   await page.goto(`${origin}/app/#/library/not-present`);
   await page.getByRole('alert').filter({hasText:'That saved design is not in the library'}).waitFor();
   await page.getByRole('button',{name:'View Milligram design',exact:true}).click();
-  await preview.getByRole('heading',{name:'Design findings'}).waitFor();
+  await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
   checks.push('Root hash and legacy /demo/ links preserve all sections; unknown example recovers in the library');
   for (const href of ['/app/#/library/github','/app/#/library/milligram','/app/#/library/bootstrap-milligram','/app/#/library/example-domain','/app/#/analyze/start','/app/#/library']) {
     await page.goto(origin);
     await page.locator(`a[href="${href}"]`).first().click();
-    if(href.includes('/library/')) await preview.getByRole('heading',{name:'Design findings'}).waitFor();
+    if(href.includes('/library/')) await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
     else if(href.includes('/analyze')) await page.getByRole('heading',{name:'One URL. The whole system.'}).waitFor();
     else await page.getByRole('heading',{name:'Design library',exact:true}).waitFor();
   }
