@@ -2,7 +2,7 @@
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { isolateReplayNetwork } from './replay-network.mjs';
+import { isolateReplayNetwork, replayApiPattern } from './replay-network.mjs';
 
 const site = process.env.PAGES_URL;
 const api = process.env.API_URL || 'https://design-scraper-phase8.lucas-malizia27.workers.dev';
@@ -22,8 +22,8 @@ async function open(reducedMotion, record = false) {
   });
   const unexpected = await isolateReplayNetwork(context, site);
   // Focusing a URL field reads the shared allowance; nothing else may leave the page.
-  await context.route("**/api/**", async route => {
-    const headers = { 'access-control-allow-origin': site, 'access-control-allow-methods': 'GET, OPTIONS' };
+  await context.route(replayApiPattern(site, api), async route => {
+    const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-methods': 'GET, OPTIONS' };
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     if (route.request().method() === 'GET' && route.request().url().endsWith('/quotas')) return route.fulfill({ headers, json: { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
     return route.fulfill({ status: 404, headers, json: { detail: { code: 'NOT_FOUND', message: 'Not found.', retryable: false } } });
@@ -195,17 +195,27 @@ try {
   checks.push('Single stays minimal with no rainbow asset download; Mix It mounts a distinct animated world');
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await still(page, 'mix', 'Changing the OS preference stops actual Mix playback');
+  await still(page, 'mix', 'System reduced motion stops surreal-world playback');
+  const pausedHeading = await page.locator('.experience-headline').evaluate(async element => {
+    const before = getComputedStyle(element);
+    const snapshot = { opacity: before.opacity, transform: before.transform };
+    await new Promise(resolve => setTimeout(resolve, 180));
+    const after = getComputedStyle(element);
+    return { before: snapshot, after: { opacity: after.opacity, transform: after.transform } };
+  });
+  assert.equal(pausedHeading.before.opacity, '1', 'The hero remains visible with reduced motion');
+  assert.deepEqual(pausedHeading.after, pausedHeading.before, 'The hero stays still with reduced motion');
   await switchWorld(page, 'single');
   await settled(page);
-  await still(page, 'single', 'Reduced motion survives switching worlds');
+  await still(page, 'single', 'Reduced motion survives returning to the studio');
   assert.equal(await page.getByLabel('Website URL').inputValue(), 'https://single.example/');
   await switchWorld(page, 'mix');
   await settled(page);
   await still(page, 'mix', 'Reduced motion survives re-entering Mix It');
+  assert.equal(await page.locator('.mix-paint-sculpture').evaluate(element => getComputedStyle(element).opacity), '1');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await moving(page, 'mix');
-  checks.push('Live OS motion preference changes stop and resume actual transforms across worlds');
+  checks.push('System reduced motion freezes both scenes across world changes and playback resumes when disabled');
 
   await captureTransition(page, 'single', '1440');
   await switchWorld(page, 'mix');

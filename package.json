@@ -1,0 +1,13 @@
+{
+  "name": "design-scraper",
+  "private": true,
+  "scripts": {
+    "dev": "npm run demo --",
+    "demo": "npm --prefix frontend run demo --",
+    "dev:live": "node scripts/dev-live.mjs",
+    "test:demo": "npm --prefix cloudflare-backend run test:demo"
+  },
+  "engines": {
+    "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
+  }
+}

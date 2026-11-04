@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# The application must be crawlable for its HTTP and HTML noindex rules to be read.
+Sitemap: https://design-scraper.pages.dev/sitemap.xml

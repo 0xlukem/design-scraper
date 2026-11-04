@@ -4,9 +4,9 @@
 import { chromium } from "playwright";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import assert from "node:assert/strict";
-import { isolateReplayNetwork } from "./replay-network.mjs";
+import { isolateReplayNetwork, replayApiPattern } from "./replay-network.mjs";
 import { readAnalysisResponse } from "./read-analysis-response.mjs";
-const site = process.env.PAGES_URL || "https://design-scraper.pages.dev";
+const site = process.env.PAGES_URL || "https://design-scraper.pages.dev/app/";
 const api = process.env.API_URL || "https://design-scraper-phase8.lucas-malizia27.workers.dev";
 const live = process.argv.includes("--live");
 const kinds = process.argv.includes("--mix-only") ? ["mix"] : ["single", "mix"];
@@ -57,9 +57,9 @@ if (!live) {
   });
   const single = payload(fixtures.find(f => f.bias === null));
   const mix = payload(fixtures.find(f => f.bias === 25));
-  await page.route("**/api/**", async route => {
+  await page.route(replayApiPattern(site, api), async route => {
     const req = route.request();
-    const headers = { "access-control-allow-origin": site, "access-control-allow-headers": "authorization, content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+    const headers = { "access-control-allow-origin": new URL(site).origin, "access-control-allow-headers": "authorization, content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
     if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
     if (req.url().endsWith("/quotas")) return route.fulfill({ headers, json: { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true } });
     if (injectedError) return route.fulfill({ status: injectedError.status, headers, json: { detail: injectedError } });
@@ -125,6 +125,7 @@ try {
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await assertNoOverflow(`${kind}-home-${width}`);
+      assert.equal(await page.getByRole('button', { name: 'Pause animations', exact: true }).count(), 0, 'Motion follows the system preference without a separate pause control');
       if (width <= 640) {
         const previousUrl = page.url(), previousCalls = analyses;
         await page.getByRole('link', { name: 'Go to the lab', exact: true }).click();

@@ -1,3 +1,4 @@
+import { isLocalDemo } from '../demo'
 import TelemetrySummary from './TelemetrySummary'
 import AnalysisErrorPanel from './AnalysisErrorPanel'
 import type { AnalysisIssue } from '../analysisError'
@@ -161,7 +162,7 @@ export default function ResultPanel({
 
   if (error) return <AnalysisErrorPanel issue={error} onRetry={onRetry} disabled={retryDisabled} onReviewSettings={onReviewSettings} onReviewUrl={onReviewUrl} />
 
-  if (cancelled) return <section className="stopped-result" role="status"><h2>You stopped waiting</h2><p>Remote work may continue. Activity keeps the last received usage.</p><a href="#/activity" className="secondary-button">View activity</a><button className="text-button" type="button" onClick={onRetry} disabled={retryDisabled}>Analyze again</button></section>
+  if (cancelled) return <section className="stopped-result" role="status"><h2>You stopped waiting</h2><p>{isLocalDemo ? 'Simulation stopped. No website or AI provider was called.' : 'Remote work may continue. Activity keeps the last received usage.'}</p><a href="#/activity" className="secondary-button">View activity</a><button className="text-button" type="button" onClick={onRetry} disabled={retryDisabled}>Analyze again</button></section>
 
   if (!result) return (
     <section className="findings-empty" aria-label="Design findings">

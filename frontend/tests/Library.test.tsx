@@ -7,6 +7,31 @@ import { formatLibraryDate, libraryExamples, librarySuggestions } from '../src/l
 
 afterEach(() => vi.restoreAllMocks())
 
+it('opens a shared saved-design link without fetching an API or submitting an analysis', async () => {
+  window.history.replaceState(null, '', '/app/#/library/stripe')
+  const fetcher = vi.spyOn(globalThis, 'fetch')
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Design findings' })
+  expect(screen.getByRole('heading', { name: 'Stripe', level: 1 })).toBeVisible()
+  expect(screen.getByText(/Analyzed 2026-09-10/)).toBeInTheDocument()
+  expect(fetcher).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Close design' }))
+  await waitFor(() => expect(window.location.hash).toBe('#/library'))
+  expect(screen.queryByRole('heading', { name: 'Design findings' })).not.toBeInTheDocument()
+})
+
+it('recovers from an unknown saved-design link by keeping the library available', async () => {
+  window.history.replaceState(null, '', '/app/#/library/missing-design')
+  const fetcher = vi.spyOn(globalThis, 'fetch')
+  render(<App />)
+  expect(await screen.findByRole('alert')).toHaveTextContent('That saved design is not in the library')
+  fireEvent.click(screen.getByRole('button', { name: 'View Milligram design' }))
+  await screen.findByRole('heading', { name: 'Design findings' })
+  expect(window.location.hash).toBe('#/library/milligram')
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(fetcher).not.toHaveBeenCalled()
+})
+
 const quota = { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true }
 
 it('builds every library card from the catalog with a saved design behind it', async () => {

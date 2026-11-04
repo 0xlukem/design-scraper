@@ -3,6 +3,8 @@ import type { AnalysisResult, AnalysisUsage, AnalysisTelemetry, AppMode, MixBias
 import type { AnalysisIssue } from '../analysisError'
 import { providerNames, type Provider } from '../byok'
 
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
+
 export interface UsageEntry {
   id: number
   sources?: string[]
@@ -38,8 +40,9 @@ export default function SessionUsage({ entries }: { entries: UsageEntry[] }) {
   return <section className="session-usage" aria-labelledby="session-usage-title">
     <div className="flex flex-wrap items-end justify-between gap-3">
       <h2 id="session-usage-title" className="text-2xl font-semibold">Session activity</h2>
-      <span className="font-mono text-xs">Cleared on reload</span>
+      <span className="font-mono text-xs">{isLocalDemo ? 'Local simulation · US$0' : 'Cleared on reload'}</span>
     </div>
+    {isLocalDemo && <p>This history contains simulated requests only and resets when you reload. No AI tokens, charges or remote quota are used.</p>}
     {entries.length === 0 ? <div className="usage-empty"><p>No analyses in this session.</p><a href="#/analyze" className="action-button">Analyze a website</a><a href="#/library" className="text-button">Explore saved designs</a></div> : <>
       <ol className="session-runs" aria-label="Analysis history">
         {[...entries].reverse().map(entry => <li key={entry.id} className="session-run">
@@ -63,7 +66,7 @@ export default function SessionUsage({ entries }: { entries: UsageEntry[] }) {
               </dl>
               {entry.requestSent === false ? <p>This request was blocked locally before sending. No AI provider was called and no analysis quota was used.</p> : entry.telemetry ? <TelemetrySummary telemetry={entry.telemetry} /> : <p>Detailed counters are unavailable.</p>}
               {!!entry.usage?.notes.length && <ul className="usage-summary-notes">{entry.usage.notes.map((note, index) => <li key={index}>{note}</li>)}</ul>}
-              {entry.outcome === 'cancelled' && <p>Last received usage. Remote work may continue and add cost.</p>}
+              {entry.outcome === 'cancelled' && <p>{isLocalDemo ? 'The simulation was stopped without consuming remote quota.' : 'Last received usage. Remote work may continue and add cost.'}</p>}
               {(entry.telemetry?.generation_attempts || 0) > 1 && <p>Completed response only; earlier attempts may add cost.</p>}
               </div>
             </details>
