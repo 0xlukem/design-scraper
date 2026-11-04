@@ -2,7 +2,7 @@
 import { chromium } from 'playwright';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { isolateReplayNetwork } from './replay-network.mjs';
+import { isolateReplayNetwork, replayApiPattern } from './replay-network.mjs';
 const site = process.env.PAGES_URL;
 assert.ok(site && ['localhost', '127.0.0.1'].includes(new URL(site).hostname), 'Local UI only');
 const api = process.env.API_URL || 'https://design-scraper-phase8.lucas-malizia27.workers.dev';
@@ -18,8 +18,8 @@ let analyses = 0, quotaRequests = 0, responseMode = 'success', finishSlow;
 const quota = { day: '2026-10-10', resets_at: '2026-10-11T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true };
 const catalog = JSON.parse(await readFile('../frontend/src/examples/catalog.json', 'utf8'));
 const sample = JSON.parse(await readFile('../frontend/src/examples/milligram.json', 'utf8'));
-await context.route("**/api/**", async route => {
-  const headers = { 'access-control-allow-origin': site, 'access-control-expose-headers': 'Retry-After', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, GET, OPTIONS' };
+await context.route(replayApiPattern(site, api), async route => {
+  const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-expose-headers': 'Retry-After', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, GET, OPTIONS' };
   if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
   if (route.request().url().endsWith('/providers')) return route.fulfill({ headers, json: { providers: ['gemini', 'anthropic', 'openai', 'xai'].map(provider => ({ provider, model: `${provider}-test`, inputPrice: provider === 'gemini' ? 0.75 : null, outputPrice: provider === 'gemini' ? 4.5 : null })) } });
   if (route.request().url().endsWith('/quotas')) { quotaRequests++; return route.fulfill({ headers, json: quota }); }
@@ -112,6 +112,10 @@ try {
   assert.equal(quotaRequests, quotaBeforeLibrary, 'Browsing the library never checks the shared allowance');
   await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();
   await page.getByText('No analyses in this session.', { exact: false }).waitFor();
+  const availability = page.getByRole('region', { name: 'Service availability', exact: true });
+  await availability.getByText('Service limits', { exact: true }).click();
+  await availability.getByText('17', { exact: true }).waitFor();
+  assert.equal(quotaRequests, quotaBeforeLibrary + 1, 'Opening activity checks the public counter');
   checks.push('Gallery: zero analysis requests and no session consumption');
   await page.getByRole('link', { name: 'Design library', exact: true }).click();
   await page.getByRole('link', { name: 'View Bootstrap × Milligram design', exact: true }).click();
@@ -129,6 +133,7 @@ try {
   await page.getByRole('tab', { name: /Extract design/ }).click();
   await page.getByRole('link', { name: 'Analyze', exact: true }).click();
   await page.getByLabel('Website URL', { exact: true }).waitFor();
+  assert.equal(quotaRequests, quotaBeforeLibrary + 1, 'Opening the form never checks the shared allowance by itself');
   const quotaBeforeIntent = quotaRequests;
   const chips = page.getByRole('group', { name: 'Try a reference', exact: true });
   const firstSingle = catalog.find(entry => entry.mode === 'single');

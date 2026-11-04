@@ -1,3 +1,4 @@
+import { isLocalDemo } from '../demo'
 import TelemetrySummary from './TelemetrySummary'
 import { ArrowClockwise, WarningOctagon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
@@ -11,7 +12,7 @@ export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewS
     return () => window.clearInterval(timer)
   }, [issue.retryAt])
   const remaining = Math.max(0, Math.ceil(((issue.retryAt || 0) - now) / 1000))
-  const needsSettings = /PROVIDER|AI_|BYOK|AUTH/.test(issue.code)
+  const needsSettings = issue.reviewSettings
   const summary = issue.guidance.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || issue.guidance
   return <section className="error-state" role="alert">
     <WarningOctagon size={32} weight="bold" aria-hidden="true" />
@@ -24,11 +25,11 @@ export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewS
           <ArrowClockwise size={18} aria-hidden="true" />{remaining > 0 ? `Retry in ${remaining}s` : 'Retry'}
         </button>}
         {needsSettings
-          ? <button type="button" className="action-button" onClick={onReviewSettings}>Review settings</button>
+          ? <button type="button" className="action-button" onClick={onReviewSettings}>{isLocalDemo ? 'Review demo scenario' : 'Review settings'}</button>
           : <button type="button" className={issue.retryable ? 'secondary-button' : 'action-button'} onClick={onReviewUrl}>Review URL</button>}
         <a className="text-button" href="#/library">Open saved designs</a>
       </div>
-      {issue.retryable && <p className="mt-3 text-xs">A retry is a new analysis and may consume quota.</p>}
+      {issue.retryable && <p className="mt-3 text-xs">{isLocalDemo ? 'Retry replays a successful sample without using quota.' : 'A retry is a new analysis and may consume quota.'}</p>}
       <details className="provider-rates"><summary>Error details</summary><p>{issue.message}</p><p>{issue.guidance}</p><p className="mt-3 font-mono text-xs break-all">Issue: {issue.code}</p>{issue.telemetry && <TelemetrySummary telemetry={issue.telemetry} />}</details>
     </div>
   </section>
