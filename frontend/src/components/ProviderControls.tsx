@@ -79,7 +79,7 @@ export default function ProviderControls({ busy, onChange, status = 'unverified'
 
   function clearDraft() {
     if (keyInput.current) keyInput.current.value = ''
-    setHasKey(false); setAccepted(false); setKeyIssue('')
+    setHasKey(false); setAccepted(false); setKeyIssue(''); setVisibleKey(false)
   }
   function clearKey() {
     activeKey.current = null; clearDraft(); setKeyCleared(ownKey)
