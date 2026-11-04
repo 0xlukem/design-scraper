@@ -107,25 +107,29 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     type Snapshot = { revision: number; useful: boolean; blocked: string | null;
       visibleCount: number; textLength: number; region: { x: number; y: number; width: number; height: number };
       viewport: { width: number; height: number } };
-    const snapshot = (): Snapshot => {
-      const visible = (element: Element) => {
-        if (!element.isConnected) return false;
-        const r = element.getBoundingClientRect();
-        if (r.width <= 0 || r.height <= 0 || r.right <= 0 || r.left >= innerWidth ||
-          r.bottom <= 0 || r.top >= innerHeight || r.top + scrollY >= maxHeight) return false;
-        const css = getComputedStyle(element);
-        if (css.display === 'none' || css.visibility === 'hidden' || css.opacity === '0' ||
-          !element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
-        const x = Math.max(0, Math.min(innerWidth - 1, (Math.max(0, r.left) + Math.min(innerWidth, r.right)) / 2));
-        const y = Math.max(0, Math.min(innerHeight - 1, (Math.max(0, r.top) + Math.min(innerHeight, r.bottom)) / 2));
-        const top = document.elementFromPoint(x, y);
-        return top !== null && (element === top || element.contains(top));
+    const visible = (element: Element) => {
+      if (!element.isConnected) return false;
+      const r = element.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0 || r.right <= 0 || r.left >= innerWidth ||
+        r.bottom <= 0 || r.top >= innerHeight || r.top + scrollY >= maxHeight) return false;
+      const css = getComputedStyle(element);
+      if (css.display === 'none' || css.visibility === 'hidden' || css.opacity === '0' ||
+        !element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
+      const x = Math.max(0, Math.min(innerWidth - 1, (Math.max(0, r.left) + Math.min(innerWidth, r.right)) / 2));
+      const y = Math.max(0, Math.min(innerHeight - 1, (Math.max(0, r.top) + Math.min(innerHeight, r.bottom)) / 2));
+      const top = document.elementFromPoint(x, y);
+      return top !== null && (element === top || element.contains(top));
     };
+    // A native modal makes the document behind it inert even when a pointer hit misses the dialog.
+    const findModal = () => document.querySelector('dialog:modal') ??
+      [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).find(visible);
+    const nextObservation = (until: number) => new Promise<void>(resolve =>
+      setTimeout(resolve, Math.min(100, Math.max(0, until - Date.now()))));
+    const snapshot = (): Snapshot => {
     const shown = binding.elements.filter(visible);
     binding.visibleElements = shown;
     const challenge = /^(?:just a moment|access denied|verify (?:that )?you are human|checking your browser)(?:[.\s…]|$)/i.test(document.title.trim());
-    // A native modal makes the document behind it inert even when a pointer hit misses the dialog.
-    const modal = document.querySelector('dialog:modal') ?? [...document.querySelectorAll('[aria-modal="true"]')].slice(0, 16).find(visible);
+    const modal = findModal();
     observedModal = modal ?? null;
     const busy = shown.some(element => {
         const r = element.getBoundingClientRect();
@@ -154,19 +158,28 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
       snapshot,
       // Run the short stability loop inside Chromium. Remote protocol latency
       // must not multiply every 100 ms observation into another network trip.
-      prepare: async (settleMs: number): Promise<Snapshot & { stable: boolean; dialog: DialogDiagnostic | null }> => {
+      prepare: async (settleMs: number): Promise<Snapshot & { stable: boolean; waitedForDialog: boolean; dialog: DialogDiagnostic | null }> => {
+        const until = Date.now() + settleMs;
+        let modal = findModal();
+        const waitedForDialog = Boolean(modal);
+        // Leave the page untouched while a dialog may be running its own exit animation.
+        while (modal && Date.now() < until) {
+          await nextObservation(until);
+          modal = findModal();
+        }
         binding.elements = collect();
-        for (const animation of document.getAnimations()) {
-          const element = (animation.effect as KeyframeEffect | null)?.target;
-          if (!(element instanceof Element) || animation.playState !== 'running') continue;
-          const r = element.getBoundingClientRect();
-          if (r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
-          binding.paused.push(animation); animation.pause();
+        if (!modal) {
+          for (const animation of document.getAnimations()) {
+            const element = (animation.effect as KeyframeEffect | null)?.target;
+            if (!(element instanceof Element) || animation.playState !== 'running') continue;
+            const r = element.getBoundingClientRect();
+            if (r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
+            binding.paused.push(animation); animation.pause();
+          }
         }
         let previous = snapshot(), stableAt = Date.now();
-        const until = stableAt + settleMs;
         while (Date.now() - stableAt < 300 && Date.now() < until) {
-          await new Promise(resolve => setTimeout(resolve, Math.min(100, Math.max(0, until - Date.now()))));
+          await nextObservation(until);
           const next = snapshot();
           if (next.revision !== previous.revision) stableAt = Date.now();
           previous = next;
@@ -186,7 +199,7 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           }
           dialog = { viewportPercent, nativeModal: observedModal.matches(':modal'), dialogHits, outsideMainHits };
         }
-        return { ...previous, stable: Date.now() - stableAt >= 300, dialog };
+        return { ...previous, stable: Date.now() - stableAt >= 300, waitedForDialog, dialog };
       },
     };
     return binding;
@@ -237,6 +250,8 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
           if (!previous.useful) throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', previous.blocked
             ? `The sample is obscured by ${previous.blocked} content.`
             : `The sample has insufficient unobstructed content (${previous.visibleCount} visible nodes, ${previous.textLength} text characters).`, 422, true);
+          if (!previous.stable && previous.waitedForDialog)
+            throw new ApiError('CAPTURE_SAMPLE_UNAVAILABLE', 'The page did not stabilize after the dialog cleared within the sample time budget.', 422, true);
           if (!previous.stable) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'The photographed content did not stabilize.', 422, true);
           if (previous.viewport.width !== 1440 || previous.viewport.height !== 900)
             throw new ApiError('CAPTURE_COMPOSITION_FAILED', 'The capture viewport changed.', 502, true);

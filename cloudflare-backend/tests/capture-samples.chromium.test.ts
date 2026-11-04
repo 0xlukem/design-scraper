@@ -196,6 +196,39 @@ it.each([
   } finally { await p.close(); }
 });
 
+it('waits passively for an animated dialog to clear, then measures the newly revealed content', async () => {
+  const p = await page(`<style>@keyframes finish { from {opacity:.95} to {opacity:1} }
+    [aria-modal] {position:fixed;inset:0;background:white}</style>
+    <div aria-modal="true"><h1>Temporary dialog text</h1></div>`);
+  const ready = vi.fn(async () => {
+    await p.evaluate(() => {
+      const dialog = document.querySelector<HTMLElement>('[aria-modal]')!;
+      dialog.addEventListener('animationend', () => {
+        dialog.remove();
+        document.body.insertAdjacentHTML('beforeend', '<main><h1 style="font-size:37px">Public editorial content</h1><p>Newly rendered evidence for this short page.</p></main>');
+        document.body.dataset.clearedAt = String(performance.now());
+      }, { once: true });
+      dialog.style.animation = 'finish 650ms linear';
+    });
+  });
+  const photograph = p.screenshot.bind(p);
+  const shot = vi.spyOn(p, 'screenshot').mockImplementation(async options => {
+    const elapsed = await p.evaluate(() => performance.now() - Number(document.body.dataset.clearedAt));
+    expect(elapsed).toBeGreaterThanOrEqual(300);
+    return photograph(options);
+  });
+  try {
+    const capture = await run(p, ready);
+    expect(ready).toHaveBeenCalledOnce();
+    expect(shot).toHaveBeenCalledOnce();
+    expect(capture.rejected).toEqual([]);
+    expect(capture.samples).toHaveLength(1);
+    expect(capture.data.measurements).toMatchObject({ samples: expect.arrayContaining([
+      expect.objectContaining({ tag: 'h1', styles: expect.objectContaining({ fontSize: '37px' }) }),
+    ]) });
+  } finally { await p.close(); }
+});
+
 it('keeps mixed dialog and resource failures retryable when no sample was accepted', async () => {
   const p = await page(fixture() + '<div aria-modal="true" style="position:fixed;inset:0;background:white">A blocking dialog</div>');
   let attempts = 0;
