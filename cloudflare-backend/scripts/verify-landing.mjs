@@ -208,9 +208,15 @@ try {
     await mp.waitForFunction(()=>document.querySelector('#hero-scene').dataset.ready==='true');
     assert.equal(await mp.locator('#hero-scene canvas').count(),1);
     assert.equal(await mp.locator('.brand-iron').count(),1);
-    await mp.waitForFunction(()=>document.querySelector('.hero').dataset.brandPhase==='contact',{},{timeout:15000});
+    // Leave the hero within the same animation frame that shows the red contact.
+    // Round trips or Playwright's scroll stability wait can outlast that phase.
+    await mp.waitForFunction(() => {
+      if (document.querySelector('.hero').dataset.brandPhase !== 'contact' ||
+          getComputedStyle(document.querySelector('.line-hot .headline-glyph')).color !== 'rgb(227, 41, 46)') return false;
+      document.querySelector('#examples').scrollIntoView({ block: 'start', behavior: 'instant' });
+      return true;
+    }, undefined, { timeout: 15000 });
     assert.equal(await mp.locator('.hero button,#mix-it button').count(),0,'Both scenes use viewport playback without buttons');
-    await mp.locator('#examples').scrollIntoViewIfNeeded();
     await mp.waitForFunction(()=>document.querySelector('.hero').dataset.playback==='paused');
     const frozen=await mp.locator('#hero-scene').getAttribute('data-time');
     await mp.waitForTimeout(250);
