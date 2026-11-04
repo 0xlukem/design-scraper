@@ -21,7 +21,7 @@ export default function SiteFooter({ isMix = false, onSwitch }: { isMix?: boolea
           </a>
         </div>
         <div className="footer-bottom">
-          <p className="footer-credit">Made with love and overthinking<span>by Lucas Malizia</span></p>
+          <p className="footer-credit">Made with love and overthinking<span>by Lucas Malizia · <a href="/">About Design Scraper</a></span></p>
           <nav aria-label="Lucas Malizia’s social profiles" className="footer-socials">
             {socialLinks.map(link => (
               <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer">

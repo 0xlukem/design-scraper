@@ -35,6 +35,10 @@ export default function ProviderControls({ busy, onChange, status = 'unverified'
     trigger.current?.focus()
   }
   function openPanel() {
+    if (open) {
+      providerInput.current?.focus()
+      return
+    }
     setProvider(activeKey.current?.provider || 'gemini')
     setAccepted(Boolean(activeKey.current)); setHasKey(Boolean(activeKey.current))
     setKeyIssue(''); setVisibleKey(false); setOpen(true)

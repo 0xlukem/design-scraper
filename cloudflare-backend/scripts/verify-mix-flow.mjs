@@ -15,7 +15,7 @@ const unexpected = await isolateReplayNetwork(context, site);
 const errors = [], requests = [], checks = [];
 await context.route('**/api/**', async route => {
   const request = route.request();
-  const headers = { 'access-control-allow-origin': site, 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
+  const headers = { 'access-control-allow-origin': new URL(site).origin, 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
   if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
   if (request.url().endsWith('/quotas')) return route.fulfill({ headers, json: quota });
   if (request.method() === 'POST') { requests.push({ path: new URL(request.url()).pathname, payload: request.postDataJSON() }); return route.fulfill({ headers, json: sample }); }

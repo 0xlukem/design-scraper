@@ -2,6 +2,8 @@ import type { AnalysisProgress } from '../types'
 import { CircleNotch } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 
+const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
+
 // Spinner pattern from shadcn/ui, using the project's existing Phosphor icon set.
 export default function LoadingSkeleton({ isMix, startedAt, progress, onCancel }: { isMix: boolean; startedAt?: number; progress?: AnalysisProgress; onCancel?: () => void }) {
   const [start] = useState(() => startedAt || Date.now())
@@ -26,6 +28,6 @@ export default function LoadingSkeleton({ isMix, startedAt, progress, onCancel }
     {elapsed >= 60 && <p role="status" className="mt-3 text-sm">Still waiting. Resource-heavy pages and AI processing can take longer. You can stop waiting below.</p>}
 
     {onCancel && <button type="button" className="secondary-button" onClick={onCancel}>Stop waiting for result</button>}
-    <p className="text-xs leading-relaxed text-[var(--muted)]">Stopping waiting does not cancel remote work; remote work may still consume quota. Reload clears your API key.</p>
+    <p className="text-xs leading-relaxed text-[var(--muted)]">{isLocalDemo ? 'Replaying simulated stages from committed samples. Stop waiting ends the simulation; no website or AI provider is contacted.' : 'Stopping waiting does not cancel remote work; remote work may still consume quota. Reload clears your BYOK key and does not start another analysis.'}</p>
   </section>
 }

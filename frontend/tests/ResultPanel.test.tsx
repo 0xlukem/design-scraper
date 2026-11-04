@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { makeIssue } from '../src/analysisError'
 import ResultPanel from '../src/components/ResultPanel'
 import { resultFixture } from './resultFixture'
 
@@ -218,4 +219,44 @@ it('copies all five exports byte-for-byte without changing the underlying result
   fireEvent.click(screen.getByRole('button', { name: 'Compact' }))
   fireEvent.click(screen.getByRole('button', { name: 'Copy', exact: true }))
   expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(resultFixture.documents!.compact)
+})
+
+it('restores the measured DOM locator when following an individual token', () => {
+  const result = structuredClone(resultFixture)
+  const token = result.design_system!.spacing.tokens[0]
+  token.name = 'measured-web-1-button-1-row-gap'
+  token.source = ['web_1']
+  result.design_system!.metadata.measurement_locators = {
+    'measured-web-1-button-1': { selector: 'main > button:nth-of-type(2)', source: 'web_1' },
+  }
+  render(<ResultPanel mode="single" loading={false} error={null} result={result} onRetry={vi.fn()} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Spacing', exact: true }))
+  const tokenRow = screen.getByText(token.name).closest('.token-evidence-line') as HTMLElement
+  const usages = tokenRow.closest('.spacing-aliases')!
+  fireEvent.click(usages.querySelector('summary')!)
+  fireEvent.click(within(tokenRow).getByText(/^Evidence ·/))
+  fireEvent.click(within(tokenRow).getByRole('button', { name: 'View source & gaps' }))
+  expect(screen.getByText('main > button:nth-of-type(2)')).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: 'Show all sources' }))
+  expect(screen.queryByText('main > button:nth-of-type(2)')).not.toBeInTheDocument()
+})
+
+it('focuses a new result once without taking focus on mode reactivation', () => {
+  const panel = (active: boolean) => <><button>Mode switch</button>
+    <ResultPanel mode="single" loading={false} error={null} result={resultFixture} active={active} onRetry={vi.fn()} /></>
+  const view = render(panel(true))
+  expect(screen.getByRole('heading', { name: 'example.com' })).toHaveFocus()
+  view.rerender(panel(false))
+  screen.getByRole('button', { name: 'Mode switch' }).focus()
+  view.rerender(panel(true))
+  expect(screen.getByRole('button', { name: 'Mode switch' })).toHaveFocus()
+})
+
+it('recovers from oversized analysis input by reviewing the URL', () => {
+  const onReviewUrl = vi.fn()
+  render(<ResultPanel mode="single" loading={false} error={makeIssue('AI_INPUT_LIMIT', 'Input limit reached')}
+    result={null} onRetry={vi.fn()} onReviewUrl={onReviewUrl} onReviewSettings={vi.fn()} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Review URL' }))
+  expect(onReviewUrl).toHaveBeenCalledOnce()
+  expect(screen.queryByRole('button', { name: 'Review settings' })).not.toBeInTheDocument()
 })
