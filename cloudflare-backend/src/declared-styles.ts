@@ -1,7 +1,7 @@
 import { ApiError } from './errors';
 import parse from 'css-tree/parser';
 import type { CssNode } from 'css-tree';
-import { renderDocuments, renderExports } from './domain/renderers';
+import { collectTokens, renderDocuments, renderExports } from './domain/renderers';
 import type { DesignSystem, DimensionToken } from './domain/types';
 import validate from './domain/validate.js';
 import type { ResourceTransport } from './public-resources';
@@ -79,6 +79,26 @@ export function declaredResult(url: string, found: Declaration[]) {
     metadata: { url, title: identity, description: scope, colors_extracted: system.colors.accent.length, fonts_extracted: system.typography.families.length } };
 }
 export type DeclaredResult = NonNullable<ReturnType<typeof declaredResult>>;
+
+/** Retain source values that visual analysis did not include in its exportable token groups. */
+export function retainDeclaredStyles(system: DesignSystem, declared: DesignSystem) {
+  const existing = new Set(collectTokens(system).map(t => JSON.stringify([t.category, t.value])));
+  const missing = (category: string, value: unknown) => !existing.has(JSON.stringify([category, value]));
+  const prefix = <T extends { name: string }>(token: T) => ({ ...token, name: 'declared-' + token.name });
+  const colors = declared.colors.accent.filter(t => missing('color', t.value));
+  const radii = declared.shapes.radii.filter(t => missing('radius', t.value));
+  const spacing = declared.spacing.tokens.filter(t => missing('spacing', t.value));
+  const families = declared.typography.families.filter(t => missing('font-family', t.value));
+  const sizes = declared.typography.scale.filter(t => t.size && missing('font-size', t.size.value));
+  if (!(colors.length || radii.length || spacing.length || families.length || sizes.length)) return;
+  system.colors.accent.push(...colors.map(prefix));
+  system.shapes.radii.push(...radii.map(prefix));
+  system.spacing.tokens.push(...spacing.map(prefix));
+  system.typography.families.push(...families.map(prefix));
+  system.typography.scale.push(...sizes.map(prefix));
+  system.known_gaps.push({ code: 'source-declarations-retained', source: ['web_1'],
+    message: 'Tokens prefixed with declared- come from source CSS. Their stylesheet references are retained. Their use in the photographed state is unverified.' });
+}
 
 export async function extractDeclared(url: string, transport: ResourceTransport) {
   async function get(raw: string, mime: RegExp) {

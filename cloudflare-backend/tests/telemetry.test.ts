@@ -161,3 +161,16 @@ it('streams exportable source CSS before capture and returns it after a safely c
   expect(providerCall).not.toHaveBeenCalled();
   expect(finish).toHaveBeenCalledOnce();
 });
+
+it('retains declared radii in all five formats when visual generation omits the radius group', async () => {
+  const { session } = setup();
+  const declarations: Parameters<typeof readCss>[2] = [];
+  readCss(':root{--card-radius:23px}', 'style block 1', declarations);
+  vi.mocked(extractDeclared).mockResolvedValueOnce(declaredResult('https://example.com/', declarations));
+  vi.stubGlobal('fetch', vi.fn(async () => success()));
+  const response = await session.run(sources(), 'visual-with-declarations', null);
+  expect(response.status).toBe(200);
+  const payload = await response.json() as {design_system: {shapes: {radii: unknown[]}}, documents: Record<string,string>, exports: Record<string,string>};
+  expect(payload.design_system.shapes.radii).toContainEqual(expect.objectContaining({ value: '23px', role: expect.stringContaining('declared in style block 1') }));
+  for (const output of [...Object.values(payload.documents), ...Object.values(payload.exports)]) expect(output).toContain('23px');
+});

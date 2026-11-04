@@ -166,7 +166,10 @@ export function renderDocuments(s: DesignSystem) {
       colorGroups.flatMap((x) => x[1]),
       true,
     ),
-    ...(s.metadata.extraction_method === "declared-css" ? [...group("Declared radii", s.shapes.radii), ...group("Declared spacing", s.spacing.tokens)] : []),
+    ...(s.metadata.extraction_method === "declared-css" ? [...group("Declared radii", s.shapes.radii), ...group("Declared spacing", s.spacing.tokens)] :
+      s.known_gaps.some(g => g.code === 'source-declarations-retained') ? [
+        ...group("Radii", s.shapes.radii), ...group("Spacing", s.spacing.tokens),
+      ] : []),
     ...typography(s, true),
     ...components(s, true),
     "## Key Rules",

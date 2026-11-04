@@ -9,7 +9,7 @@ import { targetUrl } from "./url-safety";
 import { providerConfig, analyze } from "./providers";
 import { normalize, type Source } from "./domain/normalize";
 import { renderDocuments, renderExports } from "./domain/renderers";
-import { extractDeclared, type DeclaredResult } from './declared-styles';
+import { extractDeclared, retainDeclaredStyles, type DeclaredResult } from './declared-styles';
 import { RELAY } from './relay-protocol';
 import { capture } from "./capture";
 import { RelayBudget, RelayResources } from "./relay-resources";
@@ -345,6 +345,7 @@ export class AnalysisSession extends DurableObject<RuntimeEnv> {
         system = normalize(result.raw, sources);
       }
       providerSuccess = true;
+      if (declared) retainDeclaredStyles(system, declared.design_system);
       const documents = renderDocuments(system);
       const exports = renderExports(system);
       const metadata =
