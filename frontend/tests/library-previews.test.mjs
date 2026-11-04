@@ -16,7 +16,7 @@ it('builds cards for new catalog entries while keeping the saved document in a l
       design_system: { colors: { brand: [{ value: '#0acafe' }], accent: [], surfaces: [], text: [] }, typography: { families: [], scale: [] } },
       documents: { extended: 'Full document from a newly added reference' }, metadata: { mode: 'single' },
     }))
-    const result = await build({ root, configFile: false, plugins: [libraryPreviews()], logLevel: 'silent',
+    const [result] = await build({ root, configFile: false, plugins: [libraryPreviews()], logLevel: 'silent',
       build: { write: false, lib: { entry, formats: ['es'] }, minify: false },
     })
     const chunks = result.output.filter(file => file.type === 'chunk')
