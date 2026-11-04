@@ -45,13 +45,17 @@ export default function VisualInspector({ system, sources = [], onBackToControls
   const [measurement, setMeasurement] = useState<{ name: string; selector: string } | null>(null)
   const panel = useRef<HTMLElement>(null)
   const nav = useRef<HTMLElement>(null)
+  const locator = useRef<HTMLDivElement>(null)
   const userNavigation = useRef(false)
   useLayoutEffect(() => {
     if (!userNavigation.current) return
-    panel.current?.focus({ preventScroll: true })
-    nav.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
     userNavigation.current = false
-  }, [active])
+    const target = locator.current || panel.current
+    if (!target) return
+    target.focus({ preventScroll: true })
+    const navHeight = nav.current?.getBoundingClientRect().height || 0
+    window.scrollTo({ top: window.scrollY + target.getBoundingClientRect().top - navHeight - 12, behavior: 'instant' })
+  }, [active, measurement])
   const jump = (section: string) => { userNavigation.current = true; setActive(section) }
   const inspect = (labels: string[], tokenName?: string) => {
     const locators = system.metadata.measurement_locators
@@ -96,7 +100,7 @@ export default function VisualInspector({ system, sources = [], onBackToControls
       {active === 'responsive' && <><p className="section-caveat">CSS rules can be detected from one viewport. They do not prove how every screen behaves.</p><div className="responsive-grid"><div><h4>Breakpoints</h4>{system.responsive.breakpoints.map((token, index) => <EvidenceLine token={token} key={index} />)}{!system.responsive.breakpoints.length && <p>No explicit breakpoints detected.</p>}</div><div>{(['detected', 'inferred', 'interpreted'] as const).map(status => { const changes = system.responsive.changes.filter(token => token.status === status); return changes.length ? <div key={status}><h4>{status === 'detected' ? 'Detected rules' : status === 'inferred' ? 'Inferred changes' : 'AI interpretations'}</h4>{changes.map((token, index) => <EvidenceLine token={token} key={index} />)}</div> : null })}{!system.responsive.changes.length && <p>No responsive changes recorded.</p>}</div></div></>}
       {active === 'evidence' && <div className="evidence-content">
         {sourceFilter.length > 0 && <p className="section-caveat">Showing evidence for {sourceFilter.map(label => sources.find(source => source.label === label)?.url || label.replace('_', ' ')).join(', ')}. <button className="text-button" type="button" onClick={() => inspect([])}>Show all sources</button></p>}
-        {measurement && <div className="measurement-locator"><h4>Measured element</h4><p>{measurement.name}</p><code>{measurement.selector}</code></div>}
+        {measurement && <div ref={locator} tabIndex={-1} className="measurement-locator"><h4>Measured element</h4><p>{measurement.name}</p><code>{measurement.selector}</code></div>}
         <h4>Captured sources</h4><ul className="source-records">{system.evidence.sources.map(source => { const detail = sources.find(item => item.label === source.label); return <li key={source.label}><strong>{detail?.url || source.label.replace('_', ' ')}</strong><span>{source.weight}% influence · {source.status}</span></li> })}{!system.evidence.sources.length && <li>Source coverage was not recorded.</li>}</ul>
         <h4>Coverage &amp; limitations</h4>{(['Capture limits', 'Measurement limits', 'Interpretation limits'] as const).map(group => { const gaps = selectedGaps.filter(gap => gapGroup(gap.code) === group); return gaps.length > 0 && <details key={group} className="gap-group"><summary>{group} · {gaps.length}</summary>{gaps.map((gap, index) => <div className="gap-record" key={index}><p>{gap.message}</p><details><summary>Source &amp; technical code</summary><code>{gap.code}</code><p>Source: {gap.source.map(label => sources.find(source => source.label === label)?.url || label.replace('_', ' ')).join(', ') || 'Unspecified'}</p></details></div>)}</details> })}{!selectedGaps.length && <p>No limitations recorded for this source. This is not a guarantee of complete coverage.</p>}<EvidenceGuide />
       </div>}
