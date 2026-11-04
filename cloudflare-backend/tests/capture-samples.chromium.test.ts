@@ -64,6 +64,38 @@ it('stops at the first useful viewport without scrolling or preparing another sa
   } finally { await p.close(); }
 });
 
+it('prefers a fallback with measured text over a deeper screen with an unresolved editorial image', async () => {
+  const p = await page('<main style="height:4250px"><h1>Useful but unstable first screen</h1>' +
+    '<h2 style="position:absolute;top:1350px;font-size:31px">Ready editorial heading</h2>' +
+    '<article style="position:absolute;top:3000px"><img width="400" height="300" src="https://fixture.invalid/missing.jpg">' +
+    '<h2 style="font-size:57px">Unloaded image and title</h2></article></main>');
+  let attempts = 0;
+  try {
+    const result = await run(p, async () => {
+      if (++attempts === 1) throw new ApiError('CAPTURE_SAMPLE_UNSTABLE', 'Initial screen changed.', 422, true);
+      const resources = await p.evaluate(`(${captureReadiness})({height:4000,viewportOnly:true,waitMs:0})`) as { pending: number };
+      expect(resources.pending).toBe(0);
+    });
+    expect(attempts).toBe(2);
+    expect(result.samples).toMatchObject([{ sequence: 2 }]);
+    expect(result.data.measurements).toMatchObject({ samples: expect.arrayContaining([
+      expect.objectContaining({ tag: 'h2', styles: expect.objectContaining({ fontSize: '31px' }) }),
+    ]) });
+    expect(JSON.stringify(result.data.measurements)).not.toContain('57px');
+  } finally { await p.close(); }
+});
+
+it('requires an image only when its ancestor-clipped pixels intersect the actual viewport', async () => {
+  const p = await page('<div style="height:920px"></div><article style="height:140px;position:relative;overflow:hidden">' +
+    '<img width="270" height="400" style="position:absolute;top:-250px" src="https://fixture.invalid/photo.jpg"></article><div style="height:1500px"></div>');
+  const read = () => p.evaluate(`(${captureReadiness})({height:4000,viewportOnly:true,waitMs:0})`) as Promise<{ pending: number; imageProblem: string | null }>;
+  try {
+    expect(await read()).toMatchObject({ pending: 0, imageProblem: null });
+    await p.evaluate(() => scrollTo(0, 500));
+    expect(await read()).toMatchObject({ pending: 1, imageProblem: expect.stringMatching(/img #1 .*270x400, inside article/) });
+  } finally { await p.close(); }
+});
+
 it('finds useful content below a blank first viewport within the same capture', async () => {
   const p = await page('<header style="height:1300px"></header><main><h1>Lower editorial content</h1><p>A readable article with measured typography.</p></main>');
   const shot = vi.spyOn(p, 'screenshot');

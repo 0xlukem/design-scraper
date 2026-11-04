@@ -46,13 +46,16 @@ export function config(env: Settings) {
         503,
       );
   }
+  const unlimitedLocal = env.LOCAL_UNLIMITED_ANALYSES === 'true';
+  if (unlimitedLocal && (!env.ALLOWED_ORIGINS || origins.some(origin => !['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname))))
+    throw new ApiError('CONFIGURATION_ERROR', 'Unlimited test admissions require explicit loopback origins.', 503);
   const c = {
     captureStrategy,
     origins,
     requireAuth: env.REQUIRE_AUTH !== "false",
-    daily: integer(env, "GLOBAL_DAILY_LIMIT", 10),
-    ipHourly: integer(env, "IP_HOURLY_LIMIT", 3),
-    ipDaily: integer(env, "IP_DAILY_LIMIT", 5),
+    daily: unlimitedLocal ? Infinity : integer(env, "GLOBAL_DAILY_LIMIT", 10),
+    ipHourly: unlimitedLocal ? Infinity : integer(env, "IP_HOURLY_LIMIT", 3),
+    ipDaily: unlimitedLocal ? Infinity : integer(env, "IP_DAILY_LIMIT", 5),
     budgetEnabled: env.AI_BUDGET_ENABLED === "true",
     dailyMicroUsd: integer(env, "DAILY_AI_BUDGET_MICRO_USD", 1000000),
     totalMicroUsd: integer(env, "TOTAL_AI_BUDGET_MICRO_USD", 30000000),

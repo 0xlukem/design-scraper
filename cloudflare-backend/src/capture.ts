@@ -326,7 +326,11 @@ export async function capture(
       window.scrollTo({ left: 0, top: 0, behavior: "instant" });
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }, c.height);
-    let readiness!: {stylesLoaded:boolean;fontsLoaded:boolean;pending:number;outside:number;required:string[];imageUrls:string[];backgroundUrls:string[]};
+    type Readiness = {
+      stylesLoaded: boolean; fontsLoaded: boolean; pending: number; imageProblem: string | null;
+      outside: number; required: string[]; imageUrls: string[]; backgroundUrls: string[];
+    };
+    let readiness!: Readiness;
     const missingBackgroundsSet = new Set<string>();
     const checkFailedScripts = async () => {
       if (!failedScripts.size) return;
@@ -338,10 +342,7 @@ export async function capture(
     const waitForResources = async (sampleMs = 10000) => {
     stage("resources");
     const readReadiness = (waitMs: number) => page.evaluate(`(${captureReadiness})(${JSON.stringify({ height: c.height,
-      viewportOnly: true, localFonts: c.captureStrategy === "samples", pendingStylesheets: c.captureStrategy === "samples" ? [...pendingStylesheets].map(request => request.url()) : null, waitMs })})`) as Promise<{
-        stylesLoaded: boolean; fontsLoaded: boolean; pending: number; outside: number; required: string[];
-        imageUrls: string[]; backgroundUrls: string[];
-      }>;
+      viewportOnly: true, localFonts: c.captureStrategy === "samples", pendingStylesheets: c.captureStrategy === "samples" ? [...pendingStylesheets].map(request => request.url()) : null, waitMs })})`) as Promise<Readiness>;
     const readinessDeadline = Math.min(started + c.scrapeMs - 3000, Date.now() + Math.max(0, Math.min(8000, sampleMs - 1000)));
     readiness = await readReadiness(Math.max(0, readinessDeadline - Date.now()));
     // Backgrounds have no HTMLImageElement.complete flag. Wait for their
@@ -382,8 +383,20 @@ export async function capture(
       origin: (() => { try { return new URL(url).origin; } catch { return 'invalid'; } })(),
       status: imageStatuses.get(url) ?? null, browser_error: imageErrors.get(url) ?? null,
     }));
-    if (!readiness.fontsLoaded || metrics.pending_images || requiredFailures.length)
-      throw new ApiError("CAPTURE_INCOMPLETE", "Required fonts, stylesheets or visible images did not load.", 422, true);
+    if (!readiness.fontsLoaded || metrics.pending_images || requiredFailures.length) {
+      let detail = 'Required fonts, stylesheets or visible images did not load.';
+      if (c.captureStrategy === 'samples') {
+        const problems = [];
+        if (!readiness.fontsLoaded) problems.push('a viewport font is unavailable');
+        if (readiness.imageProblem) problems.push(readiness.imageProblem);
+        if (requiredFailures.length) problems.push(requiredFailures.length + ' failed image dependencies');
+        const pendingNetwork = readiness.required.filter(url => pendingImages.has(url));
+        if (pendingNetwork.length) problems.push(pendingNetwork.length + ' pending image requests (' +
+          (readiness.imageUrls.includes(pendingNetwork[0]) ? 'content image or poster' : 'CSS background') + ')');
+        detail = 'Viewport resources: ' + problems.join(', ') + '.';
+      }
+      throw new ApiError("CAPTURE_INCOMPLETE", detail, 422, true);
+    }
       for(const url of newMissingBackgrounds) missingBackgroundsSet.add(url);
       metrics.missing_background_images = missingBackgroundsSet.size;
       stage("screenshot");

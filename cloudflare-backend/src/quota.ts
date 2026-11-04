@@ -248,10 +248,10 @@ export class QuotaCoordinator extends DurableObject<Env> {
     const c = config(this.env as unknown as Settings);
     return {
       day: s.day, resets_at: new Date(Date.parse(s.day + 'T00:00:00Z') + 86400000).toISOString(),
-      analyses: { used: s.admitted, limit: c.daily, remaining: Math.max(0, c.daily - s.admitted) },
+      analyses: { used: s.admitted, limit: s.dailyLimit, remaining: s.dailyLimit === null ? null : Math.max(0, s.dailyLimit - s.admitted) },
       capture: { used_or_reserved_ms: s.browserMsUsedOrReserved, limit_ms: c.browserDaily, remaining_ms: Math.max(0, c.browserDaily - s.browserMsUsedOrReserved) },
       concurrency: { active: s.active, limit: c.concurrency },
-      per_ip: { hourly_limit: c.ipHourly, daily_limit: c.ipDaily },
+      per_ip: { hourly_limit: s.ipHourlyLimit, daily_limit: s.ipDailyLimit },
       demo_budget_available: (!c.budgetEnabled || (s.dailyMicroUsdUsedOrReserved! + maximumMicroUsd(c) <= c.dailyMicroUsd && s.totalMicroUsdUsedOrReserved! + maximumMicroUsd(c) <= c.totalMicroUsd)) && s.tokensUsedOrReserved + (c.inputTokens + c.outputTokens) * c.attempts <= c.dailyTokens,
     };
   }
@@ -267,8 +267,8 @@ export class QuotaCoordinator extends DurableObject<Env> {
           tokens: active.filter(v => v.funding !== 'byok').reduce((sum, v) => sum + v.tokens, 0),
           microUsd: active.filter(v => v.funding !== 'byok').reduce((sum, v) => sum + (v.microUsd || 0), 0),
         },
-        day: s.day, admitted: s.count, dailyLimit: c.daily,
-        ipHourlyLimit: c.ipHourly, ipDailyLimit: c.ipDaily,
+        day: s.day, admitted: s.count, dailyLimit: Number.isFinite(c.daily) ? c.daily : null,
+        ipHourlyLimit: Number.isFinite(c.ipHourly) ? c.ipHourly : null, ipDailyLimit: Number.isFinite(c.ipDaily) ? c.ipDaily : null,
         browserMsUsedOrReserved: s.browser, browserMsLimit: c.browserDaily,
         tokensUsedOrReserved: s.tokens, dailyTokenLimit: c.dailyTokens,
         dailyMicroUsdUsedOrReserved: s.dailyMicroUsd!,

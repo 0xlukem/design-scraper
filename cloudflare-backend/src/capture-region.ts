@@ -1,9 +1,10 @@
 /** Chromium predicate shared by readiness, computed styles and CSS selection.
  * Geometry is clipped by ancestors, so hidden carousel slides are not required. */
-export const captureRegionPredicate = String.raw`(element, height) => {
+export const captureRegionPredicate = String.raw`(element, height, viewportOnly = false) => {
   const box = element.getBoundingClientRect();
   let left = Math.max(0, box.left), right = Math.min(1440, box.right);
   let top = Math.max(-scrollY, box.top), bottom = Math.min(height - scrollY, box.bottom);
+  if (viewportOnly) { top = Math.max(0, top); bottom = Math.min(innerHeight, bottom); }
   if (right <= left || bottom <= top) return false;
   for (let current = element; current; current = current.parentElement) {
     const style = getComputedStyle(current);

@@ -78,15 +78,17 @@ export function isPublicQuota(value: unknown): value is PublicQuota {
   if (!record(value)) return false
   const analyses = value.analyses, capture = value.capture
   return date(value.day) && date(value.resets_at) && typeof value.demo_budget_available === 'boolean' &&
-    record(analyses) && ['used', 'limit', 'remaining'].every(key => count(analyses[key])) &&
+    record(analyses) && count(analyses.used) && record(value.per_ip) &&
+    ([analyses.limit, analyses.remaining, value.per_ip.hourly_limit, value.per_ip.daily_limit].every(count) ||
+      [analyses.limit, analyses.remaining, value.per_ip.hourly_limit, value.per_ip.daily_limit].every(limit => limit === null)) &&
     record(capture) && ['used_or_reserved_ms', 'limit_ms', 'remaining_ms'].every(key => amount(capture[key])) &&
-    record(value.concurrency) && count(value.concurrency.active) && count(value.concurrency.limit) &&
-    record(value.per_ip) && count(value.per_ip.hourly_limit) && count(value.per_ip.daily_limit)
+    record(value.concurrency) && count(value.concurrency.active) && count(value.concurrency.limit)
 }
 
 export function isOwnerBudget(value: unknown): value is BudgetStatus {
   if (!record(value) || !date(value.day) || value.costStatus !== 'estimated' ||
-    !['admitted', 'dailyLimit', 'ipHourlyLimit', 'ipDailyLimit', 'browserMsUsedOrReserved', 'browserMsLimit',
+    !['dailyLimit', 'ipHourlyLimit', 'ipDailyLimit'].every(key => value[key] === null || count(value[key])) ||
+    !['admitted', 'browserMsUsedOrReserved', 'browserMsLimit',
       'tokensUsedOrReserved', 'dailyTokenLimit', 'dailyMicroUsdUsedOrReserved', 'totalMicroUsdUsedOrReserved',
       'dailyMicroUsdLimit', 'totalMicroUsdLimit', 'active'].every(key => count(value[key]))) return false
   const reservations = value.activeReservations, calls = value.demoCalls

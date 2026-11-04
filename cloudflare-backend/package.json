@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test:pages": "node scripts/verify-pages.mjs && node scripts/verify-byok.mjs",
-    "dev:live": "wrangler dev --ip 127.0.0.1 --port 8787 --var ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173",
+    "dev:live": "wrangler dev --ip 127.0.0.1 --port 8787 --var LOCAL_UNLIMITED_ANALYSES:true --var ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173",
     "types": "wrangler types",
     "generate": "node scripts/generate-contract.mjs",
     "typecheck": "tsc --noEmit",

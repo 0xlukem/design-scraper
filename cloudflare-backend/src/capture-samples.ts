@@ -78,19 +78,37 @@ export async function captureSamples(page: Page, c: Config, deadline: number, st
     };
     // Only search below the fold after the initial viewport has failed.
     const positionFallback = () => {
-      let best: Element | undefined;
-      let bestY = 0;
-      for (const element of collect()) {
-        if (!element.matches('h1,h2,h3,[role="heading"],button,input:not([type="hidden"]),a[href],article,[class~="card"],p,li,section,main')) continue;
+      const nodes = collect();
+      const candidates = new Map<number, { element: Element; y: number }>();
+      const unloaded: { top: number; bottom: number }[] = [];
+      const maxScroll = Math.max(0, Math.min(maxHeight, document.documentElement.scrollHeight) - innerHeight);
+      for (const element of nodes) {
+        const image = element instanceof HTMLImageElement;
+        if (image ? element.complete && element.naturalWidth > 0 :
+          !element.matches('h1,h2,h3,[role="heading"],button,input:not([type="hidden"]),a[href],article,[class~="card"],p,li,section,main')) continue;
         const box = element.getBoundingClientRect();
         const y = box.top + scrollY;
-        if (y < 800 || y >= maxHeight || y <= bestY || box.width <= 0 || box.height <= 0 ||
+        if (box.width <= 0 || box.height <= 0 || box.right <= 0 || box.left >= innerWidth || y >= maxHeight ||
           !element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
-        best = element;
-        bestY = y;
+        if (image) {
+          unloaded.push({ top: y, bottom: box.bottom + scrollY });
+        } else if (y >= 800) {
+          // Consider a bounded set of distinct screens, keeping the deepest anchor in each band.
+          const band = Math.floor(y / (innerHeight / 2));
+          if (y > (candidates.get(band)?.y ?? 0)) candidates.set(band, { element, y });
+        }
       }
-      // A short page gets one fresh observation of its only viewport.
-      window.scrollTo({ top: Math.min(Math.max(0, bestY - innerHeight / 3), maxHeight - innerHeight), left: 0, behavior: 'instant' });
+      let best: Element | undefined;
+      let top = 0, bestY = 0, leastPending = Infinity;
+      for (const { element, y } of candidates.values()) {
+        const target = Math.max(0, Math.min(maxScroll, y - innerHeight / 3));
+        const pending = unloaded.filter(box => box.bottom > target && box.top < target + innerHeight).length;
+        if (pending < leastPending || (pending === leastPending && y > bestY)) {
+          best = element; bestY = y; top = target; leastPending = pending;
+        }
+      }
+      // Readiness is checked again at the real scroll position, including newly lazy-loaded images.
+      window.scrollTo({ top, left: 0, behavior: 'instant' });
       return best ? selector(best) ?? 'optional-region-1' : 'context';
     };
     // Compare observations inside Chromium. Only the revision number crosses the

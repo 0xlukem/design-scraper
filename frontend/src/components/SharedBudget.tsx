@@ -43,14 +43,14 @@ export default function SharedBudget({ revision, active }: { revision: number; a
         : <p>Checking this counter does not run an analysis or use AI credit.</p>}
     </div>
     <dl className="availability-metrics" aria-label={error && quota ? 'Last known site capacity' : 'Site capacity'} aria-busy={loading}>
-      <div><dt>Analyses left today</dt><dd>{quota ? quota.analyses.remaining : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${quota.analyses.limit} shared analyses` : 'Waiting for the site API'}</dd></div>
+      <div><dt>Analyses left today</dt><dd>{quota ? quota.analyses.remaining ?? 'Unlimited' : '—'}</dd><dd className="availability-metric-note">{quota ? (quota.analyses.limit === null ? 'Local testing' : `of ${quota.analyses.limit} shared analyses`) : 'Waiting for the site API'}</dd></div>
       <div><dt>Capture time left</dt><dd>{quota ? `${Number((quota.capture.remaining_ms / 60000).toFixed(2))} min` : '—'}</dd><dd className="availability-metric-note">{quota ? `of ${Number((quota.capture.limit_ms / 60000).toFixed(2))} minutes today` : 'Waiting for the site API'}</dd></div>
       <div><dt>Analyses running</dt><dd>{quota ? `${quota.concurrency.active} / ${quota.concurrency.limit}` : '—'}</dd><dd className="availability-metric-note">Shared processing capacity</dd></div>
       <div><dt>Site AI allowance</dt><dd className="availability-budget">{quota ? quota.demo_budget_available ? 'Available' : 'At capacity' : '—'}</dd><dd className="availability-metric-note">For analyses using the site’s API key</dd></div>
     </dl>
     {quota && <div className="availability-details">
       <p><strong>Daily reset</strong> <time dateTime={quota.resets_at}>{new Date(quota.resets_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}, {time(new Date(quota.resets_at))}</time></p>
-      <p><strong>Per visitor</strong> Up to {quota.per_ip.hourly_limit} analyses/hour and {quota.per_ip.daily_limit}/day.</p>
+      <p><strong>Per visitor</strong> {quota.per_ip.hourly_limit === null ? 'Unlimited local analyses.' : `Up to ${quota.per_ip.hourly_limit} analyses/hour and ${quota.per_ip.daily_limit}/day.`}</p>
       {updatedAt && <p className="availability-updated">Last updated <time dateTime={updatedAt.toISOString()}>{time(updatedAt)}</time>. Counts include reserved capacity and may change before you submit.</p>}
     </div>}
     <p className="availability-key-note"><strong>Using your own API key?</strong> AI usage is charged to your provider account. The site’s analysis and capture limits still apply. Your provider’s balance is not shown here.</p>

@@ -45,18 +45,18 @@ export interface AnalysisProgress {
 export interface PublicQuota {
   day: string;
   resets_at: string;
-  analyses: { used: number; limit: number; remaining: number };
+  analyses: { used: number; limit: number | null; remaining: number | null };
   capture: { used_or_reserved_ms: number; limit_ms: number; remaining_ms: number };
   concurrency: { active: number; limit: number };
-  per_ip: { hourly_limit: number; daily_limit: number };
+  per_ip: { hourly_limit: number | null; daily_limit: number | null };
   demo_budget_available: boolean;
 }
 export interface BudgetStatus {
   day: string;
   admitted: number;
-  dailyLimit: number;
-  ipHourlyLimit: number;
-  ipDailyLimit: number;
+  dailyLimit: number | null;
+  ipHourlyLimit: number | null;
+  ipDailyLimit: number | null;
   browserMsUsedOrReserved: number;
   browserMsLimit: number;
   tokensUsedOrReserved: number;

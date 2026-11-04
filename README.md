@@ -197,7 +197,8 @@ Open `http://localhost:5173/` for the landing or
 `http://localhost:5173/app/#/analyze` for the application. The landing and saved
 library remain accessible in both modes. In `dev:live`, all `/api` requests,
 including model rates and quotas, proxy to the local Worker at `127.0.0.1:8787`;
-the default local frontend API URL is empty for this purpose. Local quotas
+the default local frontend API URL is empty for this purpose. Local live testing has unlimited analysis counts. Browser time, AI budgets,
+concurrency and provider limits still apply. Local quotas
 live in `.wrangler/`, separate from the deployed SQLite state.
 
 After a Pages build, `npm run preview` from `frontend/` can serve the home and
@@ -481,7 +482,8 @@ The experimental path returns the first useful 1440×900 viewport per active
 source. It starts at the top and validates the photograph against visible,
 measured elements. After a recoverable failure, it tries once more within the
 shared allowance, selecting content lower in the initial 4000 px region when
-available. A short page can be observed again at the top. A successful first
+available. The fallback favors viewports with fewer unresolved content images and
+rechecks every visible dependency after scrolling. A short page can be observed again at the top. A successful first
 viewport ends sampling immediately. Taller pages report partial coverage. Changes to document
 height outside the photographed region do not invalidate it. Images are never
 stitched into an apparently continuous page. Context and controls are not hidden

@@ -1,10 +1,6 @@
 import { captureRegionPredicate } from "./capture-region";
 export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly = false, localFonts = false, pendingStylesheets = null }) => {
-  const inRegion = element => {
-    if (!((${captureRegionPredicate})(element, height))) return false;
-    const box = element.getBoundingClientRect();
-    return !viewportOnly || (box.bottom > 0 && box.top < innerHeight);
-  };
+  const inRegion = element => (${captureRegionPredicate})(element, height, viewportOnly);
   const fontsReady = () => !localFonts ? document.fonts.status === 'loaded' :
     [...document.querySelectorAll('h1,h2,h3,p,li,a,button,input')].filter(inRegion).every(element => {
       const css = getComputedStyle(element);
@@ -41,8 +37,15 @@ export const captureReadiness = String.raw`async ({ height, waitMs, viewportOnly
   for (const link of activeLinks) inactiveUrls.delete(link.href);
   const stylesLoaded = pendingStylesheets === null || (activeLinks.every(link => link.sheet) &&
     pendingStylesheets.every(url => inactiveUrls.has(url)));
+  const unresolved = images.filter(image => !image.complete || !image.naturalWidth);
+  // Identify a DOM resource without logging a request path, query, alt text or page content.
+  const first = unresolved[0];
+  const imageProblem = first ? 'img #' + (Array.prototype.indexOf.call(document.images, first) + 1) +
+    ' (' + (!first.currentSrc && !first.getAttribute('src') && !first.getAttribute('srcset') ? 'no selected source' : first.complete ? 'no intrinsic width' : 'loading') + ', ' +
+    Math.round(first.getBoundingClientRect().width) + 'x' + Math.round(first.getBoundingClientRect().height) +
+    ', ' + (first.closest('article') ? 'inside article' : 'outside article') + ')' : null;
   return { fontsLoaded: fontsReady(), stylesLoaded,
-    pending: images.filter(image => !image.complete || !image.naturalWidth).length,
+    pending: unresolved.length, imageProblem,
     outside: [...document.images].filter(image => !((${captureRegionPredicate})(image, height))).length,
     imageUrls,
     backgroundUrls: [...new Set(backgrounds)],
