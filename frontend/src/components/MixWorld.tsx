@@ -1,16 +1,25 @@
-import { memo, useRef } from 'react'
-import gsap from 'gsap'
-import { useSceneMotion } from './useSceneMotion'
+import { memo, useEffect, useRef } from 'react'
+import { createScope, createTimeline } from 'animejs'
+import { playWhileVisible } from './visible-playback'
 import './worlds.css'
 
-function MixWorld({ paused }: { paused: boolean }) {
+function MixWorld() {
   const root = useRef<HTMLDivElement>(null)
-  useSceneMotion(root, paused, () => gsap.timeline({ repeat: -1, yoyo: true, defaults: { ease: 'sine.inOut' } })
-    .to('.mix-paint-sculpture', { rotation: 3.5, y: -18, x: 9, scale: 1.035, duration: 6 }, 0)
-    .to('.mix-ribbon-back', { rotation: -7, scale: 1.035, duration: 7 }, .5)
-    .to('.mix-paint-drop-one', { y: -28, x: -7, rotation: 14, duration: 4 }, 1.2)
-    .to('.mix-paint-drop-two', { y: 21, x: 13, rotation: -18, duration: 4.5 }, 1.9)
-    .to('.mix-orbit-line', { rotation: 9, duration: 6 }, 2.3))
+  useEffect(() => {
+    const target = root.current!
+    const scope = createScope({ root: target })
+    scope.add(() => {
+      const timeline = createTimeline({ autoplay: false, defaults: { duration: 4500, ease: 'inOutSine' } })
+        .add('.mix-paint-sculpture', { rotate: [-5, 4], y: [0, -22], x: [0, 8], scale: [1, 1.035] }, 0)
+        .add('.mix-ribbon-back', { rotate: [6, -7], scale: [1, 1.035] }, 0)
+        .add('.mix-paint-drop-one', { y: [0, -28], x: [0, -7], rotate: [-23, -9] }, 0)
+        .add('.mix-paint-drop-two', { y: [0, 21], x: [0, 13], rotate: [34, 16] }, 0)
+        .add('.mix-orbit-line', { rotate: [0, 9] }, 0)
+      const playback = playWhileVisible(target, timeline.duration, progress => timeline.seek(progress * timeline.duration, true))
+      return () => playback.dispose()
+    })
+    return () => scope.revert()
+  }, [])
 
   return <div ref={root} className="mix-world" aria-hidden="true">
     <svg className="mix-ribbon-back" viewBox="0 0 800 650" fill="none">
@@ -21,7 +30,6 @@ function MixWorld({ paused }: { paused: boolean }) {
     <img className="mix-paint-sculpture" src="/images/mix-it-paint-sculpture.webp" alt="" width="1536" height="1024" decoding="async" draggable="false" />
     <div className="mix-paint-drop mix-paint-drop-one" />
     <div className="mix-paint-drop mix-paint-drop-two" />
-    <span className="mix-world-note">GOOD TASTE. ZERO GRAVITY.</span>
   </div>
 }
 

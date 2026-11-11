@@ -2,7 +2,6 @@ import { downloadFile } from '../download'
 import {
   Check,
   Copy,
-  DownloadSimple,
   Warning,
 } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
@@ -86,9 +85,7 @@ export default function DownloadButton({
           <Warning size={16} weight="bold" aria-hidden="true" />
         ) : visibleDownloadStatus === 'downloaded' ? (
           <Check size={16} weight="bold" aria-hidden="true" />
-        ) : (
-          <DownloadSimple size={16} weight="bold" aria-hidden="true" />
-        )}
+        ) : null}
         {visibleDownloadStatus === 'failed'
           ? 'Download failed'
           : visibleDownloadStatus === 'downloaded'

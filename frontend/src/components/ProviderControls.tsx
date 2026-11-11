@@ -3,6 +3,7 @@ import { byokAvailable, getProviders } from '../api'
 import { providerNames, type ByokCredentials, type Provider, type ProviderOption } from '../byok'
 
 interface Props {
+  simulated?: boolean
   busy: boolean
   onChange: (credentials: ByokCredentials | null | undefined) => void
   status?: 'unverified' | 'checking' | 'verified' | 'error'
@@ -10,7 +11,7 @@ interface Props {
   openRevision?: number
 }
 
-export default function ProviderControls({ busy, onChange, status = 'unverified', statusError = '', openRevision = 0 }: Props) {
+export default function ProviderControls({ busy, simulated = false, onChange, status = 'unverified', statusError = '', openRevision = 0 }: Props) {
   const [ownKey, setOwnKey] = useState(false)
   const [open, setOpen] = useState(false)
   const [provider, setProvider] = useState<Provider>('gemini')
@@ -99,11 +100,20 @@ export default function ProviderControls({ busy, onChange, status = 'unverified'
   const state = !ownKey ? 'included' : keyCleared ? 'unverified' : status
   const stateText = !ownKey ? 'Using Design Scraper · Included' : keyCleared ? 'Key cleared' : state === 'verified' ? 'Verified' : state === 'checking' ? 'Checking with analysis…' : state === 'error' ? 'Needs attention' : 'Ready for next analysis'
   return <div className="key-access">
-    <div className="key-access-row">
-      <span className={`key-status key-status-${state}`} role="status"><span aria-hidden="true" />{ownKey && `${providerNames[activeKey.current?.provider || provider]} · Your API key · `}{stateText}</span>
-      <button ref={trigger} type="button" className="key-trigger" disabled={busy} aria-expanded={open} aria-controls="provider-settings" onClick={openPanel}>{ownKey ? 'Manage key' : 'Use my API key'}</button>
-      {ownKey && !open && <button type="button" className="text-button" disabled={busy} onClick={useDesignScraper}>Use Design Scraper</button>}
-    </div>
+    <fieldset className="funding-picker">
+      <legend>Run analysis with</legend>
+      <div className="funding-buttons">
+        <button type="button" disabled={busy} aria-pressed={!ownKey} onClick={ownKey ? useDesignScraper : undefined}>
+          <span className="funding-light" aria-hidden="true" />{ownKey ? 'Use Design Scraper' : 'Design Scraper quota'}
+        </button>
+        <button ref={trigger} type="button" disabled={busy || simulated} aria-pressed={ownKey} aria-expanded={open} aria-controls="provider-settings" onClick={openPanel}>
+          <span className="funding-light" aria-hidden="true" />{simulated ? 'My API key' : ownKey ? 'Manage key' : 'Use my API key'}
+        </button>
+      </div>
+    </fieldset>
+    <p className="funding-note"><span className={`key-status key-status-${state}`} role="status">
+      {simulated ? 'Quota is simulated. API keys are disabled in this demo.' : <>{ownKey && `${providerNames[activeKey.current?.provider || provider]} · Your API key · `}{stateText}</>}
+    </span></p>
     {ownKey && statusError && !open && <p role="alert" className="field-help">{statusError}</p>}
     {open && <section id="provider-settings" className="key-inline" aria-labelledby="provider-heading" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); closePanel() } }}>
       <div className="dialog-heading"><h2 id="provider-heading">{ownKey ? 'Edit your API key' : 'Use your API key'}</h2></div>

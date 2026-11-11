@@ -10,7 +10,7 @@ export interface UrlSuggestion {
 export default function UrlSuggestions({ suggestions, disabled = false, onPick }: { suggestions: UrlSuggestion[]; disabled?: boolean; onPick: (suggestion: UrlSuggestion) => void }) {
   if (!suggestions.length) return null
   return <div className="url-suggestions" role="group" aria-label="Try a reference">
-    <span className="url-suggestions-label">Try</span>
+    <span className="url-suggestions-label">Examples</span>
     {suggestions.map(suggestion => <button key={suggestion.id} type="button" className="url-chip" disabled={disabled} onClick={() => onPick(suggestion)}>{suggestion.label}</button>)}
   </div>
 }

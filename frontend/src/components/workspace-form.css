@@ -1,0 +1,123 @@
+/* The workspace form uses the home page's paper, ink and fine rules. */
+.experience-shell .reference-box {
+  --form-inset: clamp(18px, 2vw, 30px);
+  margin-top: 0;
+}
+.experience-shell .reference-box .mode-toggle {
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+}
+.experience-shell .reference-box .mode-tab {
+  min-height: 52px;
+  font-size: .875rem;
+}
+.experience-shell .reference-heading {
+  margin-inline: var(--form-inset);
+  padding-top: clamp(22px, 2.5vw, 38px);
+}
+.experience-shell .reference-heading h2 {
+  font-size: clamp(1.55rem, 2.4vw, 2.25rem);
+  line-height: 1.05;
+  letter-spacing: -.055em;
+}
+.experience-shell #analysis-form .sober-form,
+.experience-shell #analysis-form .mix-form {
+  padding: 23px var(--form-inset) 0;
+}
+#analysis-form .url-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+}
+#analysis-form .url-label-row .field-help {
+  margin: 0 0 0 auto;
+  text-align: right;
+  font-size: .75rem;
+}
+#analysis-form .field-label { font-size: .82rem; }
+#analysis-form .url-input { font-size: 1rem; }
+#analysis-form .url-chip { min-height: 36px; font-size: .75rem; }
+#analysis-form .url-suggestions { margin-top: 7px; }
+#analysis-form .url-suggestions-label {
+  font: inherit;
+  font-size: .75rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.experience-shell .analysis-controls .key-access {
+  margin: 18px var(--form-inset) 0;
+  padding: 20px 0 0;
+}
+.funding-picker { min-width: 0; }
+.funding-picker legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: .82rem;
+  font-weight: 550;
+}
+.funding-buttons {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 6px;
+}
+.funding-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid #b9bcb1;
+  color: var(--ink);
+  font-size: .82rem;
+  font-weight: 550;
+  line-height: 1.25;
+}
+.funding-buttons button:enabled:hover { border-color: var(--ink); }
+.funding-buttons button[aria-pressed='true'] {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.funding-light {
+  flex: 0 0 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+}
+.funding-buttons [aria-pressed='true'] .funding-light {
+  background: #d7f786;
+  border-color: #d7f786;
+}
+.funding-buttons button:disabled[aria-pressed='false'] { color: var(--muted); }
+.funding-note { margin: 8px 0 0; font-size: .75rem; color: var(--muted); }
+.funding-note .key-status { font: inherit; }
+.analysis-submit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px var(--form-inset) var(--form-inset);
+}
+#analysis-form .analysis-submit .action-button {
+  flex: 1 1 11rem;
+  font-size: .9rem;
+  min-height: 48px;
+}
+.theme-sober #analysis-form .analysis-submit .action-button:enabled { background: var(--ink); color: var(--paper); }
+.theme-sober #analysis-form .analysis-submit .action-button:enabled:hover { background: #454c3d; }
+.key-dialog .provider-controls { margin-block: 18px; }
+.key-dialog .provider-details { border: 0; margin: 0; padding: 0; }
+.key-dialog .provider-rates { margin-top: 0; }
+.key-dialog .provider-details > .provider-rates { margin-top: 12px; }
+.reference-box .allowance-hint {
+  padding-inline: var(--form-inset);
+  font-family: inherit;
+  font-size: .75rem;
+  line-height: 1.5;
+}
+.allowance-hint a { text-decoration: underline; text-underline-offset: .15em; }

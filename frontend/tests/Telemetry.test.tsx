@@ -30,8 +30,8 @@ it('retains streamed error cause, retry delay and confirmed no-call telemetry', 
 it('renders a measured step percentage without pretending to estimate remaining time', () => {
   render(<LoadingSkeleton isMix={false} progress={progress} />)
   expect(screen.getByRole('progressbar')).toHaveAttribute('value', '50')
-  expect(screen.getByRole('status')).toHaveTextContent('Generating the design system · 50%')
-  expect(screen.getByText(/not a time estimate/)).toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent('Generating the design system')
+  expect(screen.getByRole('status')).toHaveTextContent(`${progress.completed_steps} of ${progress.total_steps} steps (50%)`)
 })
 it('shows zero only for confirmed no-call failures, not disconnected work', () => {
   render(<SessionUsage entries={[

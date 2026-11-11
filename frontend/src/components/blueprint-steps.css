@@ -1,0 +1,91 @@
+/* The press has its own full-width track. All other content keeps the
+   workspace measure, including on desktops with a classic scrollbar. */
+.workspace-main.workspace-with-proof {
+  max-width: none;
+  padding-inline: 0;
+}
+.workspace-with-proof > :not(.proof-press) {
+  width: calc(min(100%, var(--workspace-width)) - 2 * var(--workspace-gutter));
+  margin-inline: auto;
+}
+.proof-press {
+  position: relative;
+  margin-block-start: clamp(28px, 4vw, 60px);
+  background: #e9e8e2;
+}
+.proof-study {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+}
+.proof-poster, .proof-poster img { display: block; width: 100%; height: 100%; }
+.proof-poster img { object-fit: contain; }
+
+.print-folio.proof-press {
+  background: transparent;
+  color: var(--accent);
+  border-bottom: 1px solid var(--line);
+  padding-block: clamp(22px, 2.5vw, 38px);
+}
+.folio-inner {
+  width: calc(min(100%, var(--workspace-width)) - 2 * var(--workspace-gutter));
+  margin-inline: auto;
+}
+.folio-inner h2 {
+  font-size: clamp(1.85rem, 3.2vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -.065em;
+  font-weight: 520;
+}
+.folio-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 3vw, 48px);
+  margin: clamp(16px, 2vw, 28px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.folio-steps li {
+  min-width: 0;
+  text-align: center;
+}
+.folio-steps h3,
+.folio-number {
+  font-family: inherit;
+  font-weight: 550;
+  letter-spacing: -.045em;
+}
+.folio-number {
+  display: block;
+  font-size: clamp(2rem, 3vw, 2.875rem);
+  line-height: 1;
+}
+.folio-steps svg {
+  display: block;
+  width: 100%;
+  height: clamp(130px, 12vw, 185px);
+  margin: 7px auto 10px;
+  color: var(--muted);
+}
+.folio-steps h3 {
+  margin: 0;
+  font-size: clamp(1.08rem, 1.45vw, 1.45rem);
+  line-height: 1.16;
+}
+.folio-steps p {
+  max-width: 34ch;
+  margin: 4px auto 0;
+  color: var(--muted);
+  font-size: clamp(.8125rem, 1vw, .9375rem);
+  line-height: 1.4;
+  text-wrap: balance;
+}
+@media (max-width: 580px) {
+  .folio-steps { grid-template-columns: 1fr; gap: 0; margin-top: 16px; }
+  .folio-steps li { padding-block: 12px; }
+  .folio-steps li:first-child { padding-top: 0; }
+  .folio-steps li:last-child { padding-bottom: 0; }
+  .folio-steps li + li { border-top: 1px solid var(--line); }
+  .folio-number { font-size: 1.875rem; }
+  .folio-steps svg { height: clamp(94px, 24vw, 120px); margin-block: 4px 6px; }
+}

@@ -49,8 +49,8 @@ it('shows elapsed time and a slow response without fabricating percentage', () =
   expect(screen.getByRole('progressbar')).not.toHaveAttribute('value')
   act(() => vi.advanceTimersByTime(65000))
   expect(screen.getByLabelText('Elapsed time')).toHaveTextContent('1:05')
-  expect(screen.getAllByRole('status').some(el => el.textContent?.includes('Still waiting'))).toBe(true)
-  expect(screen.getByText(/Stopping waiting does not cancel remote work/)).toBeInTheDocument()
+  expect(screen.getAllByRole('status').some(el => el.textContent?.includes('taking longer than usual'))).toBe(true)
+  expect(screen.getByText(/analysis may continue to use quota/)).toBeInTheDocument()
 })
 
 it('separates funding and unknown costs without reporting a complete subtotal', () => {

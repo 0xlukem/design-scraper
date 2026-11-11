@@ -26,7 +26,6 @@ export default function UsageSummary({ usage }: UsageSummaryProps) {
     <section className="usage-summary" aria-labelledby={titleId}>
       <div className="usage-summary-heading">
         <div>
-          <p className="eyebrow"></p>
           <h3 id={titleId}>
             {lead} {formatTokens(usage.total_tokens)} tokens.
           </h3>

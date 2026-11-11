@@ -8,8 +8,22 @@ Tailwind-compatible CSS and design tokens JSON.
 Design Scraper is a minimal workspace for examining one reference. **Mix It** is
 its colorful experimental counterpart for combining two websites, reached through
 a GSAP paint transition. Both experiences share saved designs, session activity
-and estimated costs. The typographic study and paint sculpture pause when
-off-screen or in a hidden tab and honor reduced-motion preferences.
+and estimated costs. In Analyze, the press comes apart, reassembles and prints
+`www.`. Its lever and hinged platen are based on the
+[Adana Eight-Five instruction manual](https://drukwerkindemarge.org/download/documentatie/adana_8x5_manual.pdf).
+The full-width folio explains how a URL becomes design evidence and five
+downloadable files. Mix It has its own drawings for two references and their
+blend. These scenes pause offscreen or in a hidden tab, resume on return, and
+show the finished composition when reduced motion is enabled.
+
+The folio illustrates a type punch and matrix, a proofing table and a dispatch
+cabinet. To regenerate the hero and folio artwork, run
+`node scripts/draw-adana.mjs /path/to/anatomy` and
+`node scripts/draw-print-folio.mjs /path/to/anatomy` from `frontend/`, using
+[Anatomy at the revision used for the drawing](https://github.com/wheresryan22/anatomy/tree/1482e8469b0a9e0d8cc18ea2740a01423d29ae80).
+The hero generator records which portions of each edge are visible as parts move.
+During playback, Anime.js drives the mechanism and the browser projects
+those edges into SVG paths on each frame. Pages builds use the checked-in assets.
 
 Switching worlds plays a paint transition: the requested world renders only
 once the paint covers the viewport, and the return to Design Scraper drains the
