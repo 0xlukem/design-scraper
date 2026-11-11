@@ -59,6 +59,14 @@ try {
     assert.equal(value.headers()['x-local-demo'], 'true');
     return value;
   };
+  const results = page.getByRole('region', { name: 'Analysis results' });
+  async function checkResultsBetweenFolioAndFooter() {
+    const [folio, report, footer] = await Promise.all([
+      page.locator('.print-folio').boundingBox(), results.boundingBox(), page.getByRole('contentinfo').boundingBox(),
+    ]);
+    assert.ok(folio.y + folio.height <= report.y && report.y + report.height <= footer.y + 1,
+      'The analysis output is below the numbered folio and above the footer');
+  }
   const successful = async (mix = false, button = null) => {
     const response = await submit(mix, button);
     await page.getByRole('progressbar').waitFor();
@@ -103,10 +111,12 @@ try {
   await page.getByRole('complementary', { name: 'Local demo' }).waitFor();
   assert.equal(requests.filter(request => request.method === 'POST').length, 0, 'Entering the demo never submits an analysis');
   checks.push('Public home opens the simulated workspace without submitting');
-  assert.equal(await page.getByRole('button', { name: 'Use your own key', exact: true }).count(), 0);
+  assert.ok(await page.getByRole('button', { name: 'My API key', exact: true }).isDisabled());
+  assert.equal(await page.getByRole('button', { name: 'Design Scraper quota', exact: true }).getAttribute('aria-pressed'), 'true');
   assert.equal(await page.getByLabel('Provider API key').count(), 0);
   await page.getByLabel('Website URL', { exact: true }).fill('https://never-visit.invalid');
   const individual = await successful();
+  await checkResultsBetweenFolioAndFooter();
   assert.deepEqual(individual.documents, single.documents);
   assert.deepEqual(individual.exports, single.exports);
   assert.equal(individual.metadata.url, single.metadata.url, 'The sample must retain its original evidence URL');
@@ -144,6 +154,7 @@ try {
     assert.equal(terminal.type, 'error');
     assert.equal(terminal.payload.detail.code, code);
     await page.getByRole('alert').waitFor();
+    await checkResultsBetweenFolioAndFooter();
     await page.getByText('Error details', { exact: true }).click();
     await page.getByText(`Issue: ${code}`, { exact: true }).waitFor();
     assert.ok(await page.getByRole('button', { name: /Retry in/ }).isDisabled());

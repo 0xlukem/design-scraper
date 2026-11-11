@@ -68,8 +68,6 @@
   .url-chip, .key-trigger, .text-button, .hero-library-link, .hero-lab-link, .nav-inner nav a { font-size: .8125rem; }
   .url-chip { min-height: 44px; }
   .action-button, .secondary-button { font-size: .875rem; }
-  .findings-empty-heading > span { font-size: .75rem; white-space: normal; }
-  .findings-formats span, .findings-scope { font-size: .75rem; }
 }
 
 /* Shared actions are independent of specimen and evidence styles. */
@@ -136,8 +134,7 @@ button.copy-button:focus-visible { outline: 3px solid var(--focus); outline-offs
 @media (max-width: 540px) {
   .inspector-section-select { flex: 1 1 120px; }
   .inspector-nav { justify-content: start; }
-  .inspector-back { flex: 0 0 44px; width: 44px; height: 44px; justify-content: center; padding: 8px; }
-  .inspector-back > span { display: none; }
+  .inspector-back { min-height: 44px; justify-content: center; }
   .radius-sample { gap: 10px; grid-template-columns: 32px minmax(0, 1fr) 104px; }
   .radius-swatch { width: 32px; height: 32px; }
   .usage-summary { padding: 20px; }

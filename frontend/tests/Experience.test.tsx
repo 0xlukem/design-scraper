@@ -11,7 +11,7 @@ it('keeps Design Scraper and Mix It as distinct visual experiences', () => {
   expect(shell).toHaveClass('theme-sober')
   expect(container.querySelector('.studio-scene')).toBeInTheDocument()
   expect(container.querySelector('.mix-world')).not.toBeInTheDocument()
-  expect(screen.getByRole('heading', { name: 'Design, decoded.', exact: true })).toBeVisible()
+  expect(screen.getByRole('heading', { name: /The web,\s*in print\./ })).toBeVisible()
 
   fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Enter Mix It', exact: true }))
   expect(shell).toHaveAttribute('data-experience', 'mix')

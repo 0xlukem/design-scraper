@@ -4,6 +4,7 @@ import { formatLibraryDate, libraryExamples, type LibraryExample } from '../libr
 import ResultPanel from './ResultPanel'
 import { downloadFile, savedContent } from '../download'
 import './library.css'
+import './library-index.css'
 
 function readDesignId() {
   return window.location.hash.startsWith('#/library/') ? window.location.hash.slice('#/library/'.length) : null
@@ -75,17 +76,21 @@ export default function DesignLibrary({ active = true, busy = false, onUseRefere
   }
   return <section id="design-library" className="design-library" aria-label="Design library">
     {!selected ? <>
-      <div className="page-intro library-intro"><h1>Design library</h1><p>Saved designs, ready to explore. No analysis needed.</p></div>
+      <header className="library-masthead"><div><h1>Design library</h1><p>Browse and download saved design systems without using analysis quota.</p></div>
+        <img src="/images/extraction-study.webp" width="900" height="620" alt="" loading="lazy" decoding="async" /></header>
       {id && <p role="alert" className="form-notice">This saved design was not found. Choose a design below.</p>}
-      <div className="library-grid">{libraryExamples.map(example => <article key={example.id} className={`design-card design-card-${example.id}`}>
+      <div className="library-grid library-index">{libraryExamples.map(example => <article key={example.id} className="library-entry">
         <div className="library-cover"><img src={example.cover.src} alt={example.cover.alt} width={960} height={504} loading="lazy" decoding="async" /></div>
-        <div className="card-meta"><span>{example.mode === 'mix' ? 'Mix' : example.category}</span><time dateTime={example.date}>{formatLibraryDate(example.date)}</time></div>
-        <h2>{example.name}</h2>
-        <p className="library-domains">{example.sources.map(url => new URL(url).hostname.replace(/^www\./, '')).join(' + ')}</p>
-        <div className="library-preview-facts"><div className="library-palette" aria-label="Palette from the saved analysis">{example.preview.colors.map(color => <span key={color} style={{ background: color }} title={color} />)}</div><p title={example.preview.fonts.join(', ')}>{example.preview.fonts[0] || 'Font family not recorded'}{example.preview.fonts.length > 1 && ` +${example.preview.fonts.length - 1}`}</p></div>
+        <div className="library-entry-copy"><h2>{example.name}</h2><p>{example.description}</p>
+          <div className="library-preview-facts"><div className="library-palette" aria-label="Palette from the saved analysis">{example.preview.colors.map(color => <span key={color} style={{ background: color }} title={color} />)}</div><p title={example.preview.fonts.join(', ')}>{example.preview.fonts[0] || 'Font family not recorded'}{example.preview.fonts.length > 1 && ` +${example.preview.fonts.length - 1}`}</p></div>
+        </div>
+        <div className="library-entry-details"><span>{example.mode === 'mix' ? 'Mix' : example.category}</span><time dateTime={example.date}>{formatLibraryDate(example.date)}</time>
+          {example.sources.map(url => <a key={url} href={url} target="_blank" rel="noreferrer">{new URL(url).hostname.replace(/^www\./, '')}<span className="sr-only"> (opens in a new tab)</span></a>)}
         {example.preview.weights && <p className="library-mix-weights">{example.sources.map((source, index) => `${example.preview.weights![index]}% ${new URL(source).hostname.replace(/^www\./, '')}`).join(' · ')}</p>}
-        <div className="library-card-actions"><a id={`open-${example.id}`} href={`#/library/${example.id}`} onClick={event => navigate(event, example.id)} className="action-button" aria-label={`View ${example.name} design`}>View design</a><button type="button" className="text-button" aria-label={`Download ${example.name} design.md`} disabled={download?.id === example.id && download.status === 'loading'} onClick={() => downloadReference(example)}>{download?.id === example.id && download.status === 'loading' ? 'Preparing…' : 'Download .md'}</button></div>
+        </div>
+        <div className="library-entry-actions"><a id={`open-${example.id}`} href={`#/library/${example.id}`} onClick={event => navigate(event, example.id)} className="action-button" aria-label={`View ${example.name} design`}>View design</a><button type="button" className="text-button" aria-label={`Download ${example.name} design.md`} disabled={download?.id === example.id && download.status === 'loading'} onClick={() => downloadReference(example)}>{download?.id === example.id && download.status === 'loading' ? 'Preparing…' : 'Download .md'}</button>
         {download?.id === example.id && download.status !== 'loading' && <p role="status" className="library-download-status">{download.status === 'done' ? 'Download prepared.' : 'Download failed. Try again or open the design.'}</p>}
+        </div>
       </article>)}</div>
     </> : <div id="saved-design-preview" ref={preview} tabIndex={-1} className="saved-preview" aria-label={`${selected.name} saved design`}>
       <div className="library-detail-nav"><a href="#/library" className="text-button" onClick={event => navigate(event, null)}>← Back to library</a>{onUseReference && <button className="text-button" type="button" disabled={!result || busy} onClick={() => result && !busy && onUseReference(selected, result)} title={busy ? 'Wait for the current analysis to finish' : undefined}>Use as reference</button>}</div>

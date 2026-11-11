@@ -48,12 +48,12 @@ describe('App', () => {
   it('opens the minimal Design Scraper experience with a clear next action', () => {
     render(<App />)
     expect(
-      screen.getByRole('heading', { name: 'Design, decoded.', exact: true }),
+      screen.getByRole('heading', { name: /The web,\s*in print\./ }),
     ).toBeInTheDocument()
     expect(screen.getByLabelText('Website URL')).toBeInTheDocument()
     expect(
-      screen.getAllByText('A little input. A whole design language.')[0],
-    ).toBeInTheDocument()
+      screen.queryByRole('heading', { name: 'No analysis yet' }),
+    ).not.toBeInTheDocument()
   })
 
   it('switches complete modes and preserves each mode state', async () => {
@@ -176,7 +176,7 @@ describe('App', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /analyze design/i })) })
     expect(screen.getByRole('button', { name: /analyze design/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Retry in 2s' })).toBeDisabled()
-    expect(screen.getByText(/New analyses are available in 2s/)).toBeInTheDocument()
+    expect(screen.getByText(/start another analysis in 2s/)).toBeInTheDocument()
     fireEvent.submit(screen.getByLabelText('Website URL').closest('form')!)
     fireEvent.click(screen.getByRole('tab', { name: 'Mix It' }))
     fireEvent.change(screen.getByLabelText('First website URL'), { target: { value: 'https://one.example' } })
@@ -186,7 +186,7 @@ describe('App', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
     await act(async () => { vi.advanceTimersByTime(2100) })
     expect(screen.getByRole('button', { name: /mix designs/i })).toBeEnabled()
-    expect(screen.queryByText(/New analyses are available in/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/start another analysis in/)).not.toBeInTheDocument()
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /mix designs/i })) })
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
@@ -235,7 +235,7 @@ describe('App', () => {
 
     await waitFor(() =>
       expect(
-        screen.getAllByText('A little input. A whole design language.')[0],
+        screen.getByText(/You stopped waiting/),
       ).toBeInTheDocument(),
     )
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()

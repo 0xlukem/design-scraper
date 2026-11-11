@@ -12,7 +12,7 @@ await mkdir(artifacts, { recursive: true });
 const browser = await chromium.launch();
 const checks = [], errors = [], unexpectedNetwork = [], paintTransitions = [];
 const scene = { single: '.studio-scene', mix: '.mix-world' };
-const probe = { single: '.studio-scan', mix: '.mix-paint-sculpture' };
+const probe = { single: '.press-hero-drawing', mix: '.mix-paint-sculpture' };
 let analyses = 0;
 
 async function open(reducedMotion, record = false) {
@@ -39,6 +39,34 @@ async function open(reducedMotion, record = false) {
   page.on('request', request => {
     if (/\/api\/(analyze|mix)$/.test(request.url())) analyses++;
     if (request.url().includes('/images/mix-it-paint-sculpture.webp')) artworkRequests.push('mix-artwork');
+  });
+  if (reducedMotion === 'no-preference') await page.addInitScript(() => {
+    const frames = window.__openingStudyFrames = {};
+    const cadence = window.__pressCadence = { samples: 0, changes: 0 };
+    let previousOutline;
+    const observer = new MutationObserver(changes => {
+      const target = changes.find(change => change.target.dataset?.study === 'hero')?.target;
+      if (!target) return;
+      const progress = Number(target.dataset.progress);
+      // Count changes to visible ink while the press is coming apart,
+      // independent of the machine's refresh rate and the deliberate holds.
+      if (progress > .08 && progress < .22) {
+        const outline = target.querySelector('[data-stroke="outline"]')?.getAttribute('d');
+        cadence.samples++;
+        if (outline && outline !== previousOutline) cadence.changes++;
+        previousOutline = outline;
+      }
+      const phase = target.dataset.phase;
+      if (!['exploded', 'registered', 'contact', 'proof'].includes(phase) || frames[phase]) return;
+      frames[phase] = {
+        platen: Number(target.dataset.platenAngle),
+        handle: Number(target.dataset.handleAngle),
+        ink: target.querySelector('[data-motion="impression"]').getAttribute('opacity'),
+        y: scrollY,
+      };
+      if (frames.proof) observer.disconnect();
+    });
+    observer.observe(document, { subtree: true, attributes: true, attributeFilter: ['data-progress'] });
   });
   await page.goto(site);
   await page.getByLabel('Website URL', { exact: true }).waitFor();
@@ -98,19 +126,73 @@ async function ready(page, mode) {
 }
 
 async function still(page, mode, label) {
+  if (mode === 'single') {
+    await page.locator(scene.single).scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector('.press-hero-drawing').dataset.progress === '1.0000');
+    const study = page.locator('.press-hero-drawing');
+    assert.ok(await study.getByRole('img').isVisible(), label);
+    assert.equal(await study.getAttribute('data-playback'), 'still');
+    return;
+  }
   const samples = await page.locator(probe[mode]).evaluate(async element => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    const before = getComputedStyle(element).transform;
+    const position = () => getComputedStyle(element).transform;
+    const before = position();
     await new Promise(resolve => setTimeout(resolve, 180));
-    return [before, getComputedStyle(element).transform];
+    return [before, position()];
   });
   assert.equal(samples[0], samples[1], label);
 }
 
-async function moving(page, mode) {
-  await page.locator(scene[mode]).scrollIntoViewIfNeeded();
-  const before = await page.locator(probe[mode]).evaluate(element => getComputedStyle(element).transform);
-  await page.waitForFunction(({ selector, before }) => getComputedStyle(document.querySelector(selector)).transform !== before, { selector: probe[mode], before });
+async function watchSingle(page) {
+  await page.waitForFunction(() => window.__openingStudyFrames?.proof, null, { timeout: 15000 });
+  const cadence = await page.evaluate(() => window.__pressCadence);
+  assert.ok(cadence.samples >= 10 && cadence.changes >= .8 * cadence.samples,
+    `Moving press should redraw on most ticks; saw ${cadence.changes} changes over ${cadence.samples} ticks`);
+  const frames = await page.evaluate(() => window.__openingStudyFrames);
+  assert.deepEqual(Object.keys(frames), ['exploded', 'registered', 'contact', 'proof'], 'The press displays all four phases in order');
+  for (const pose of Object.values(frames)) assert.ok(Number.isFinite(pose.platen) && Number.isFinite(pose.handle), 'Poses carry finite joint angles');
+  assert.equal(frames.exploded.ink, '0');
+  assert.equal(frames.registered.ink, '0', 'The sheet is blank before contact');
+  assert.notEqual(frames.contact.handle, frames.registered.handle, 'The operator lowers the handle to make the impression');
+  assert.notEqual(frames.contact.platen, frames.registered.platen, 'The handle closes the platen to print');
+  assert.equal(frames.proof.platen, frames.registered.platen, 'The platen opens before the printed sheet is removed');
+  assert.equal(frames.proof.ink, '1');
+  assert.equal(frames.exploded.y, 0, 'The hero starts on arrival');
+  assert.equal(frames.proof.y, frames.exploded.y, 'The hero finishes without scrolling');
+}
+
+async function playMixInView(page) {
+  const world = page.locator(scene.mix);
+  const sculpture = page.locator(probe.mix);
+  await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.playback === 'complete');
+  // Geometry changes before intersection callbacks. Wait for the actual exit
+  // notification so a quick reentry cannot be coalesced with the previous frame.
+  await world.evaluate(element => new Promise(resolve => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(element);
+    scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+  }));
+  await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.playback === 'playing');
+  const viewportY = await page.evaluate(() => scrollY);
+  const frame = await sculpture.evaluate(el => getComputedStyle(el).transform);
+  await page.waitForFunction(first => getComputedStyle(document.querySelector('.mix-paint-sculpture')).transform !== first, frame);
+  assert.equal(await page.evaluate(() => scrollY), viewportY, 'The sculpture animates without scrolling');
+
+  await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.playback === 'paused');
+  const paused = Number(await world.getAttribute('data-progress'));
+  await still(page, 'mix', 'The offscreen sculpture holds its current pose');
+  assert.equal(Number(await world.getAttribute('data-progress')), paused);
+  assert.ok(paused > 0 && paused < 1, 'Pause partway through the sequence');
+  await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.waitForFunction(before => Number(document.querySelector('.mix-world').dataset.progress) > before, paused);
 }
 
 async function switchWorld(page, mode) {
@@ -170,6 +252,8 @@ async function captureTransition(page, mode, suffix) {
 try {
   const reduced = await open('reduce');
   await still(reduced.page, 'single', 'Reduced motion leaves the studio still');
+  assert.equal(await reduced.page.locator('.press-hero-drawing button').count(), 0);
+  assert.equal(await reduced.page.locator('[data-motion="impression"] use').evaluate(part => part.getBBox().width > 0), true);
   await switchWorld(reduced.page, 'mix');
   await settled(reduced.page);
   await still(reduced.page, 'mix', 'Reduced motion leaves the surreal world still');
@@ -183,15 +267,88 @@ try {
   const live = await open('no-preference');
   const { page } = live;
   const basePaper = await page.locator('[data-experience]').evaluate(element => getComputedStyle(element).getPropertyValue('--paper'));
-  await moving(page, 'single');
+  await watchSingle(page);
+  // Start below the fold so the test controls the press's first entry.
+  const printPage = await live.context.newPage();
+  await printPage.setViewportSize({ width: 1280, height: 500 });
+  await printPage.goto(site);
+  const proof = printPage.locator('[data-study="print"]');
+  await proof.waitFor({ state: 'attached' });
+  assert.equal(await proof.getByRole('button').count(), 0);
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 500 }]) {
+    await printPage.setViewportSize(viewport);
+    const size = await proof.evaluate(el => {
+      const { x, width, height } = el.getBoundingClientRect();
+      return { x, width, height, pageWidth: document.documentElement.clientWidth };
+    });
+    assert.equal(size.x, 0, 'The print extends to the left screen edge');
+    assert.equal(size.width, size.pageWidth, 'The print extends to the right screen edge');
+    assert.ok(size.height < viewport.height * .85, 'The three workshop studies form a compact banner');
+    const captions = await proof.locator('li').evaluateAll(steps => steps.map(step => {
+      const numeral = step.querySelector('.folio-number'), title = step.querySelector('h3');
+      const center = element => {
+        const bounds = element.getBoundingClientRect();
+        return bounds.left + bounds.width / 2;
+      };
+      const drawingCenter = center(step.querySelector('svg'));
+      return {
+        number: numeral.textContent,
+        separate: !title.contains(numeral),
+        larger: parseFloat(getComputedStyle(numeral).fontSize) > parseFloat(getComputedStyle(title).fontSize),
+        sameFamily: getComputedStyle(numeral).fontFamily === getComputedStyle(title).fontFamily,
+        aligned: [numeral, title, step.querySelector('p')].every(el => Math.abs(center(el) - drawingCenter) < 2),
+        centeredText: getComputedStyle(title).textAlign === 'center' && getComputedStyle(step.querySelector('p')).textAlign === 'center',
+      };
+    }));
+    assert.deepEqual(captions.map(caption => caption.number), ['1', '2', '3']);
+    assert.ok(captions.every(caption => caption.separate && caption.larger && caption.sameFamily && caption.aligned && caption.centeredText),
+      'Each independent number, title and caption share the drawing’s centerline');
+  }
+  assert.ok(await proof.evaluate(el => el.getBoundingClientRect().top >= innerHeight), 'The press starts offscreen');
+  await proof.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await printPage.waitForFunction(() => Number(document.querySelector('.print-folio').dataset.progress) > .10);
+  await printPage.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+  await printPage.waitForFunction(() => document.querySelector('.print-folio').dataset.playback === 'paused');
+  const pausedAt = Number(await proof.getAttribute('data-progress'));
+  await printPage.waitForTimeout(240);
+  assert.equal(Number(await proof.getAttribute('data-progress')), pausedAt, 'Leaving the viewport freezes the current sheet');
+  const resumeY = await proof.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    return scrollY;
+  });
+  await printPage.waitForFunction(() => document.querySelector('.print-folio').dataset.playback === 'playing');
+  assert.ok(Number(await proof.getAttribute('data-progress')) >= pausedAt, 'Re-entering continues the interrupted print');
+  const [poseCounts] = await Promise.all([
+    proof.evaluate(banner => {
+      const studies = [...banner.querySelectorAll('li svg')].map(svg => ({
+        parts: [...svg.querySelectorAll('[data-motion-part]')], poses: new Set(),
+      }));
+      return new Promise(resolve => {
+        function sample() {
+          for (const { parts, poses } of studies) {
+            poses.add(parts.map(el => el.getAttribute('transform') || '').join('|'));
+          }
+          if (banner.dataset.playback === 'complete') resolve(studies.map(study => study.poses.size));
+          else requestAnimationFrame(sample);
+        }
+        sample();
+      });
+    }),
+    printPage.waitForFunction(() => document.querySelector('.print-folio').dataset.playback === 'complete', null, { timeout: 15000 }),
+  ]);
+  assert.ok(poseCounts.length === 3 && poseCounts.every(count => count > 5), 'Each station has a moving physical part');
+  assert.equal(await printPage.evaluate(() => scrollY), resumeY, 'The press finishes without scrolling');
+  assert.equal(await proof.locator('li svg').count(), 3);
+  await printPage.close();
+  checks.push('The proof press starts in view, pauses outside it and finishes the three steps in order after re-entry');
   await page.getByLabel('Website URL', { exact: true }).fill('https://single.example/');
   await captureTransition(page, 'mix', '1440');
   assert.ok(live.artworkRequests.length > 0, 'Mix It loads its artwork when entered');
   assert.notEqual(await page.locator('[data-experience]').evaluate(element => getComputedStyle(element).getPropertyValue('--paper')), basePaper, 'The two worlds must have distinct surfaces');
+  await playMixInView(page);
   await page.getByLabel('First website URL').fill('https://one.example/');
   await page.getByLabel('Second website URL').fill('https://two.example/');
   await page.getByLabel('Mix balance').fill('75');
-  await moving(page, 'mix');
   checks.push('Single stays minimal with no rainbow asset download; Mix It mounts a distinct animated world');
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -214,8 +371,12 @@ try {
   await still(page, 'mix', 'Reduced motion survives re-entering Mix It');
   assert.equal(await page.locator('.mix-paint-sculpture').evaluate(element => getComputedStyle(element).opacity), '1');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await moving(page, 'mix');
-  checks.push('System reduced motion freezes both scenes across world changes and playback resumes when disabled');
+  await page.locator(scene.mix).scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => {
+    const { playback, progress } = document.querySelector('.mix-world').dataset;
+    return playback === 'playing' && Number(progress) > 0 && Number(progress) < 1;
+  });
+  checks.push('Reduced motion holds both scenes still across mode changes, and Mix It resumes viewport playback when motion is enabled');
 
   await captureTransition(page, 'single', '1440');
   await switchWorld(page, 'mix');
@@ -259,7 +420,7 @@ try {
   // A short local demonstration clip, entirely without providers or analysis.
   const clip = await open('no-preference', true);
   const video = clip.page.video();
-  await moving(clip.page, 'single');
+  await watchSingle(clip.page);
   await clip.page.waitForTimeout(650);
   await switchWorld(clip.page, 'mix');
   await settled(clip.page);

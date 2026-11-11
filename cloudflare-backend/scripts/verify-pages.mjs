@@ -122,13 +122,49 @@ try {
       await page.getByLabel("Second website URL").fill(process.env.MIX_SOURCE_TWO || "https://milligram.io/");
       await page.getByLabel("Mix balance").fill("25");
     }
-    for (const width of [1440, 768, 390, 320]) {
-      await page.setViewportSize({ width, height: 1000 });
+    for (const [width, height] of [[1440, 1000], [1280, 720], [768, 1000], [390, 844], [320, 1000]]) {
+      await page.setViewportSize({ width, height });
       await assertNoOverflow(`${kind}-home-${width}`);
       assert.equal(await page.getByRole('button', { name: 'Pause animations', exact: true }).count(), 0, 'Motion follows the system preference without a separate pause control');
-      if (width <= 640) {
+      if (kind === 'single') {
+        const title = page.locator('.workspace-hero h1');
+        const tabs = page.getByRole('tablist', { name: 'Analysis mode' });
+        const form = page.locator('#analysis-form');
+        assert.equal(await page.getByRole('link', { name: 'Extract a website' }).count(), 0);
+        await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+        const [titleBox, subtitleBox, tabsBox, formBox] = await Promise.all([
+          title.boundingBox(), page.locator('.workspace-hero .analysis-description').boundingBox(),
+          tabs.boundingBox(), form.boundingBox(),
+        ]);
+        const heroBottom = await page.locator('.press-workspace').evaluate(el => el.getBoundingClientRect().bottom);
+        assert.ok(Math.abs(heroBottom - height) <= 1, 'The initial press, controls and masthead share one viewport');
+        const copyGap = subtitleBox.y - (titleBox.y + titleBox.height);
+        assert.ok(copyGap >= 0 && copyGap <= 17, 'The subtitle sits directly under the headline');
+        const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
+        assert.ok(Math.abs(subtitleBox.x + subtitleBox.width / 2 - pageWidth / 2) < 2, 'The introduction is centered on the page');
+        assert.ok(tabsBox.y >= subtitleBox.y + subtitleBox.height, 'Mode selection follows the introduction');
+        assert.ok(Math.abs(formBox.y - tabsBox.y - tabsBox.height) < 2, 'Mode selection sits directly above the production form');
+        assert.ok(Math.abs(formBox.x - tabsBox.x) < 2 && Math.abs(formBox.width - tabsBox.width) < 2, 'The controls share a left edge and width');
+        if (width > 900) {
+          const [drawingBox, controlsBox] = await Promise.all([
+            page.locator('.press-hero-drawing').boundingBox(),
+            page.locator('.press-workspace > .reference-box').boundingBox(),
+          ]);
+          const controlsShare = formBox.width / (formBox.width + drawingBox.width);
+          assert.ok(Math.abs(controlsShare - .35) < .005, 'Desktop reserves 35% of the two columns for controls and 65% for the press');
+          const centerY = box => box.y + box.height / 2;
+          assert.ok(Math.abs(centerY(controlsBox) - centerY(drawingBox)) < 2, 'The full control group centers vertically beside the press');
+          const casting = await page.locator('.press-hero-drawing [data-plate]').boundingBox();
+          assert.ok(Math.abs(controlsBox.x - (pageWidth - casting.x - casting.width)) < 6,
+            'The control panel and visible casting have balanced outer margins');
+        }
+        if (width >= 768) {
+          const titleLines = await title.evaluate(heading => [...heading.children].map(phrase => phrase.getBoundingClientRect().top));
+          assert.equal(titleLines[0], titleLines[1], 'Both headline phrases share one line on desktop and tablet');
+        }
+      } else if (width <= 640) {
         const previousUrl = page.url(), previousCalls = analyses;
-        await page.getByRole('link', { name: 'Go to the lab', exact: true }).click();
+        await page.getByRole('link', { name: 'Go to form', exact: true }).click();
         assert.equal(await page.locator(kind === 'single' ? '#single-url' : '#mix-url-1').evaluate(element => element === document.activeElement), true);
         assert.equal(page.url(), previousUrl, 'Jumping to the form must not mutate the route');
         assert.equal(analyses, previousCalls, 'Jumping to the form must not start an analysis');

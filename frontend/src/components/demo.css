@@ -3,16 +3,30 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem 2rem;
-  padding: 1rem;
-  margin: 0 0 2rem;
-  border: 1px solid var(--muted);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
+  gap: .4rem 1.5rem;
+  padding: .45rem 0;
+  margin: 0 0 clamp(22px, 3vw, 42px);
+  border-block: 1px solid var(--line);
+  font-size: .8rem;
 }
-.local-demo > div { flex: 1 1 22rem; }
-.local-demo p { margin-top: 0.4rem; max-width: 70ch; line-height: 1.6; }
-.local-demo label { display: grid; gap: 0.4rem; min-width: 0; flex: 0 1 19rem; }
-.local-demo select { width: 100%; color: var(--ink); background: var(--paper); border: 1px solid var(--muted); border-radius: 0.25rem; padding: 0.6rem; }
+.local-demo > div, .local-demo label {
+  display: flex;
+  align-items: center;
+  gap: .4rem .9rem;
+  flex-wrap: wrap;
+}
+.local-demo strong { font-weight: 600; }
+.local-demo p { color: var(--muted); }
+.local-demo select {
+  min-height: 40px;
+  padding: .4rem;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
 .local-demo select:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-.local-demo label span { font-size: 0.75rem; line-height: 1.5; }
+@media (max-width: 640px) {
+  .local-demo { padding-block: .65rem; }
+  .local-demo label { width: 100%; justify-content: space-between; }
+  .local-demo select { min-height: 44px; }
+}

@@ -194,7 +194,7 @@ try {
     await page.goto(origin);
     await page.locator(`a[href="${href}"]`).first().click();
     if(href.includes('/library/')) await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
-    else if(href.includes('/analyze')) await page.getByRole('heading',{name:'One URL. The whole system.'}).waitFor();
+    else if(href.includes('/analyze')) await page.getByRole('heading',{name:'The web, in print.'}).waitFor();
     else await page.getByRole('heading',{name:'Design library',exact:true}).waitFor();
   }
   checks.push('Every promoted result and application destination opens without an analysis');

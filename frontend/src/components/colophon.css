@@ -1,0 +1,74 @@
+/* The footer signs the bottom rule of the drawing, in the same page gutter. */
+.workspace-main:has(> .analysis-controls) { padding-bottom: 0; }
+.analysis-results .findings-empty { border-bottom: 0; }
+
+.drawing-footer {
+  width: 100%;
+  max-width: 1400px;
+  margin: auto auto 0;
+  padding: 0 48px 20px;
+  color: var(--drawing-ink);
+}
+
+.drawing-footer-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0 clamp(20px, 3vw, 44px);
+  border-top: 1px solid var(--drawing-rule);
+}
+
+/* Registration marks where the print rule meets the sheet edges. */
+.drawing-footer-inner::before, .drawing-footer-inner::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  height: 9px;
+  border-left: 1px solid var(--drawing-rule);
+}
+.drawing-footer-inner::after { right: 0; }
+
+.drawing-footer-tools, .drawing-footer nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.drawing-footer-tools button { white-space: nowrap; }
+.drawing-footer nav { justify-self: end; gap: clamp(12px, 1.6vw, 24px); }
+
+.drawing-footer :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: .78rem;
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+.drawing-footer :is(button, a):hover { text-decoration: underline; }
+.drawing-footer :is(button, a):focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.drawing-footer .drawing-home { width: 44px; justify-content: center; }
+.drawing-home img { mix-blend-mode: multiply; }
+
+.drawing-footer .drawing-signature {
+  align-self: stretch;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 clamp(12px, 2vw, 28px);
+}
+.drawing-signature > span:first-child {
+  font: .68rem 'Geist Mono Variable', monospace;
+}
+.drawing-signature i { font: italic 1em/1.15 Georgia, 'Times New Roman', serif; }
+
+@media (max-width: 1100px) {
+  .drawing-footer { padding-inline: 32px; }
+}
+@media (max-width: 640px) {
+  .drawing-footer { padding: 0 20px 12px; }
+  .drawing-footer-inner { grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; }
+  .drawing-footer-tools { gap: 4px; }
+  .drawing-footer nav { grid-row: 2; justify-self: start; gap: 14px; padding-left: 6px; }
+  .drawing-footer .drawing-signature { grid-column: 2; grid-row: 1 / 3; align-self: start; padding: 0 8px; gap: 5px; }
+}

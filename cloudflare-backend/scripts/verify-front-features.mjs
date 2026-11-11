@@ -55,8 +55,8 @@ try {
   assert.equal(await page.getByRole('article').count(), catalog.length, 'Every catalog entry renders a card');
   assert.ok(catalog.length >= 4 && new Set(catalog.map(entry => entry.id)).size === catalog.length);
   const columns = await page.locator('.library-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
-  assert.equal(columns, 4, 'Desktop library shows four designs per row');
-  checks.push(`Catalog renders ${catalog.length} cards in a four-column grid`);
+  assert.equal(columns, 1, 'Saved designs form a single ordered list');
+  checks.push(`Catalog renders ${catalog.length} saved designs in the index`);
   for (const { name, id, mode } of catalog) {
     const mixed = mode === 'mix';
     const expected = JSON.parse(await readFile(`../frontend/src/examples/${id}.json`, 'utf8'));
@@ -176,14 +176,14 @@ try {
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 1000 });
     await overflow(`loading-${width}`);
-    if (width === 320) await page.locator('section[aria-busy="true"]').screenshot({ path: `${artifacts}/loading-mobile.png` });
+    if (width === 320) await page.getByRole('region', { name: 'Analysis progress' }).screenshot({ path: `${artifacts}/loading-mobile.png` });
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.locator('section[aria-busy="true"]').screenshot({ path: `${artifacts}/loading.png` });
+  await page.getByRole('region', { name: 'Analysis progress' }).screenshot({ path: `${artifacts}/loading.png` });
   await page.getByRole('tab', { name: /Mix It/ }).click();
   assert.ok(await page.getByRole('button', { name: /mix designs/i }).isDisabled());
   await page.getByRole('tab', { name: /Extract design/ }).click();
-  await page.getByRole('button', { name: 'Stop waiting for result' }).click();
+  await page.getByRole('button', { name: 'Stop waiting', exact: true }).click();
   await page.getByText(/You stopped waiting/).waitFor();
   finishSlow?.();
   checks.push('Indeterminate loading, cross-mode duplicate guard, cancellation');
