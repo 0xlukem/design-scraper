@@ -1,3 +1,4 @@
+import '../blueprint-steps.css'
 import { useRef } from 'react'
 import WorkshopDrawing, { useWorkshopPlayback } from './WorkshopDrawing'
 

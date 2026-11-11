@@ -5,9 +5,11 @@
 .mix-paint-drop { position: absolute; z-index: 3; }
 .mix-paint-drop-one { width: 52px; height: 81px; left: 13%; top: 13%; border-radius: 67% 33% 59% 41% / 71% 29% 71% 29%; background: radial-gradient(ellipse at 31% 22%,#fff2bd,#ffab39 23%,#fd552a 64%,#c63470 95%); box-shadow: inset -4px -5px 8px #b74b5470; transform: rotate(-23deg); }
 .mix-paint-drop-two { width: 43px; height: 65px; right: 8%; bottom: 14%; border-radius: 32% 68% 33% 67% / 35% 25% 75% 65%; background: radial-gradient(ellipse at 30% 25%,#c7f4ff,#7486ff 26%,#4a25c7 75%,#341779); transform: rotate(34deg); }
+.mix-world-note { position: absolute; z-index: 4; right: 12%; bottom: 5%; font: 600 8px 'Geist Mono Variable',monospace; color: #242624; letter-spacing: .12em; transform: rotate(-7deg); }
 @media (max-width: 640px) {
   .mix-world { aspect-ratio: 1.13; }
   .mix-paint-sculpture { width: 122%; left: -10%; top: 13%; }
   .mix-ribbon-back { width: 111%; height: 101%; left: -5%; top: 0; }
   .mix-paint-drop-one { width: 28px; height: 43px; left: 10%; top: 12%; }.mix-paint-drop-two { width: 25px; height: 39px; right: 5%; bottom: 15%; }
+  .mix-world-note { bottom: 2%; right: 8%; font-size: 5px; }
 }

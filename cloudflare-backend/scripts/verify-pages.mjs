@@ -167,7 +167,7 @@ try {
         }
       } else if (width <= 640) {
         const previousUrl = page.url(), previousCalls = analyses;
-        await page.getByRole('link', { name: 'Go to form', exact: true }).click();
+        await page.getByRole('link', { name: 'Go to the lab', exact: true }).click();
         assert.equal(await page.locator(kind === 'single' ? '#single-url' : '#mix-url-1').evaluate(element => element === document.activeElement), true);
         assert.equal(page.url(), previousUrl, 'Jumping to the form must not mutate the route');
         assert.equal(analyses, previousCalls, 'Jumping to the form must not start an analysis');

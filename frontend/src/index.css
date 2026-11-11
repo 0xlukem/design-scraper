@@ -1522,6 +1522,14 @@ input:focus-visible {
 .field-label { font-family: inherit; font-size: .875rem; letter-spacing: normal; text-transform: none; }
 .field-help { font-size: .875rem; }
 .analysis-results { margin-top: 64px; }
+.findings-empty { border: 2px solid var(--ink); background: var(--surface); box-shadow: 5px 5px 0 var(--ink); }
+.findings-empty-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--ink); }
+.findings-empty h2 { font-size: 1.125rem; font-weight: 650; letter-spacing: -.025em; }
+.findings-empty-heading > span { font-family: 'Geist Mono Variable', ui-monospace, monospace; font-size: .6875rem; color: var(--muted); }
+.findings-empty-body { display: flex; align-items: center; gap: 24px; padding: 32px 28px; }
+.findings-empty-symbol { display: grid; place-items: center; flex: 0 0 72px; height: 72px; background: var(--paper); border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); }
+.result-placeholder { font-size: 1.0625rem; font-weight: 550; line-height: 1.5; letter-spacing: -.02em; }
+.findings-scope { margin-top: 8px; font-size: .875rem; color: var(--muted); line-height: 1.6; }
 .analysis-controls .form-notice, .analysis-controls .cancellation-note { margin: 0 32px 24px; }
 .form-notice, .cancellation-note { max-width: 800px; margin: 20px auto; font-size: .875rem; line-height: 1.6; }
 .form-notice a { text-decoration: underline; }
