@@ -154,7 +154,10 @@ try {
           assert.ok(Math.abs(controlsShare - .35) < .005, 'Desktop reserves 35% of the two columns for controls and 65% for the press');
           const centerY = box => box.y + box.height / 2;
           assert.ok(Math.abs(centerY(controlsBox) - centerY(drawingBox)) < 2, 'The full control group centers vertically beside the press');
-          const casting = await page.locator('.press-hero-drawing [data-plate]').boundingBox();
+          const plateSelector = '.press-hero-drawing [data-plate]';
+          // An external SVG use can be attached while its referenced geometry is still downloading.
+          await page.waitForFunction(selector => document.querySelector(selector)?.getBBox().width > 0, plateSelector);
+          const casting = await page.locator(plateSelector).boundingBox();
           assert.ok(Math.abs(controlsBox.x - (pageWidth - casting.x - casting.width)) < 6,
             'The control panel and visible casting have balanced outer margins');
         }
