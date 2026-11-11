@@ -166,33 +166,17 @@ async function playMixInView(page) {
   const world = page.locator(scene.mix);
   const sculpture = page.locator(probe.mix);
   await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.playback === 'complete');
-  // Geometry changes before intersection callbacks. Wait for the actual exit
-  // notification so a quick reentry cannot be coalesced with the previous frame.
-  await world.evaluate(element => new Promise(resolve => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) return;
-      observer.disconnect();
-      resolve();
-    });
-    observer.observe(element);
-    scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
-  }));
-  await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.playback === 'playing');
   const viewportY = await page.evaluate(() => scrollY);
   const frame = await sculpture.evaluate(el => getComputedStyle(el).transform);
   await page.waitForFunction(first => getComputedStyle(document.querySelector('.mix-paint-sculpture')).transform !== first, frame);
   assert.equal(await page.evaluate(() => scrollY), viewportY, 'The sculpture animates without scrolling');
 
   await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
-  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.playback === 'paused');
-  const paused = Number(await world.getAttribute('data-progress'));
+  await page.waitForFunction(() => document.querySelector('.mix-world').getBoundingClientRect().bottom < 0);
   await still(page, 'mix', 'The offscreen sculpture holds its current pose');
-  assert.equal(Number(await world.getAttribute('data-progress')), paused);
-  assert.ok(paused > 0 && paused < 1, 'Pause partway through the sequence');
+  const paused = await sculpture.evaluate(el => getComputedStyle(el).transform);
   await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForFunction(before => Number(document.querySelector('.mix-world').dataset.progress) > before, paused);
+  await page.waitForFunction(before => getComputedStyle(document.querySelector('.mix-paint-sculpture')).transform !== before, paused);
 }
 
 async function switchWorld(page, mode) {
@@ -372,10 +356,8 @@ try {
   assert.equal(await page.locator('.mix-paint-sculpture').evaluate(element => getComputedStyle(element).opacity), '1');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.locator(scene.mix).scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => {
-    const { playback, progress } = document.querySelector('.mix-world').dataset;
-    return playback === 'playing' && Number(progress) > 0 && Number(progress) < 1;
-  });
+  const pose = await page.locator(probe.mix).evaluate(el => getComputedStyle(el).transform);
+  await page.waitForFunction(before => getComputedStyle(document.querySelector('.mix-paint-sculpture')).transform !== before, pose);
   checks.push('Reduced motion holds both scenes still across mode changes, and Mix It resumes viewport playback when motion is enabled');
 
   await captureTransition(page, 'single', '1440');

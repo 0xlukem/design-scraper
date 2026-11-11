@@ -1,6 +1,8 @@
+import { Lightning } from '@phosphor-icons/react'
 import type { FormEvent } from 'react'
 import { BIAS_WEIGHTS, type MixBias } from '../types'
 import BlendSlider from './BlendSlider'
+import MagneticButton from './MagneticButton'
 import UrlSuggestions, { type UrlSuggestion } from './UrlSuggestions'
 
 interface MixFormProps {
@@ -31,6 +33,7 @@ export default function MixForm({
   onSubmit,
 }: MixFormProps) {
   const [first, second] = BIAS_WEIGHTS[bias]
+  const oneSource = first === 0 || second === 0
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (!disabled && !loading) onSubmit()
@@ -85,6 +88,18 @@ export default function MixForm({
       }} />
       <BlendSlider urls={[url1, url2]} value={bias} onChange={onBiasChange} disabled={loading} />
       {duplicate && <p className="mix-duplicate" role="alert">Choose two different URLs to mix designs.</p>}
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <MagneticButton
+          type="submit"
+          tone="acid"
+          disabled={disabled || loading}
+          className="min-w-56"
+        >
+          <Lightning size={19} weight="fill" aria-hidden="true" />
+          {loading ? oneSource ? 'Analyzing source' : 'Mixing sources' : oneSource ? 'Analyze selected source' : 'Mix designs'}
+        </MagneticButton>
+
+      </div>
     </form>
   )
 }
