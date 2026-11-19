@@ -8,6 +8,8 @@
   --line: #45483e;
   --accent: #efff76;
   --focus: #efff76;
+  --mix-first: var(--acid);
+  --mix-second: var(--pink);
   --drawing-paper: var(--paper);
   --drawing-ink: var(--ink);
   --drawing-rule: var(--line);
@@ -68,9 +70,9 @@ body:has(.experience-shell.theme-wild) { background: #171815; }
 .theme-wild #analysis-form .mix-source { background: #28211e; border-color: #704c3e; }
 .theme-wild #analysis-form .mix-source-two { background: #1c2828; border-color: #426263; }
 .theme-wild .mix-source .field-label,
-.theme-wild .blend-labels > span:first-child strong { color: var(--coral); }
+.theme-wild .blend-labels > span:first-child strong { color: var(--mix-first); }
 .theme-wild .mix-source-two .field-label,
-.theme-wild .blend-labels > span:last-child strong { color: var(--cyan); }
+.theme-wild .blend-labels > span:last-child strong { color: var(--mix-second); }
 .theme-wild #analysis-form .mix-source[data-excluded='true'] { background: var(--surface); border-color: var(--line); }
 .theme-wild .url-input,
 .theme-wild .mix-source .url-input { background: var(--paper); border-color: #66695e; color: var(--ink); }

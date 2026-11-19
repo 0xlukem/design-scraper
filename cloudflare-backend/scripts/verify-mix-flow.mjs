@@ -73,6 +73,27 @@ async function dragPaint(input, { touch = false, reduced = false } = {}) {
   }
 }
 try {
+  await openMix();
+  for (const width of [390, 900, 901, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const title = await page.locator('.mix-workspace-heading').boundingBox();
+    const form = await page.locator('.reference-box').boundingBox();
+    const scene = await page.locator('.mix-world').boundingBox();
+    assert.ok(title.y + title.height <= form.y + 1, 'The centered heading precedes the controls');
+    if (width > 900) {
+      assert.ok(form.x + form.width <= scene.x, 'Desktop controls sit beside the blender');
+    } else {
+      assert.ok(form.y + form.height <= scene.y, 'Mobile keeps the form before the decorative scene');
+    }
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Workspace does not overflow');
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator('.mix-letter').first().waitFor();
+  await page.locator('.experience-switch').click();
+  await page.locator('.theme-sober').waitFor();
+  await page.locator('.experience-switch').click();
+  await page.locator('.mix-workspace').waitFor();
+  checks.push('Design Scraper layout: centered heading, controls beside the scene, form-first mobile order');
   for (const bias of [-50, 50]) {
     await openMix();
     const active = page.getByLabel(bias === -50 ? 'First website URL' : 'Second website URL');

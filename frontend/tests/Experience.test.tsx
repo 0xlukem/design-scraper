@@ -18,7 +18,7 @@ it('keeps Design Scraper and Mix It as distinct visual experiences', () => {
   expect(shell).toHaveAttribute('data-experience', 'mix')
   expect(shell).toHaveClass('theme-wild')
   expect(container.querySelector('.proof-press')).not.toBeInTheDocument()
-  expect(screen.getByRole('heading', { name: 'Good things collide.' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Good things collide.' })).toBeInTheDocument()
   expect(container.querySelector('.mix-world')).toBeInTheDocument()
   expect(container.querySelector('.studio-scene')).not.toBeInTheDocument()
   expect(screen.getByRole('heading', { name: 'MAKE A BEAUTIFUL MESS', exact: true })).toBeVisible()

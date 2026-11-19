@@ -5,6 +5,7 @@ import './index.css'
 import './experience.css'
 import './components/inspector.css'
 import './mix-theme.css'
+import './mix-workspace.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

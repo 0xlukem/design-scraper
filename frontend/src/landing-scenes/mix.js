@@ -7,6 +7,7 @@ import {createMixInk} from './mix-ink.js';
 
 export function mountMix(root, options={}) {
 const hero=options.variant==='hero';
+const workspace=hero&&root.classList.contains('mix-workspace');
 const host=options.host??root.querySelector('#mix-scene');
 const state=options.state??root;
 const message=root.querySelector(hero?'.mix-scene-error':'#mix-error');
@@ -57,7 +58,7 @@ function start(font){
   const shadow=new THREE.Mesh(floorGeometry,new THREE.ShadowMaterial({opacity:.34}));shadow.rotation.x=-Math.PI/2;shadow.position.y=FLOOR-.035;shadow.receiveShadow=true;scene.add(shadow);
   const blender=buildBlender(font,m);scene.add(blender.rig);
   const ink=createMixInk({banner:root,host,camera,rig:blender.rig,
-    ...(hero?{title:root.querySelector('.experience-headline'),keepoutSelectors:['.analysis-description','.hero-actions']}:{}),
+    ...(hero?{title:root.querySelector('.experience-headline'),keepoutSelectors:['.analysis-description','.hero-actions','.reference-box']}:{}),
   });
   const tokens=[];
   for(let i=0;i<21;i++){
@@ -137,6 +138,7 @@ function start(font){
     const {width,height}=host.getBoundingClientRect();mobile=innerWidth<=760;
     blenderX=mobile?0:Math.min(BLENDER_X,Math.max(.8,.8+(width/height-1)*3.6));
     if(hero){camera.position.set(7,5,mobile?14:16);camera.lookAt(0,mobile?-.05:-.35,0)}
+    if(workspace){blenderX=0;camera.position.set(7,5,14);camera.lookAt(0,-.15,0)}
     camera.aspect=width/height;camera.fov=mobile?28:27.5;camera.updateProjectionMatrix();
     blender.rig.position.x=blenderX;blender.rig.updateMatrixWorld(true);
     renderer.setSize(width,height,false);ink.resize();draw(clock.ms);
@@ -151,7 +153,7 @@ function start(font){
   const preference=event=>{reducedMotion=event.matches;if(!reducedMotion)timeline.seek(0);sync()};
   document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',preference);
   const observer=new ResizeObserver(resize);observer.observe(host);
-  const visible=new IntersectionObserver(([entry])=>{inView=entry.isIntersecting&&entry.intersectionRatio>=.15;sync()},{threshold:[0,.15]});visible.observe(root);
+  const visible=new IntersectionObserver(([entry])=>{inView=entry.isIntersecting&&entry.intersectionRatio>=.15;sync()},{threshold:[0,.15]});visible.observe(workspace?host:root);
   const switching=new MutationObserver(sync);if(transition)switching.observe(transition,{attributes:true,attributeFilter:['data-state']});
   resize();state.dataset.renderer='webgl';host.dataset.ready='true';host.dataset.renderer='Three.js WebGL';host.dataset.engine='Anime.js';host.dataset.loopMs=String(LOOP);
   let count=0;scene.traverse(node=>{if(node.isMesh)count++});host.dataset.meshes=String(count);

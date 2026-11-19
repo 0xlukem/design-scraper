@@ -46,13 +46,13 @@ export default function StickyPaintRange({share, valueText, disabled = false, on
       <div className="paint-rail"/>
       <svg className="paint-grip" viewBox="-78 -32 156 64" width="156" height="64" focusable="false">
         <defs>
-          <radialGradient id={id + '-coral'} cx=".39" cy=".22" r=".88">
-            <stop stopColor="#ffb08a"/><stop offset=".34" stopColor="#ff7953"/>
-            <stop offset=".68" stopColor="#f85330"/><stop offset=".86" stopColor="#d43c22"/><stop offset="1" stopColor="#ff9877"/>
+          <radialGradient id={id + '-lime'} cx=".39" cy=".22" r=".88">
+            <stop stopColor="#faffc4"/><stop offset=".34" stopColor="#efff76"/>
+            <stop offset=".68" stopColor="#d9ee50"/><stop offset=".86" stopColor="#9ab72e"/><stop offset="1" stopColor="#e8f99a"/>
           </radialGradient>
-          <radialGradient id={id + '-cyan'} cx=".53" cy=".2" r=".93">
-            <stop stopColor="#c4ffff"/><stop offset=".36" stopColor="#70edf1"/>
-            <stop offset=".67" stopColor="#2bd2dd"/><stop offset=".88" stopColor="#009aa9"/><stop offset="1" stopColor="#66eaf0"/>
+          <radialGradient id={id + '-pink'} cx=".53" cy=".2" r=".93">
+            <stop stopColor="#ffe0f3"/><stop offset=".36" stopColor="#ff94d5"/>
+            <stop offset=".67" stopColor="#f267bc"/><stop offset=".88" stopColor="#b93b83"/><stop offset="1" stopColor="#ffa1db"/>
           </radialGradient>
           <path className="paint-outline" id={id + '-shape'} d={gripShape(share === 0 ? 0 : 1, share === 100 ? 0 : 1)}/>
           <linearGradient id={id + '-taper'} gradientUnits="userSpaceOnUse" x1="-52" x2="52">
@@ -65,15 +65,15 @@ export default function StickyPaintRange({share, valueText, disabled = false, on
           <clipPath id={id + '-clip'}><use href={'#' + id + '-shape'}/></clipPath>
         </defs>
         <g className="paint-head" mask={'url(#' + id + '-join)'}>
-          <use href={'#' + id + '-shape'} fill={'url(#' + id + '-coral)'} />
+          <use href={'#' + id + '-shape'} fill={'url(#' + id + '-lime)'} />
           <g clipPath={'url(#' + id + '-clip)'}>
-            <path d="M9-21C22-13 16.5-3.3 9 3.8C2.4 10.2.6 14.9 3.5 21H55V-23Z" fill={'url(#' + id + '-cyan)'}/>
-            <path d="M11-18C20.6-9.2 15-2 8.1 4.7C4.5 8.5 1.4 13.8 2.2 17.5" fill="none" stroke="#9b4c3e" strokeWidth=".85" opacity=".56"/>
-            <path d="M13.1-15C19.8-7.6 14.1-.7 10.1 3.7" fill="none" stroke="#effeff" strokeWidth="1.1" strokeLinecap="round" opacity=".88"/>
-            <path d="M-43-1.8C-29-1.7-24-4.8-20-8.4C-15-14-7.4-18.6.1-17.8" fill="none" stroke="#ffd4b4" strokeWidth="1.3" strokeLinecap="round"/>
-            <path d="M-15.9-7.6C-13.5-13.1-6-16.3-.4-15.6C-3.7-15-7.3-13.9-9.3-11.7L-12-12.5Z" fill="#fff9ec"/>
-            <path d="M-16.2 10.1C-7.5 17.8-3.2 17.8 1.7 17" fill="none" stroke="#ffb695" strokeLinecap="round" opacity=".7"/>
-            <path d="M18.7-9.3C24-1.1 36-2.3 49-2.1" fill="none" stroke="#d5ffff" strokeWidth="1.2" strokeLinecap="round"/>
+            <path d="M9-21C22-13 16.5-3.3 9 3.8C2.4 10.2.6 14.9 3.5 21H55V-23Z" fill={'url(#' + id + '-pink)'}/>
+            <path d="M11-18C20.6-9.2 15-2 8.1 4.7C4.5 8.5 1.4 13.8 2.2 17.5" fill="none" stroke="#777235" strokeWidth=".85" opacity=".56"/>
+            <path d="M13.1-15C19.8-7.6 14.1-.7 10.1 3.7" fill="none" stroke="#fff5fb" strokeWidth="1.1" strokeLinecap="round" opacity=".88"/>
+            <path d="M-43-1.8C-29-1.7-24-4.8-20-8.4C-15-14-7.4-18.6.1-17.8" fill="none" stroke="#fcffd6" strokeWidth="1.3" strokeLinecap="round"/>
+            <path d="M-15.9-7.6C-13.5-13.1-6-16.3-.4-15.6C-3.7-15-7.3-13.9-9.3-11.7L-12-12.5Z" fill="#ffffef"/>
+            <path d="M-16.2 10.1C-7.5 17.8-3.2 17.8 1.7 17" fill="none" stroke="#f0fbb1" strokeLinecap="round" opacity=".7"/>
+            <path d="M18.7-9.3C24-1.1 36-2.3 49-2.1" fill="none" stroke="#ffe2f3" strokeWidth="1.2" strokeLinecap="round"/>
           </g>
         </g>
       </svg>

@@ -190,12 +190,21 @@ async function watchMixInView(page) {
   await page.waitForFunction(t => Number(document.querySelector('.mix-world').dataset.time) > t + 400, time);
   assert.ok(!(await canvas.screenshot()).equals(before), 'The blender and airborne paint keep moving');
   assert.deepEqual(await title.boundingBox(), titleBox, 'Paint impacts do not move the title layout');
-  await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  // The compact workspace can leave the blender visible even at the footer.
+  // Supply real offscreen space instead of assuming the old tall hero layout.
+  await page.evaluate(() => {
+    const spacer = document.createElement('div');
+    spacer.id = 'motion-offscreen-space';
+    spacer.style.height = `${innerHeight}px`;
+    document.body.append(spacer);
+    scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+  });
   await still(page, 'mix', 'The offscreen blender stops rendering');
   const stopped = Number(await world.getAttribute('data-time'));
   await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await page.waitForFunction(t => Number(document.querySelector('.mix-world').dataset.time) > t + 100, stopped);
   assert.equal(await world.getAttribute('data-phase'), 'continuous-mix', 'Re-entry resumes continuous mixing');
+  await page.locator('#motion-offscreen-space').evaluate(el => el.remove());
 }
 
 async function switchWorld(page, mode) {
@@ -363,7 +372,7 @@ try {
   assert.equal(await page.locator('.mix-paint-entrance').count(), 0, 'The rejected collision entrance is removed');
   await page.waitForFunction(() => document.querySelector('.mix-world').dataset.phase === 'continuous-mix' && document.querySelector('.mix-world').dataset.playback === 'playing');
   assert.equal(await page.locator('.experience-headline').evaluate(el => getComputedStyle(el).transform), 'none');
-  assert.equal(await page.locator('.analysis-intro').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(23, 24, 21)');
+  assert.equal(await page.locator('.analysis-intro').evaluate(el => getComputedStyle(el).getPropertyValue('--paper').trim()), '#171815');
   await page.waitForFunction(() => Number(document.querySelector('.analysis-intro').dataset.inkLetters) > 0 && Number(document.querySelector('.analysis-intro').dataset.inkBackground) > 0);
   assert.match(await page.locator('.experience-headline').getAttribute('aria-label'), /MAKE A BEAUTIFUL MESS/);
   checks.push('The Home blender runs on charcoal in Mix It; flying paint stains the existing title and background');

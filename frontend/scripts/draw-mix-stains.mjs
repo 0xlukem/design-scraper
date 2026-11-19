@@ -63,6 +63,12 @@ function stain(seed, color, cx, cy, rx, ry, longest) {
   return `<g fill="${color}">${shapes.join('')}</g><g fill="#171815" opacity=".42">${pores}</g>${highlights.join('')}`;
 }
 const specs = {
+  workspace: {w:600,h:1000, marks:[
+    [1801,'pink',135,155,112,47,208],
+    [2537,'acid',500,360,105,64,247],
+    [3902,'blue',125,660,115,44,232],
+    [4611,'pink',476,838,76,28,117],
+  ]},
   left: {w:180,h:2370, marks:[
     [133,'pink',22,130,66,25,153], [817,'blue',9,635,80,29,209],
     [421,'pink',41,1070,84,34,204], [937,'blue',28,1640,63,19,163],
