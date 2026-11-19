@@ -1,4 +1,5 @@
-import { animate } from 'framer-motion'
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
 import './landing-scenes/scenes.css'
 import { mountExportReveal } from './landing-exports'
 
@@ -21,23 +22,21 @@ export function initLandingMotion() {
   }, { rootMargin: '500px' })
   lazyMix.observe(mix)
 
-  const faq = [...document.querySelectorAll<HTMLDetailsElement>('.faq details')]
-  const animations = new Map<HTMLElement, ReturnType<typeof animate>>()
-  const toggle = (event: Event) => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const item = event.currentTarget as HTMLDetailsElement
-    const icon = item.querySelector<HTMLElement>('summary span')!
-    animations.get(icon)?.stop()
-    animations.set(icon, animate(icon, { rotate: item.open ? [0, 45] : [45, 0] }, { duration: .2 }))
+  const motion = matchMedia('(prefers-reduced-motion: reduce)')
+  let scroll: Lenis | undefined
+  const syncScroll = () => {
+    scroll?.destroy()
+    scroll = motion.matches ? undefined : new Lenis({ autoRaf: true, anchors: true, lerp: .14 })
   }
-  faq.forEach(item => item.addEventListener('toggle', toggle))
+  syncScroll()
+  motion.addEventListener('change', syncScroll)
   const dispose = () => {
     if (disposed) return
     disposed = true
     lazyMix.disconnect()
     cleanups.forEach(cleanup => cleanup())
-    faq.forEach(item => item.removeEventListener('toggle', toggle))
-    animations.forEach(control => control.stop())
+    motion.removeEventListener('change', syncScroll)
+    scroll?.destroy()
     window.removeEventListener('pagehide', pagehide)
   }
   const pagehide = (event: PageTransitionEvent) => { if (!event.persisted) dispose() }

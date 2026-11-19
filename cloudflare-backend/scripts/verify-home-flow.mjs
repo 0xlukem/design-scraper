@@ -48,6 +48,15 @@ async function waitForMock(ready) {
   assert.ok(ready(),'Mock request must arrive within five seconds');
 }
 const analyses=()=>requests.filter(r=>r.method==='POST').length;
+async function checkHeroEntry(mode) {
+  await page.waitForFunction(mode => document.querySelector('[data-experience]')?.dataset.experience === mode, mode);
+  const headline = page.locator('main h1:visible');
+  await headline.waitFor();
+  const box = await headline.boundingBox();
+  assert.ok(box.y >= 0 && box.y < page.viewportSize().height, `${mode} hero is in the first viewport`);
+  assert.equal(await page.evaluate(() => window.scrollY), 0);
+  assert.equal(await page.locator('#analysis-form :focus').count(), 0);
+}
 try {
   for(const width of [320,390,768,1440]) {
     const height=width<768?844:900;
@@ -80,24 +89,24 @@ try {
     if([390,1440].includes(width)) await page.screenshot({path:`${artifacts}/after-references-${width}.png`});
     await page.goto(origin);
     await page.locator('.hero .primary').click();
-    await page.waitForFunction(()=>document.activeElement.id==='single-url');
-    const field=await page.locator('#single-url').boundingBox();
-    assert.ok(field.y>=0 && field.y+field.height<(width<768?844:900),'Home action focuses a visible URL field');
+    await checkHeroEntry('single');
     assert.equal(await page.getByRole('button',{name:'Analyze design',exact:true}).isDisabled(),true);
     if([390,1440].includes(width)) await page.screenshot({path:`${artifacts}/after-entry-${width}.png`});
   }
   assert.equal(analyses(),0,'Navigation and automatic focus never analyze');
-  checks.push('Two visible entry choices at 320/390/768/1440; references follow the full-height hero; covers and saved palettes match; task entry focuses URL without submitting');
+  checks.push('Two visible entry choices at 320/390/768/1440; references follow the full-height hero; covers and saved palettes match; Design Scraper opens at its hero without submitting');
 
   await page.goto(origin);
   await page.getByRole('link',{name:'Try Mix It',exact:true}).click();
-  await page.waitForFunction(()=>document.activeElement.id==='mix-url-1');
-  assert.equal(await page.locator('[data-experience]').getAttribute('data-experience'),'mix');
-  assert.equal(analyses(),0,'Mix entry does not submit');
+  await checkHeroEntry('mix');
   await page.reload();
-  await page.waitForFunction(()=>document.activeElement.id==='mix-url-1');
-  assert.equal(await page.locator('[data-experience]').getAttribute('data-experience'),'mix');
-  checks.push('Try Mix It opens and focuses the actual Mix workspace; reload preserves the route without analysis');
+  await checkHeroEntry('mix');
+  for (const [route, id] of [['start','single-url'], ['mix','mix-url-1']]) {
+    await page.goto(`${origin}/app/#/analyze/${route}`);
+    await page.waitForFunction(id => document.activeElement.id === id, id);
+  }
+  assert.equal(analyses(),0);
+  checks.push('Mix It opens at its hero and survives reload. Existing direct form links focus their URL fields.');
 
   await page.goto(origin);
   ratesMode='slow';
@@ -155,7 +164,7 @@ try {
   assert.equal(await page.evaluate(()=>document.activeElement.id),'single-url');
   assert.equal(await page.locator('#single-url').inputValue(),'https://example.com');
   await page.screenshot({path:`${artifacts}/after-analysis-error.png`,fullPage:true});
-  checks.push('Home → focused form → local URL validation → loading → saved response; simulated timeout retains URL and Review URL restores focus');
+  checks.push('Home → workspace hero → form → local URL validation → loading → saved response; simulated timeout retains URL and Review URL restores focus');
 
   analysisMode='blocked';
   await page.getByRole('button',{name:'Analyze design',exact:true}).click();

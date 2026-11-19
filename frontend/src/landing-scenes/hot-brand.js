@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export const BRAND_TIMING={start:5400,arrival:6150,contact:6350,release:7850,lift:8150,end:9650,cold:10400};
+export const BRAND_TIMING={start:180,arrival:720,contact:880,release:1780,lift:2080,end:3480,cold:3650};
 
 // An actual extruded iron face, aligned to the live Archivo Black headline.
 // It is a brief second WebGL layer; the accepted marble scene stays untouched.

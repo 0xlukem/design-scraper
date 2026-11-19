@@ -107,7 +107,7 @@ try {
 
   await page.goto(site);
   await page.getByRole('link', { name: 'Analyze a website', exact: true }).click();
-  await page.waitForURL(`${site}/app/#/analyze/start`);
+  await page.waitForURL(`${site}/app/#/analyze`);
   await page.getByRole('complementary', { name: 'Local demo' }).waitFor();
   assert.equal(requests.filter(request => request.method === 'POST').length, 0, 'Entering the demo never submits an analysis');
   checks.push('Public home opens the simulated workspace without submitting');

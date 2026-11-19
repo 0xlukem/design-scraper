@@ -83,7 +83,7 @@ function openRatesLink() {
   if (window.location.hash !== '#model-rates') return
   rates.open = true
   rates.querySelector('summary')?.focus({ preventScroll: true })
-  rates.scrollIntoView({ block: 'start', behavior: 'instant' })
+  rates.scrollIntoView({ block: 'start' })
 }
 window.addEventListener('hashchange', openRatesLink)
 document.querySelectorAll<HTMLAnchorElement>('a[href="#model-rates"]').forEach(link => {

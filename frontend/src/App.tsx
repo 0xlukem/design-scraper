@@ -184,6 +184,12 @@ function App() {
   }, [section, runId])
   useEffect(() => {
     const focusEntry = () => {
+      if (window.location.hash === '#/analyze/mix/hero') {
+        setTargetMode('mix')
+        dispatch({ type: 'set-mode', mode: 'mix' })
+        window.scrollTo?.({ top: 0, behavior: 'instant' })
+        return
+      }
       if (!['#/analyze/start', '#/analyze/mix'].includes(window.location.hash)) return
       const entryHash = window.location.hash
       const mode = readEntryMode()
@@ -352,7 +358,7 @@ function App() {
     <header className="site-header">
       <a href="#main-content" className="skip-link" onClick={e => { e.preventDefault(); main.current?.focus() }}>Skip to content</a>
       <div className="nav-inner">
-        <a className="brand-link" href={state.mode === 'single' ? '/' : '#/analyze'} aria-label={state.mode === 'single' ? 'Design Scraper home' : 'Mix It home'} onClick={() => window.scrollTo?.({ top: 0, behavior: 'instant' })}>
+        <a className="brand-link" href={state.mode === 'single' ? '/' : '#/analyze/mix/hero'} aria-label={state.mode === 'single' ? 'Design Scraper home' : 'Mix It home'} onClick={() => window.scrollTo?.({ top: 0, behavior: 'instant' })}>
           {state.mode === 'single' ? <><img src="/design-scraper.svg" width="36" height="36" alt="" /><span className="studio-wordmark">design scraper</span></> : <span className="mix-wordmark">mix it<span>.</span></span>}
         </a>
         <nav aria-label="Main navigation">
@@ -461,7 +467,7 @@ function App() {
 }
 
 function readEntryMode(): AppMode {
-  return window.location.hash === '#/analyze/mix' ? 'mix' : 'single'
+  return ['#/analyze/mix', '#/analyze/mix/hero'].includes(window.location.hash) ? 'mix' : 'single'
 }
 
 const sections = [

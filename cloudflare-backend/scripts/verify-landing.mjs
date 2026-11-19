@@ -101,6 +101,8 @@ try {
     assert.ok(layout.scrollWidth <= width + 1, `No page overflow at ${width}px: ${layout.scrollWidth}`);
     const aligned=await page.evaluate(()=>['.product-header','#hero-title','#what-you-get'].map(selector=>document.querySelector(selector).getBoundingClientRect().x));
     assert.ok(Math.max(...aligned)-Math.min(...aligned)<2,'Header, hero and content share a gutter');
+    const heights = await page.locator('.mix-actions > a').evaluateAll(links => links.map(link => link.getBoundingClientRect().height));
+    assert.equal(heights[0], heights[1], `Mix It actions share a height at ${width}px`);
     layouts.push(layout);
     if ([390,768,1265].includes(width)) {
       for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();
@@ -132,10 +134,13 @@ try {
   const staticPage = await noJs.newPage();
   await staticPage.goto(origin);
   assert.equal(await staticPage.getByRole('heading',{level:1}).isVisible(),true);
-  assert.equal(await staticPage.locator('.hero .primary').getAttribute('href'),'/app/#/analyze/start');
+  assert.equal(await staticPage.locator('.hero .primary').getAttribute('href'),'/app/#/analyze');
   assert.equal(await staticPage.locator('.scene-fallback').isVisible(),true);
   assert.equal(await staticPage.locator('#hero-motion').isVisible(),false);
-  await staticPage.locator('.faq summary').filter({hasText:'What are saved designs?'}).click();
+  const staticSummary = staticPage.locator('.faq summary').filter({hasText:'What are saved designs?'});
+  await staticSummary.evaluate(summary => summary.scrollIntoView({ block:'center', behavior:'instant' }));
+  await staticSummary.click();
+  await staticPage.getByText(/rather than official brand guides/).waitFor({state:'visible'});
   assert.match(await staticPage.locator('.faq').innerText(),/rather than official brand guides/);
   assert.ok(await staticPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await noJs.close();
@@ -150,7 +155,7 @@ try {
   assert.equal(await fallback.locator('.scene-fallback').isVisible(),true);
   assert.equal(await fallback.locator('.line-hot').innerText(),'hot.');
   assert.equal(await fallback.locator('#hero-motion').isVisible(),false);
-  assert.equal(await fallback.locator('.hero .primary').getAttribute('href'),'/app/#/analyze/start');
+  assert.equal(await fallback.locator('.hero .primary').getAttribute('href'),'/app/#/analyze');
   await fallback.getByRole('link',{name:'Meet Mix It',exact:true}).click();
   await fallback.locator('#mix-error').waitFor({state:'visible'});
   assert.equal(await fallback.locator('#mix-action').isVisible(),true);
@@ -190,7 +195,7 @@ try {
   await page.getByRole('link',{name:'View Milligram design',exact:true}).click();
   await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
   checks.push('Root hash and legacy /demo/ links preserve all sections; unknown example recovers in the library');
-  for (const href of ['/app/#/library/github','/app/#/library/milligram','/app/#/library/bootstrap-milligram','/app/#/library/example-domain','/app/#/analyze/start','/app/#/library']) {
+  for (const href of ['/app/#/library/github','/app/#/library/milligram','/app/#/library/bootstrap-milligram','/app/#/library/example-domain','/app/#/analyze','/app/#/library']) {
     await page.goto(origin);
     await page.locator(`a[href="${href}"]`).first().click();
     if(href.includes('/library/')) await preview.getByRole('button',{name:'Export design',exact:true}).waitFor();
@@ -213,6 +218,7 @@ try {
     await mp.waitForFunction(() => {
       if (document.querySelector('.hero').dataset.brandPhase !== 'contact' ||
           getComputedStyle(document.querySelector('.line-hot .headline-glyph')).color !== 'rgb(227, 41, 46)') return false;
+      if (Number(document.querySelector('#hero-scene').dataset.time) >= 1800) throw new Error('Iron missed its early contact cue');
       document.querySelector('#examples').scrollIntoView({ block: 'start', behavior: 'instant' });
       return true;
     }, undefined, { timeout: 15000 });
@@ -237,6 +243,23 @@ try {
       assert.equal(await item.locator('> :first-child').evaluate(el=>getComputedStyle(el).clipPath),'none');
     }
     await mp.screenshot({path:`${artifacts}/exports-revealed-${name}.png`});
+    const faqItem = mp.locator('.faq details').nth(1);
+    await faqItem.locator('summary').focus();
+    const closedHeight = await faqItem.evaluate(item => item.offsetHeight);
+    await mp.keyboard.press('Enter');
+    await mp.waitForFunction(() => !document.querySelectorAll('.faq details')[1].getAnimations({subtree:true}).length);
+    const openHeight = await faqItem.evaluate(item => item.offsetHeight);
+    assert.ok(openHeight > closedHeight);
+    const closingHeight = await faqItem.evaluate(item => {
+      item.open = false;
+      item.getBoundingClientRect();
+      const transition = item.getAnimations({subtree:true}).find(animation => animation.transitionProperty === 'grid-template-rows');
+      if (!transition) throw new Error('FAQ answer height must animate on close');
+      transition.currentTime = transition.effect.getTiming().duration / 2;
+      return item.offsetHeight;
+    });
+    assert.ok(closingHeight > closedHeight && closingHeight < openHeight, 'FAQ answer collapses progressively');
+
     await mp.locator('#mix-it').scrollIntoViewIfNeeded();
     assert.ok(['paused','complete'].includes(await mp.locator('.hero').getAttribute('data-playback')));
     await mp.waitForFunction(()=>document.querySelector('#mix-scene').dataset.ready==='true');
@@ -266,7 +289,7 @@ try {
     await mp.emulateMedia({reducedMotion:'no-preference'});
     await mp.waitForFunction(()=>document.querySelector('#mix-it').dataset.playback==='playing');
     // Both action links remain reachable while decorative geometry crosses them.
-    assert.equal(await mp.locator('#mix-action').getAttribute('href'),'/app/#/analyze/mix');
+    assert.equal(await mp.locator('#mix-action').getAttribute('href'),'/app/#/analyze/mix/hero');
     assert.deepEqual(network,[]);
     const video=mp.video(); await ctx.close(); await video.saveAs(`${artifacts}/hero-mix-${name}.webm`);
   }

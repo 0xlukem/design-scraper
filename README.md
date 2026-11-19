@@ -34,9 +34,9 @@ paint to monochrome while it retreats.
 [Browse saved designs](https://design-scraper.pages.dev/app/#/library)
 
 The public home at `/` has two entry points: analyze a website or explore saved
-designs. The analysis link (`/app/#/analyze/start`) focuses the URL field without
-submitting. The Mix It link (`/app/#/analyze/mix`) opens its two-reference form
-and focuses the first URL without submitting. The home uses real Three.js geometry
+designs. The analysis link (`/app/#/analyze`) opens the letterpress hero. Try Mix It
+(`/app/#/analyze/mix/hero`) opens the Mix It hero. The existing direct form
+links (`/app/#/analyze/start` and `/app/#/analyze/mix`) still focus the URL field. The home uses real Three.js geometry
 and Anime.js timelines: a chisel extracts
 a design system from marble, and a lidless chrome blender continuously throws
 design fragments across the Mix It banner. Its splashes move and stain the letters
@@ -156,8 +156,8 @@ same `API_URL` when running the UI test.
 The UI suite also verifies the landing's initial HTML, indexing rules, canonical
 and social metadata, responsive breakpoints, saved-result downloads, and old
 hash links. The complete hero sequence and continuous blender loop, pause controls
-and live reduced-motion changes are also checked. Home journey checks cover direct form
-entry in both modes, local URL validation,
+and live reduced-motion changes are also checked. Home journey checks cover hero entry and direct form
+links in both modes, local URL validation,
 loading and error recovery, saved-reference navigation, and model-catalog loading,
 failure and empty responses. Screenshots are saved in `output/playwright/landing-a/`
 and `output/playwright/home-ux/`. All API responses in these checks are mocked.
