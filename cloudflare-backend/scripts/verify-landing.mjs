@@ -92,7 +92,7 @@ try {
   assert.match(await page.locator('#hero-provenance').innerText(), /illustrative 3D extraction.*does not run a live analysis/s);
   checks.push('Evidence statuses, historical dates and mix weights agree with saved material');
 
-  const widths = [320,360,390,429,430,431,640,759,760,761,768,1024,1049,1050,1051,1099,1100,1101,1265,1440,1800,1920];
+  const widths = [320,360,369,370,371,390,429,430,431,437,438,439,640,759,760,761,768,1024,1049,1050,1051,1099,1100,1101,1265,1440,1800,1920];
   for (const width of widths) {
     await page.setViewportSize({width,height:width<=430?844:900});
     await page.waitForTimeout(160); // The responsive motion layout is debounced by 100ms.
@@ -101,8 +101,22 @@ try {
     assert.ok(layout.scrollWidth <= width + 1, `No page overflow at ${width}px: ${layout.scrollWidth}`);
     const aligned=await page.evaluate(()=>['.product-header','#hero-title','#what-you-get'].map(selector=>document.querySelector(selector).getBoundingClientRect().x));
     assert.ok(Math.max(...aligned)-Math.min(...aligned)<2,'Header, hero and content share a gutter');
-    const heights = await page.locator('.mix-actions > a').evaluateAll(links => links.map(link => link.getBoundingClientRect().height));
-    assert.equal(heights[0], heights[1], `Mix It actions share a height at ${width}px`);
+    for (const selector of ['.hero-actions', '.mix-actions']) {
+      const [first, second] = await page.locator(selector + ' > a').evaluateAll(links => links.map(link => link.getBoundingClientRect().toJSON()));
+      const label = `${selector} at ${width}px`;
+      assert.ok(Math.abs(first.width - second.width) < 0.1 && first.height === second.height, `Equal button sizes: ${label}`);
+      assert.ok(first.left >= 0 && second.right <= width, `Buttons stay in the viewport: ${label}`);
+      const row = first.top === second.top && first.right < second.left;
+      const stack = first.left === second.left && first.bottom < second.top;
+      assert.ok(row || stack, `Buttons align side by side or in a stack: ${label}`);
+    }
+    const [art, copy] = await Promise.all(['.hero-art', '.hero-summary'].map(selector => page.locator(selector).boundingBox()));
+    const separated = width <= 760 ? art.y + art.height <= copy.y : copy.x + copy.width <= art.x;
+    assert.ok(separated, `Hero artwork clears its description and actions at ${width}px`);
+    if (width > 760 && width <= 1050) {
+      const [blender, actions] = await Promise.all(['.mix-scene', '.mix-actions'].map(selector => page.locator(selector).boundingBox()));
+      assert.ok(actions.x + actions.width <= blender.x + 0.1, `Tablet banner actions clear the blender at ${width}px`);
+    }
     layouts.push(layout);
     if ([390,768,1265].includes(width)) {
       for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();

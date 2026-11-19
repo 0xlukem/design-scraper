@@ -212,7 +212,7 @@ function init(font, brandFont) {
   function resize() {
     const {width,height} = host.getBoundingClientRect();
     const aspect = width/height;
-    const vertical = 5.2;
+    const vertical = Math.max(5.2, 5.8 / aspect);
     camera.left = -vertical*aspect/2; camera.right = vertical*aspect/2;
     camera.top = vertical/2; camera.bottom = -vertical/2;
     camera.updateProjectionMatrix(); renderer.setSize(width,height,false);
