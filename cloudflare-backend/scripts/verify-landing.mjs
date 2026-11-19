@@ -203,6 +203,9 @@ try {
   for (const prefix of ['/', '/demo/']) for (const hash of ['#/analyze','#/library','#/activity','#/library/stripe']) {
     await page.goto(`${origin}${prefix}${hash}`);
     await page.waitForURL(`${origin}/app/${hash}`);
+    if (hash === '#/activity') {
+      await page.getByRole('status').getByText('Available', {exact:true}).waitFor();
+    }
   }
   await page.goto(`${origin}/app/#/library/not-present`);
   await page.getByRole('alert').filter({hasText:'This saved design was not found'}).waitFor();
