@@ -244,22 +244,32 @@ try {
     }
     await mp.screenshot({path:`${artifacts}/exports-revealed-${name}.png`});
     const faqItem = mp.locator('.faq details').nth(1);
-    await faqItem.locator('summary').focus();
+    const faqSummary = faqItem.locator('summary');
+    await faqSummary.evaluate(summary => summary.scrollIntoView({block:'center', behavior:'instant'}));
+    await faqSummary.focus();
     const closedHeight = await faqItem.evaluate(item => item.offsetHeight);
     await mp.keyboard.press('Enter');
-    await mp.waitForFunction(() => !document.querySelectorAll('.faq details')[1].getAnimations({subtree:true}).length);
+    await mp.waitForFunction(() => {
+      const item = document.querySelectorAll('.faq details')[1];
+      const answer = item.querySelector('p');
+      return item.open && answer.clientHeight > 0 && answer.clientHeight >= answer.scrollHeight;
+    });
     const openHeight = await faqItem.evaluate(item => item.offsetHeight);
     assert.ok(openHeight > closedHeight);
-    const closingHeight = await faqItem.evaluate(item => {
+    const sawIntermediateHeight = await faqItem.evaluate((item, {openHeight, closedHeight}) => new Promise(resolve => {
+      let intermediate = false;
+      const deadline = performance.now() + 2000;
       item.open = false;
-      item.getBoundingClientRect();
-      const transition = item.getAnimations({subtree:true}).find(animation => animation.transitionProperty === 'grid-template-rows');
-      if (!transition) throw new Error('FAQ answer height must animate on close');
-      transition.currentTime = transition.effect.getTiming().duration / 2;
-      return item.offsetHeight;
-    });
-    assert.ok(closingHeight > closedHeight && closingHeight < openHeight, 'FAQ answer collapses progressively');
-
+      const sample = () => {
+        const height = item.offsetHeight;
+        if (height <= closedHeight) return resolve(intermediate);
+        if (performance.now() > deadline) return resolve(false);
+        if (height < openHeight) intermediate = true;
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    }), {openHeight, closedHeight});
+    assert.ok(sawIntermediateHeight, 'FAQ answer collapses progressively');
     await mp.locator('#mix-it').scrollIntoViewIfNeeded();
     assert.ok(['paused','complete'].includes(await mp.locator('.hero').getAttribute('data-playback')));
     await mp.waitForFunction(()=>document.querySelector('#mix-scene').dataset.ready==='true');
