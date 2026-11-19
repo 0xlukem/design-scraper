@@ -14,12 +14,13 @@ import ModeToggle from './components/ModeToggle'
 import ResultPanel from './components/ResultPanel'
 import SingleForm from './components/SingleForm'
 import SiteFooter from './components/SiteFooter'
+import MixBanner from './components/MixBanner'
 import StudioScene from './components/StudioScene'
 import MixWorld from './components/MixWorld'
 import WorldTransition from './components/WorldTransition'
 import './components/workspace-hero.css'
 import HeroReveal from './components/HeroReveal'
-import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
+import { Globe } from '@phosphor-icons/react'
 import PrintFolio from './components/letterpress/PrintFolio'
 import AllowanceHint from './components/AllowanceHint'
 import { librarySuggestions, type LibraryExample } from './library'
@@ -127,7 +128,6 @@ function reducer(state: AppState, action: AppAction): AppState {
 
 const singleSuggestions = librarySuggestions('single', 3).map(example => ({ id: example.id, label: new URL(example.sources[0]).hostname.replace(/^www\./, ''), urls: example.sources }))
 const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: example.id, label: example.name, urls: example.sources, bias: example.bias }))
-const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
 
 function App() {
   // The requested world; the paint transition decides when `state.mode` follows.
@@ -184,6 +184,12 @@ function App() {
   }, [section, runId])
   useEffect(() => {
     const focusEntry = () => {
+      if (window.location.hash === '#/analyze/mix/hero') {
+        setTargetMode('mix')
+        dispatch({ type: 'set-mode', mode: 'mix' })
+        window.scrollTo?.({ top: 0, behavior: 'instant' })
+        return
+      }
       if (!['#/analyze/start', '#/analyze/mix'].includes(window.location.hash)) return
       const entryHash = window.location.hash
       const mode = readEntryMode()
@@ -320,12 +326,8 @@ function App() {
     })
   }
   const requestAllowance = useCallback(() => setAllowanceRequested(true), [])
-  const changeMode = (mode: AppMode) => {
-    if (mode === 'mix') new Image().src = sculptureArtwork
-    setTargetMode(mode)
-  }
   const switchExperience = (mode: AppMode) => {
-    changeMode(mode)
+    setTargetMode(mode)
     if (section !== 'analyze') window.location.hash = '/analyze'
     window.scrollTo?.({ top: 0, behavior: 'instant' })
     main.current?.focus({ preventScroll: true })
@@ -352,7 +354,7 @@ function App() {
     <header className="site-header">
       <a href="#main-content" className="skip-link" onClick={e => { e.preventDefault(); main.current?.focus() }}>Skip to content</a>
       <div className="nav-inner">
-        <a className="brand-link" href={state.mode === 'single' ? '/' : '#/analyze'} aria-label={state.mode === 'single' ? 'Design Scraper home' : 'Mix It home'} onClick={() => window.scrollTo?.({ top: 0, behavior: 'instant' })}>
+        <a className="brand-link" href={state.mode === 'single' ? '/' : '#/analyze/mix/hero'} aria-label={state.mode === 'single' ? 'Design Scraper home' : 'Mix It home'} onClick={() => window.scrollTo?.({ top: 0, behavior: 'instant' })}>
           {state.mode === 'single' ? <><img src="/design-scraper.svg" width="36" height="36" alt="" /><span className="studio-wordmark">design scraper</span></> : <span className="mix-wordmark">mix it<span>.</span></span>}
         </a>
         <nav aria-label="Main navigation">
@@ -383,32 +385,28 @@ function App() {
       {section === 'analyze' && (state.mode === 'single' ? <div className="analysis-intro workspace-hero">
         <h1 className="experience-headline"><span>The web,</span>{' '}<span>in print.</span></h1>
         <p className="analysis-description">Turn a website’s type, colors and spacing into five reusable design files.</p>
-      </div> : <HeroReveal mode="mix" paused={false}>
-        <div className="section-kicker"><span className="kicker-dot" /> Two references. Zero rules for good taste.</div>
-        <h1 className="experience-headline"><span className="mix-line-one">MIX</span><br /><span className="mix-line-two">IT UP.</span></h1>
+      </div> : <HeroReveal mode="mix" paused={true}>
+        <h1 className="experience-headline">
+          <span>MAKE A</span>{' '}<span>BEAUTIFUL</span>{' '}<span>MESS</span>
+        </h1>
         <p className="analysis-description">A little from here. A little from there. Pour two websites together and see what happens.</p>
         <div className="hero-actions">
-          <a href="#/library" className="hero-library-link">Borrow some inspiration <ArrowUpRight size={18} aria-hidden="true" /></a>
           <a href="#analysis-form" className="hero-lab-link" onClick={event => {
             event.preventDefault()
             document.getElementById('analysis-form')?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
             document.getElementById(state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus({ preventScroll: true })
-          }}>Go to the lab <ArrowDown size={16} aria-hidden="true" /></a>
+          }}>Go to the lab</a>
         </div>
-        <MixWorld paused={false} />
-        <ul className="analysis-capabilities" aria-label="Analysis capabilities">
-          <li><span>01</span> CSS evidence</li><li><span>02</span> AI vision</li><li><span>03</span> Five exports</li>
-        </ul>
+        <MixWorld />
       </HeroReveal>)}
       <div className={section === 'analyze' ? 'reference-box' : 'activity-access'}>
         {section === 'analyze' && <>
-          {state.mode === 'mix' && <div className="reference-topline"><span>THE MIXING DESK</span><span>MAKE A BEAUTIFUL MESS</span></div>}
-          <ModeToggle mode={state.mode} onChange={changeMode} />
+          {state.mode === 'mix' && <div className="reference-topline">THE MIXING DESK</div>}
+          <ModeToggle mode={state.mode} onChange={setTargetMode} />
           {isLocalDemo && state.mode === 'single' && <DemoControls busy={busy} />}
           {state.mode === 'single' ? <div className="reference-heading"><h2>Analyze a website</h2></div> :
             <div className="reference-heading">
-              <div><span className="reference-step">{Math.abs(state.mix.bias) === 50 ? 'YOUR SELECTED SOURCE' : '01 / POUR IN YOUR INGREDIENTS'}</span>
-                <h2>{Math.abs(state.mix.bias) === 50 ? 'One source. Its own design.' : 'Good things collide.'}</h2></div>
+              <h2>{Math.abs(state.mix.bias) === 50 ? 'One source. Its own design.' : 'Good things collide.'}</h2>
               <Globe size={24} aria-hidden="true" />
             </div>}
         </>}
@@ -444,7 +442,7 @@ function App() {
       <div hidden={section !== 'analyze'}>
         <section ref={results} tabIndex={-1} aria-label="Analysis results" className="analysis-results"
           data-started={Boolean(state[state.mode].startedAt)}
-          hidden={state.mode === 'single' && !state.single.startedAt}>
+          hidden={!state[state.mode].startedAt}>
           {(['single', 'mix'] as const).map(mode => <div key={mode} hidden={state.mode !== mode}>
             <ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
               progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0 || (mode === 'mix' && Boolean(mixIssue))}
@@ -456,12 +454,13 @@ function App() {
       </div>
       <div hidden={section !== 'library'}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></div>
     </main>
+    {state.mode === 'mix' && <MixBanner />}
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
   </div>
 }
 
 function readEntryMode(): AppMode {
-  return window.location.hash === '#/analyze/mix' ? 'mix' : 'single'
+  return ['#/analyze/mix', '#/analyze/mix/hero'].includes(window.location.hash) ? 'mix' : 'single'
 }
 
 const sections = [

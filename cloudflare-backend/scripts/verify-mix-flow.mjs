@@ -10,7 +10,7 @@ await mkdir(artifacts, { recursive: true });
 const sample = JSON.parse(await readFile('../frontend/src/examples/milligram.json', 'utf8'));
 const quota = { day: '2026-10-26', resets_at: '2026-10-27T00:00:00Z', analyses: { used: 3, limit: 20, remaining: 17 }, capture: { used_or_reserved_ms: 60000, limit_ms: 480000, remaining_ms: 420000 }, concurrency: { active: 0, limit: 1 }, per_ip: { hourly_limit: 3, daily_limit: 5 }, demo_budget_available: true };
 const browser = await chromium.launch();
-const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, hasTouch: true, reducedMotion: 'reduce', serviceWorkers: 'block' });
 const unexpected = await isolateReplayNetwork(context, site);
 const errors = [], requests = [], checks = [];
 await context.route('**/api/**', async route => {
@@ -27,6 +27,50 @@ async function openMix() {
   await page.goto(site);
   await page.getByRole('tab', { name: 'Mix It', exact: true }).click();
   await page.getByLabel('First website URL').waitFor();
+}
+// Exercise native input delivery as well as the visible paint gesture.
+async function dragPaint(input, { touch = false, reduced = false } = {}) {
+  await input.scrollIntoViewIfNeeded();
+  const { x, y, width, height } = await input.boundingBox();
+  const point = ratio => ({ x: x + width * ratio, y: y + height / 2 });
+  const start = point(.25), end = point(.75);
+  const cdp = touch ? await context.newCDPSession(page) : null;
+  async function move(type, p) {
+    if (cdp) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type, touchPoints: p ? [{ ...p, radiusX: 4, radiusY: 4, id: 1 }] : [],
+      });
+    } else if (type === 'touchStart') {
+      await page.mouse.move(p.x, p.y);
+      await page.mouse.down();
+    } else if (type === 'touchMove') {
+      await page.mouse.move(p.x, p.y);
+    } else {
+      await page.mouse.up();
+    }
+  }
+  try {
+    await move('touchStart', start);
+    await move('touchMove', point(.43));
+    await move('touchMove', end);
+    const grip = page.locator('.paint-head');
+    assert.equal(await grip.count(), 1);
+    assert.equal(await page.locator('.paint-drip, .paint-bead, .paint-filament').count(), 0);
+    if (!reduced) {
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.paint-head')).transform !== 'none');
+      await page.locator('.paint-range').screenshot({ path: `${artifacts}/paint-drag-${touch ? 'touch' : 'mouse'}.png` });
+    } else {
+      assert.equal(await grip.evaluate(el => getComputedStyle(el).transform), 'none');
+    }
+    assert.equal(await input.inputValue(), '75');
+    await move('touchEnd');
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.paint-head')).transform === 'none' &&
+      !document.querySelector('.paint-range').style.getPropertyValue('--paint-position'));
+    assert.equal(await input.inputValue(), '75', 'Releasing the droplet preserves the chosen share');
+    assert.match(await input.getAttribute('aria-valuetext'), /getbootstrap.com 75 percent, milligram.io 25 percent/);
+  } finally {
+    await cdp?.detach();
+  }
 }
 try {
   for (const bias of [-50, 50]) {
@@ -69,6 +113,19 @@ try {
     await page.locator('#analysis-form').screenshot({ path: `${artifacts}/mix-form-${width}.png` });
     checks.push(`${width}px: domain labels and true 25/75 proportions without overflow`);
   }
+  const paintInput = page.getByLabel('Mix balance', { exact: true });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await dragPaint(paintInput);
+  await paintInput.fill('25');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await dragPaint(paintInput, { touch: true });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await paintInput.fill('25');
+  await dragPaint(paintInput, { touch: true, reduced: true });
+  await paintInput.fill('25');
+  await page.setViewportSize({ width: 320, height: 1000 });
+  checks.push('Real mouse and touch drags move one continuous paint drop, settle back to the native value, and preserve the displayed weights');
   await page.getByLabel('First website URL').fill('https://a-very-long-reference-website-name.example.com/');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Long domains wrap at 320px');
   await page.getByLabel('First website URL').fill('https://getbootstrap.com/docs/5.3/examples/heroes/');

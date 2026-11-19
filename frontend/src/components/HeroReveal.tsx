@@ -19,7 +19,6 @@ export default function HeroReveal({ mode, paused, children }: { mode: AppMode; 
     media.add('(prefers-reduced-motion: no-preference)', () => {
       if (pauseRequested.current) return
       entrance.current = gsap.timeline({ delay: changed ? .3 : .05, defaults: { duration: .9, ease: 'power3.out' } })
-        .from('.section-kicker', { autoAlpha: 0, y: 10 }, 0)
         .from('.experience-headline', { autoAlpha: 0, y: mode === 'mix' ? 34 : 21 }, .08)
         .from('.analysis-description, .hero-actions', { autoAlpha: 0, y: 12, stagger: .08 }, .2)
       return () => { entrance.current = null }

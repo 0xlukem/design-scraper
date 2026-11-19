@@ -22,11 +22,11 @@ function splatter(index,color){
   return {body,uri:`url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="${NS}" viewBox="-1.6 -1.6 3.2 3.2"><g fill="${color}">${body}</g></svg>`)}")`};
 }
 
-export function createMixInk({banner,host,camera,rig}){
-  const title=banner.querySelector('#mix-title');
-  const originalMarkup=title.innerHTML;
-  const original=[...title.childNodes];const letters=[];
-  title.setAttribute('aria-label','Go for your own way.');
+export function createMixInk({banner,host,camera,rig,title=banner.querySelector('#mix-title'),keepoutSelectors=['.mix-wordmark','.mix-description','.mix-actions']}){
+  const originalLabel=title.getAttribute('aria-label');
+  const walker=document.createTreeWalker(title,NodeFilter.SHOW_TEXT),original=[],replacements=[],letters=[];
+  while(walker.nextNode())original.push(walker.currentNode);
+  title.setAttribute('aria-label',title.textContent.replace(/\s+/g,' ').trim());
   for(const node of original){
     if(node.nodeType!==Node.TEXT_NODE)continue;
     const fragment=document.createDocumentFragment();
@@ -37,7 +37,9 @@ export function createMixInk({banner,host,camera,rig}){
       for(const character of part){const glyph=document.createElement('span');glyph.className='mix-letter';glyph.textContent=character;word.append(glyph);letters.push({node:glyph,character,marks:[],box:null,dirty:true,active:false})}
       fragment.append(word);
     }
-    node.replaceWith(fragment);
+    const marker=document.createComment('paint text');
+    const inserted=[...fragment.childNodes];
+    node.replaceWith(marker,fragment);replacements.push({node,marker,inserted});
   }
   const wall=svgNode('svg',{'aria-hidden':'true'});wall.classList.add('mix-stains');banner.append(wall);
   const air=svgNode('svg',{'aria-hidden':'true'});air.classList.add('mix-ink-air');banner.append(air);
@@ -54,7 +56,7 @@ export function createMixInk({banner,host,camera,rig}){
       const point=new THREE.Vector3(x,y,z).project(camera);xs.push(hostBox.left-box.left+(point.x+1)*hostBox.width/2);ys.push(hostBox.top-box.top+(1-point.y)*hostBox.height/2);
     }
     modelBox={x:Math.min(...xs)-10,y:Math.min(...ys)-10,width:Math.max(...xs)-Math.min(...xs)+20,height:Math.max(...ys)-Math.min(...ys)+20};
-    keepouts=[relative(title.getBoundingClientRect()),...['.mix-wordmark','.mix-description','.mix-actions'].map(selector=>relative(banner.querySelector(selector).getBoundingClientRect())),modelBox];
+    keepouts=[relative(title.getBoundingClientRect()),...keepoutSelectors.map(selector=>banner.querySelector(selector)).filter(Boolean).map(node=>relative(node.getBoundingClientRect())),modelBox];
     slots=Array.from({length:SLOTS},(_,i)=>{
       const random=seeded(i+203),background=i%3===2,color=COLORS[(i+Math.floor(i/3))%COLORS.length],shape=splatter(i,color);
       if(!background){const letter=candidates[((i-Math.floor(i/3))*7)%candidates.length];return {i,background,color,shape,letter,u:.28+random()*.44,v:.32+random()*.31,r:.17+random()*.075}}
@@ -118,5 +120,5 @@ export function createMixInk({banner,host,camera,rig}){
     banner.dataset.inkMarks=String(marks.size);banner.dataset.inkLetters=String(letters.filter(letter=>letter.marks.length).length);banner.dataset.inkBackground=String([...marks.values()].filter(mark=>mark.background).length);
   }
   resize();
-  return {resize,render,reset,dispose(){wall.remove();air.remove();title.innerHTML=originalMarkup;title.removeAttribute('aria-label')}};
+  return {resize,render,reset,dispose(){wall.remove();air.remove();replacements.forEach(({node,marker,inserted})=>{inserted.forEach(item=>item.remove());marker.replaceWith(node)});if(originalLabel===null)title.removeAttribute('aria-label');else title.setAttribute('aria-label',originalLabel)}};
 }

@@ -12,7 +12,7 @@ await mkdir(artifacts, { recursive: true });
 const browser = await chromium.launch();
 const checks = [], errors = [], unexpectedNetwork = [], paintTransitions = [];
 const scene = { single: '.studio-scene', mix: '.mix-world' };
-const probe = { single: '.press-hero-drawing', mix: '.mix-paint-sculpture' };
+const blenderCanvas = '.mix-world .mix-blender-scene canvas';
 let analyses = 0;
 
 async function open(reducedMotion, record = false) {
@@ -34,11 +34,24 @@ async function open(reducedMotion, record = false) {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.addInitScript(() => {
+    window.__mixDraws = new WeakMap();
+    for (const Context of [WebGLRenderingContext, WebGL2RenderingContext]) {
+      for (const method of ['drawArrays', 'drawElements']) {
+        const draw = Context.prototype[method];
+        Context.prototype[method] = function (...args) {
+          const result = draw.apply(this, args);
+          if (this.canvas.closest?.('.mix-blender-scene')) {
+            window.__mixDraws.set(this.canvas, 1 + (window.__mixDraws.get(this.canvas) || 0));
+          }
+          return result;
+        };
+      }
+    }
     window.addEventListener('securitypolicyviolation', event => console.error(`CSP violation: ${event.violatedDirective}`));
   });
   page.on('request', request => {
     if (/\/api\/(analyze|mix)$/.test(request.url())) analyses++;
-    if (request.url().includes('/images/mix-it-paint-sculpture.webp')) artworkRequests.push('mix-artwork');
+    if (/\/images\/(?:mix-it-paint-sculpture|mix-pigment-vortex)\.(?:webp|png)$/.test(new URL(request.url()).pathname)) artworkRequests.push('mix-artwork');
   });
   if (reducedMotion === 'no-preference') await page.addInitScript(() => {
     const frames = window.__openingStudyFrames = {};
@@ -119,10 +132,9 @@ async function ready(page, mode) {
   await page.locator(`[data-experience="${mode}"]`).waitFor();
   await page.locator(scene[mode]).waitFor();
   assert.equal(await page.locator(scene[mode === 'single' ? 'mix' : 'single']).count(), 0);
-  if (mode === 'mix') await page.waitForFunction(() => {
-    const image = document.querySelector('.mix-paint-sculpture');
-    return image?.complete && image.naturalWidth > 0;
-  });
+  if (mode === 'mix') {
+    await page.locator('.mix-world[data-renderer="webgl"]').waitFor({ timeout: 30000 });
+  }
 }
 
 async function still(page, mode, label) {
@@ -134,14 +146,18 @@ async function still(page, mode, label) {
     assert.equal(await study.getAttribute('data-playback'), 'still');
     return;
   }
-  const samples = await page.locator(probe[mode]).evaluate(async element => {
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    const position = () => getComputedStyle(element).transform;
-    const before = position();
-    await new Promise(resolve => setTimeout(resolve, 180));
-    return [before, position()];
-  });
-  assert.equal(samples[0], samples[1], label);
+  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.playback ===
+    (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'still' : 'paused'));
+  const snapshot = () => page.locator(blenderCanvas).evaluate(canvas => ({
+    time: canvas.closest('.mix-world').dataset.time,
+    draws: window.__mixDraws.get(canvas) || 0,
+  }));
+  const before = await snapshot();
+  assert.ok(before.draws > 0, 'The blender has actually rendered with WebGL');
+  await page.waitForTimeout(180);
+  assert.deepEqual(await snapshot(), before, label);
+  assert.equal(await page.locator('.mix-vortex-artwork, .mix-vortex-canvas').count(), 0,
+    'The retired paint-vortex renderer is not mounted');
 }
 
 async function watchSingle(page) {
@@ -162,21 +178,24 @@ async function watchSingle(page) {
   assert.equal(frames.proof.y, frames.exploded.y, 'The hero finishes without scrolling');
 }
 
-async function playMixInView(page) {
+async function watchMixInView(page) {
   const world = page.locator(scene.mix);
-  const sculpture = page.locator(probe.mix);
   await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  const viewportY = await page.evaluate(() => scrollY);
-  const frame = await sculpture.evaluate(el => getComputedStyle(el).transform);
-  await page.waitForFunction(first => getComputedStyle(document.querySelector('.mix-paint-sculpture')).transform !== first, frame);
-  assert.equal(await page.evaluate(() => scrollY), viewportY, 'The sculpture animates without scrolling');
-
+  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.phase === 'continuous-mix' && document.querySelector('.mix-world').dataset.playback === 'playing');
+  const canvas = page.locator(blenderCanvas);
+  const title = page.locator('.experience-headline');
+  const titleBox = await title.boundingBox();
+  const before = await canvas.screenshot();
+  const time = Number(await world.getAttribute('data-time'));
+  await page.waitForFunction(t => Number(document.querySelector('.mix-world').dataset.time) > t + 400, time);
+  assert.ok(!(await canvas.screenshot()).equals(before), 'The blender and airborne paint keep moving');
+  assert.deepEqual(await title.boundingBox(), titleBox, 'Paint impacts do not move the title layout');
   await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
-  await page.waitForFunction(() => document.querySelector('.mix-world').getBoundingClientRect().bottom < 0);
-  await still(page, 'mix', 'The offscreen sculpture holds its current pose');
-  const paused = await sculpture.evaluate(el => getComputedStyle(el).transform);
+  await still(page, 'mix', 'The offscreen blender stops rendering');
+  const stopped = Number(await world.getAttribute('data-time'));
   await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForFunction(before => getComputedStyle(document.querySelector('.mix-paint-sculpture')).transform !== before, paused);
+  await page.waitForFunction(t => Number(document.querySelector('.mix-world').dataset.time) > t + 100, stopped);
+  assert.equal(await world.getAttribute('data-phase'), 'continuous-mix', 'Re-entry resumes continuous mixing');
 }
 
 async function switchWorld(page, mode) {
@@ -243,7 +262,21 @@ try {
   await still(reduced.page, 'mix', 'Reduced motion leaves the surreal world still');
   assert.equal(await reduced.page.evaluate(() => document.getAnimations().filter(animation => animation.playState === 'running' && animation.effect?.getTiming().iterations === Infinity).length), 0);
   assert.equal(await reduced.page.evaluate(() => window.__worldPhases.includes('covering')), false, 'Reduced motion must bypass paint navigation');
-  assert.equal(await reduced.page.locator('.mix-paint-sculpture').evaluate(element => getComputedStyle(element).opacity), '1');
+  assert.ok(await reduced.page.locator(blenderCanvas).isVisible());
+  const fallbackPage = await reduced.context.newPage();
+  await fallbackPage.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      if (type.includes('webgl')) return null;
+      return original.call(this, type, ...args);
+    };
+  });
+  await fallbackPage.goto(site);
+  await fallbackPage.getByRole('button', { name: 'Enter Mix It' }).click();
+  await fallbackPage.locator('.mix-world[data-renderer="fallback"]').waitFor();
+  assert.ok(await fallbackPage.locator('.mix-scene-error').isVisible(), 'Missing WebGL has a readable fallback');
+  assert.ok(await fallbackPage.getByLabel('First website URL').isEnabled());
+  await fallbackPage.close();
   checks.push('Reduced motion keeps both distinct worlds readable and bypasses paint navigation');
   unexpectedNetwork.push(...reduced.unexpected);
   await reduced.context.close();
@@ -327,13 +360,35 @@ try {
   checks.push('The proof press starts in view, pauses outside it and finishes the three steps in order after re-entry');
   await page.getByLabel('Website URL', { exact: true }).fill('https://single.example/');
   await captureTransition(page, 'mix', '1440');
-  assert.ok(live.artworkRequests.length > 0, 'Mix It loads its artwork when entered');
+  assert.equal(await page.locator('.mix-paint-entrance').count(), 0, 'The rejected collision entrance is removed');
+  await page.waitForFunction(() => document.querySelector('.mix-world').dataset.phase === 'continuous-mix' && document.querySelector('.mix-world').dataset.playback === 'playing');
+  assert.equal(await page.locator('.experience-headline').evaluate(el => getComputedStyle(el).transform), 'none');
+  assert.equal(await page.locator('.analysis-intro').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(23, 24, 21)');
+  await page.waitForFunction(() => Number(document.querySelector('.analysis-intro').dataset.inkLetters) > 0 && Number(document.querySelector('.analysis-intro').dataset.inkBackground) > 0);
+  assert.match(await page.locator('.experience-headline').getAttribute('aria-label'), /MAKE A BEAUTIFUL MESS/);
+  checks.push('The Home blender runs on charcoal in Mix It; flying paint stains the existing title and background');
   assert.notEqual(await page.locator('[data-experience]').evaluate(element => getComputedStyle(element).getPropertyValue('--paper')), basePaper, 'The two worlds must have distinct surfaces');
-  await playMixInView(page);
+  const mixBanner = page.locator('.mix-banner');
+  const bannerWord = mixBanner.locator('.mix-banner-word').first();
+  const revealPortion = fraction => mixBanner.evaluate((banner, portion) => {
+    const rect = banner.getBoundingClientRect();
+    scrollBy({ top: rect.top + rect.height * portion - innerHeight, behavior: 'instant' });
+  }, fraction);
+  for (const fraction of [0.1, 0.5, 0.75]) {
+    await revealPortion(fraction);
+    await page.waitForTimeout(200);
+    assert.equal(await bannerWord.evaluate(word => getComputedStyle(word).opacity), '0',
+      `Banner words stay at rest with ${fraction * 100}% of the band visible`);
+  }
+  await revealPortion(0.85);
+  await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.mix-banner-word')).opacity) > 0);
+  await page.waitForFunction(() => [...document.querySelectorAll('.mix-banner-word')].every(word => getComputedStyle(word).opacity === '1'));
+  checks.push('Banner waits through partial exposure and reveals its words when most of the band is visible');
+  await watchMixInView(page);
   await page.getByLabel('First website URL').fill('https://one.example/');
   await page.getByLabel('Second website URL').fill('https://two.example/');
   await page.getByLabel('Mix balance').fill('75');
-  checks.push('Single stays minimal with no rainbow asset download; Mix It mounts a distinct animated world');
+  checks.push('Single stays minimal with no rainbow asset download; Mix It mounts the shared Home blender');
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await still(page, 'mix', 'System reduced motion stops surreal-world playback');
@@ -353,12 +408,11 @@ try {
   await switchWorld(page, 'mix');
   await settled(page);
   await still(page, 'mix', 'Reduced motion survives re-entering Mix It');
-  assert.equal(await page.locator('.mix-paint-sculpture').evaluate(element => getComputedStyle(element).opacity), '1');
+  assert.ok(await page.locator(blenderCanvas).isVisible());
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.locator(scene.mix).scrollIntoViewIfNeeded();
-  const pose = await page.locator(probe.mix).evaluate(el => getComputedStyle(el).transform);
-  await page.waitForFunction(before => getComputedStyle(document.querySelector('.mix-paint-sculpture')).transform !== before, pose);
-  checks.push('Reduced motion holds both scenes still across mode changes, and Mix It resumes viewport playback when motion is enabled');
+  await watchMixInView(page);
+  checks.push('Reduced motion holds both scenes still across mode changes, and the blender resumes when motion is enabled');
 
   await captureTransition(page, 'single', '1440');
   await switchWorld(page, 'mix');
@@ -373,12 +427,12 @@ try {
 
   await page.getByRole('link', { name: 'Mix It home', exact: true }).click();
   await ready(page, 'mix');
-  await page.getByRole('contentinfo').getByRole('button', { name: 'Back to Design Scraper', exact: true }).click();
+  await page.getByRole('banner').getByRole('button', { name: 'Back to Design Scraper', exact: true }).click();
   await ready(page, 'single');
   await settled(page);
   await page.waitForFunction(() => scrollY < 1);
-  assert.equal(await page.locator('#main-content').evaluate(element => element === document.activeElement), true, 'Footer world navigation must move keyboard focus to the main content');
-  checks.push('Each brand stays in its own world; the footer return opens Design Scraper at the top');
+  assert.equal(await page.locator('#main-content').evaluate(element => element === document.activeElement), true, 'Header world navigation must move keyboard focus to the main content');
+  checks.push('Each brand stays in its own world; the header return opens Design Scraper at the top');
 
   for (const mode of ['single', 'mix']) {
     if (await page.locator('[data-experience]').getAttribute('data-experience') !== mode) { await switchWorld(page, mode); await settled(page); }

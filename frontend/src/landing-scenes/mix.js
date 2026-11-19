@@ -5,8 +5,11 @@ import {createTimeline} from 'animejs';
 import {buildBlender,buildMixToken} from './mix-model.js';
 import {createMixInk} from './mix-ink.js';
 
-export function mountMix(root) {
-const host=root.querySelector('#mix-scene');
+export function mountMix(root, options={}) {
+const hero=options.variant==='hero';
+const host=options.host??root.querySelector('#mix-scene');
+const state=options.state??root;
+const message=root.querySelector(hero?'.mix-scene-error':'#mix-error');
 
 const BLENDER_X=3.8;
 const LOOP=12000,TOKEN_CYCLE=6000,DROP_CYCLE=3000,TAU=Math.PI*2,FLOOR=-3.12;
@@ -25,7 +28,7 @@ try{
   if(!disposed)start(font);
 }catch(error){
   if(disposed)return;
-  const message=root.querySelector('#mix-error');message.hidden=false;
+  message.hidden=false;state.dataset.renderer='fallback';state.dataset.playback='still';
   message.textContent='The 3D scene is unavailable. You can still mix references or explore a saved mix.';
   host.dataset.error=error.message;
 }
@@ -53,7 +56,9 @@ function start(font){
   const floor=new THREE.Mesh(floorGeometry,new THREE.MeshBasicMaterial({color:0x171815,toneMapped:false}));floor.rotation.x=-Math.PI/2;floor.position.y=FLOOR-.04;scene.add(floor);
   const shadow=new THREE.Mesh(floorGeometry,new THREE.ShadowMaterial({opacity:.34}));shadow.rotation.x=-Math.PI/2;shadow.position.y=FLOOR-.035;shadow.receiveShadow=true;scene.add(shadow);
   const blender=buildBlender(font,m);scene.add(blender.rig);
-  const ink=createMixInk({banner:root,host,camera,rig:blender.rig});
+  const ink=createMixInk({banner:root,host,camera,rig:blender.rig,
+    ...(hero?{title:root.querySelector('.experience-headline'),keepoutSelectors:['.analysis-description','.hero-actions']}:{}),
+  });
   const tokens=[];
   for(let i=0;i<21;i++){
     const mesh=buildMixToken(font,m,i%7);scene.add(mesh);
@@ -73,7 +78,7 @@ function start(font){
   }
   let inView=false,mobile=false,blenderX=BLENDER_X,loops=0,contextLost=false;
   const clock={ms:0};
-  timeline=createTimeline({autoplay:false,loop:true,onUpdate:self=>draw(clock.ms,self.currentTime),onLoop:()=>{loops++;root.dataset.cycle=String(loops)}});
+  timeline=createTimeline({autoplay:false,loop:true,onUpdate:self=>draw(clock.ms,self.currentTime),onLoop:()=>{loops++;state.dataset.cycle=String(loops)}});
   timeline.add(clock,{ms:[0,LOOP],duration:LOOP,ease:t=>t},0);
   const up=v(0,1,0),flightDirection=v();
   const orbitPosition=(u,angle)=>{
@@ -125,36 +130,39 @@ function start(font){
     }
     renderer.render(scene,camera);
     ink.render(elapsed,opening.clone().project(camera),{still:reducedMotion});
-    host.dataset.time=String(Math.round(time));root.dataset.phase='continuous-mix';host.dataset.airborne=String(airborne);
-    root.dataset.cycle=String(loops);host.dataset.triangles=String(renderer.info.render.triangles);
+    host.dataset.time=String(Math.round(hero?elapsed:time));state.dataset.time=host.dataset.time;state.dataset.phase='continuous-mix';host.dataset.airborne=String(airborne);
+    state.dataset.cycle=String(loops);host.dataset.triangles=String(renderer.info.render.triangles);
   }
   function resize(){
     const {width,height}=host.getBoundingClientRect();mobile=innerWidth<=760;
     blenderX=mobile?0:Math.min(BLENDER_X,Math.max(.8,.8+(width/height-1)*3.6));
+    if(hero){camera.position.set(7,5,mobile?14:16);camera.lookAt(0,mobile?-.05:-.35,0)}
     camera.aspect=width/height;camera.fov=mobile?28:27.5;camera.updateProjectionMatrix();
     blender.rig.position.x=blenderX;blender.rig.updateMatrixWorld(true);
     renderer.setSize(width,height,false);ink.resize();draw(clock.ms);
   }
+  const transition=hero?document.querySelector('.world-transition'):null;
   const sync=()=>{
     if(reducedMotion){timeline.pause();draw(2600,2600)}
-    else if(contextLost||pageAway||document.hidden||!inView)timeline.pause();
+    else if(contextLost||pageAway||document.hidden||!inView||['covering','revealing'].includes(transition?.dataset.state))timeline.pause();
     else timeline.resume();
-    root.dataset.playback=reducedMotion?'still':timeline.paused?'paused':'playing';
+    state.dataset.playback=reducedMotion?'still':timeline.paused?'paused':'playing';
   };
   const preference=event=>{reducedMotion=event.matches;if(!reducedMotion)timeline.seek(0);sync()};
   document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',preference);
   const observer=new ResizeObserver(resize);observer.observe(host);
   const visible=new IntersectionObserver(([entry])=>{inView=entry.isIntersecting&&entry.intersectionRatio>=.15;sync()},{threshold:[0,.15]});visible.observe(root);
-  resize();host.dataset.ready='true';host.dataset.renderer='Three.js WebGL';host.dataset.engine='Anime.js';host.dataset.loopMs=String(LOOP);
+  const switching=new MutationObserver(sync);if(transition)switching.observe(transition,{attributes:true,attributeFilter:['data-state']});
+  resize();state.dataset.renderer='webgl';host.dataset.ready='true';host.dataset.renderer='Three.js WebGL';host.dataset.engine='Anime.js';host.dataset.loopMs=String(LOOP);
   let count=0;scene.traverse(node=>{if(node.isMesh)count++});host.dataset.meshes=String(count);
-  root.dataset.motionReady='';root.dataset.cycle='0';
+  state.dataset.motionReady='';state.dataset.cycle='0';
   const pagehide=()=>{pageAway=true;sync()},pageshow=()=>{pageAway=false;sync()};
   window.addEventListener('pagehide',pagehide);window.addEventListener('pageshow',pageshow);sync();
-  const lost=event=>{event.preventDefault();contextLost=true;sync();const message=root.querySelector('#mix-error');message.hidden=false;message.textContent='The 3D context was interrupted. Reload the page to continue.'};
+  const lost=event=>{event.preventDefault();contextLost=true;sync();message.hidden=false;state.dataset.renderer='fallback';state.dataset.playback='still';message.textContent='The 3D context was interrupted. Reload the page to continue.'};
   renderer.domElement.addEventListener('webglcontextlost',lost);
   dispose=()=>{
     timeline.revert();
-    window.removeEventListener('pagehide',pagehide);window.removeEventListener('pageshow',pageshow);observer.disconnect();visible.disconnect();
+    window.removeEventListener('pagehide',pagehide);window.removeEventListener('pageshow',pageshow);observer.disconnect();visible.disconnect();switching.disconnect();
     document.removeEventListener('visibilitychange',sync);reduced.removeEventListener('change',preference);renderer.domElement.removeEventListener('webglcontextlost',lost);
     const geometries=new Set(),mats=new Set();scene.traverse(node=>{node.shadow?.dispose();if(node.geometry)geometries.add(node.geometry);if(node.material)(Array.isArray(node.material)?node.material:[node.material]).forEach(material=>mats.add(material))});
     ink.dispose();geometries.forEach(geometry=>geometry.dispose());mats.forEach(material=>material.dispose());environment.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();

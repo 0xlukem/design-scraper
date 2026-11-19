@@ -81,7 +81,7 @@ export default function VisualInspector({ system, sources = [], onBackToControls
     <nav ref={nav} className="inspector-nav" aria-label="Design sections">
       <div className="inspector-section-links">{sections.map(([key, label]) => <button key={key} type="button" aria-current={active === key ? 'true' : undefined} aria-controls={`${id}-section`} onClick={() => jump(key)}>{label}</button>)}</div>
       <label className="inspector-section-select"><span className="sr-only">Design section</span><select value={active} onChange={event => jump(event.target.value)}>{sections.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select><CaretDown size={16} aria-hidden="true" /></label>
-      <button type="button" className="inspector-back" aria-label="Open export controls" onClick={onBackToControls}><span>Export</span><ArrowUpRight size={16} aria-hidden="true" /></button>
+      <button type="button" className="inspector-back" aria-label="Open export controls" onClick={onBackToControls}><span>Export</span><ArrowUpRight className="control-arrow" size={16} aria-hidden="true" /></button>
     </nav>
     <section ref={panel} id={`${id}-section`} className="inspector-section inspector-active-panel" tabIndex={-1} aria-labelledby={`${id}-title`}>
       <Heading id={`${id}-title`} title={title} />

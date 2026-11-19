@@ -22,7 +22,7 @@ export default function AnalysisErrorPanel({ issue, onRetry, disabled, onReviewS
       <p className="mt-4 max-w-[65ch] text-sm leading-relaxed">{summary}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         {issue.retryable && <button type="button" onClick={onRetry} disabled={disabled || remaining > 0} className={needsSettings ? 'secondary-button' : 'action-button'}>
-          <ArrowClockwise size={18} aria-hidden="true" />{remaining > 0 ? `Retry in ${remaining}s` : 'Retry'}
+          <ArrowClockwise className="control-arrow" size={18} aria-hidden="true" />{remaining > 0 ? `Retry in ${remaining}s` : 'Retry'}
         </button>}
         {needsSettings
           ? <button type="button" className="action-button" onClick={onReviewSettings}>{isLocalDemo ? 'Review demo scenario' : 'Review settings'}</button>
