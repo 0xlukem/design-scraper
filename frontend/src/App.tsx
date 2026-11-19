@@ -3,15 +3,12 @@ import ProviderRates from './components/ProviderRates'
 import './components/activity.css'
 import { AnalysisError, makeIssue, toIssue } from './analysisError'
 import SessionUsage, { type UsageEntry } from './components/SessionUsage'
-import SessionRun from './components/SessionRun'
-import DesignLibrary from './components/DesignLibrary'
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { analyzeWebsite, mixWebsites } from './api'
 import MixForm from './components/MixForm'
 import { mixInputIssue } from './mixInput'
 import ModeToggle from './components/ModeToggle'
-import ResultPanel from './components/ResultPanel'
 import SingleForm from './components/SingleForm'
 import SiteFooter from './components/SiteFooter'
 import MixBanner from './components/MixBanner'
@@ -38,6 +35,11 @@ import type {
   AppState,
   MixBias,
 } from './types'
+
+// Result inspection and the library are loaded when their task is opened.
+const ResultPanel = lazy(() => import('./components/ResultPanel'))
+const DesignLibrary = lazy(() => import('./components/DesignLibrary'))
+const SessionRun = lazy(() => import('./components/SessionRun'))
 
 // Keep the build guard local so it folds before entry chunks are separated.
 const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
@@ -150,6 +152,8 @@ function App() {
     setUsingOwnKey(Boolean(value))
   }, [])
   const [section, setSection] = useState(() => readSection())
+  const [libraryVisited, setLibraryVisited] = useState(() => readSection() === 'library')
+  useEffect(() => { if (section === 'library') setLibraryVisited(true) }, [section])
   const [runId, setRunId] = useState(readRunId)
   const previousRun = useRef<number | null>(null)
   const [keyStatus, setKeyStatus] = useState<'unverified' | 'checking' | 'verified' | 'error'>('unverified')
@@ -368,7 +372,7 @@ function App() {
       {isLocalDemo && section !== 'analyze' && <DemoControls busy={busy} />}
       {section === 'activity' && <div className="page-intro activity-intro"><h1>Activity &amp; costs</h1><p>Check the site’s remaining quota and the estimated cost of analyses in this tab.</p></div>}
       <div className="activity-content" hidden={section !== 'activity'}>
-        {runId !== null ? <SessionRun entry={usageEntries.find(entry => entry.id === runId)} busy={busy} onRestore={restoreRun} /> : <>
+        {runId !== null ? <Suspense fallback={<p role="status">Opening analysis…</p>}><SessionRun entry={usageEntries.find(entry => entry.id === runId)} busy={busy} onRestore={restoreRun} /></Suspense> : <>
         {busy && <p role="status" className="form-notice">An analysis is running. <a href="#/analyze">View progress</a></p>}
         <div className="activity-tabs" role="tablist" aria-label="Activity and model information" onKeyDown={event => {
           if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
@@ -435,16 +439,16 @@ function App() {
         <section ref={results} tabIndex={-1} aria-label="Analysis results" className="analysis-results"
           data-started={Boolean(state[state.mode].startedAt)}
           hidden={!state[state.mode].startedAt}>
-          {(['single', 'mix'] as const).map(mode => <div key={mode} hidden={state.mode !== mode}>
-            <ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
+          {(['single', 'mix'] as const).filter(mode => state[mode].startedAt).map(mode => <div key={mode} hidden={state.mode !== mode}>
+            <Suspense fallback={<p role="status">Preparing analysis…</p>}><ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
               progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0 || (mode === 'mix' && Boolean(mixIssue))}
               active={section === 'analyze' && state.mode === mode} cancelled={state[mode].cancelled} onCancel={() => cancel(mode)}
               onRetry={retry} onReviewSettings={reviewSettings}
-              onReviewUrl={() => document.getElementById(mode === 'single' ? 'single-url' : state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()} />
+              onReviewUrl={() => document.getElementById(mode === 'single' ? 'single-url' : state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()} /></Suspense>
           </div>)}
         </section>
       </div>
-      <div hidden={section !== 'library'}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></div>
+      <div hidden={section !== 'library'}>{(section === 'library' || libraryVisited) && <Suspense fallback={<p role="status">Opening design library…</p>}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></Suspense>}</div>
     </main>
     {state.mode === 'mix' && <MixBanner />}
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />

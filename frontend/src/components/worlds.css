@@ -16,7 +16,12 @@
 .theme-wild .analysis-intro .mix-ink-air { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
 .theme-wild .analysis-intro .mix-stains { z-index: 1; }
 .theme-wild .analysis-intro .mix-ink-air { z-index: 3; }
-.theme-wild .analysis-intro .mix-ink-air path { visibility: hidden; }
 @media (max-width: 760px) {
   .theme-wild .analysis-intro .mix-world { position: relative; inset: auto; width: 100vw; height: 440px; margin: 0 calc(-1 * var(--workspace-gutter)); }
 }
+
+/* Page-wide physical pigment, below readable content; flights are foreground. */
+.theme-wild > .mix-stains,
+.theme-wild > .mix-ink-air { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.theme-wild > .mix-stains { z-index: 0; }
+.theme-wild > .mix-ink-air { z-index: 3; }

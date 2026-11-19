@@ -1,4 +1,4 @@
-import { useId, useRef, type CSSProperties, type PointerEvent, type ChangeEventHandler } from 'react'
+import { useEffect, useId, useRef, type CSSProperties, type PointerEvent, type ChangeEventHandler } from 'react'
 
 interface Props {
   share: number
@@ -23,11 +23,43 @@ export default function StickyPaintRange({share, valueText, disabled = false, on
   const id = 'mix-paint-' + useId().replace(/:/g, '')
   const axis = useRef<HTMLDivElement>(null)
   const pointer = useRef<number | null>(null)
+  const motion = useRef({ value: 0, velocity: 0, target: 0, frame: 0, last: 0, pointerX: 0, pointerTime: 0 })
+  const head = useRef<SVGGElement>(null)
+
+  function animate(now: number) {
+    const m = motion.current
+    const dt = Math.min(1 / 30, (now - (m.last || now - 16)) / 1000)
+    m.last = now
+    // A damped material response driven by drag velocity, independent of the
+    // native range value. Its recoil decays to rest instead of snapping on release.
+    const acceleration = 190 * (m.target - m.value) - 18 * m.velocity
+    m.velocity += acceleration * dt
+    m.value += m.velocity * dt
+    const stretch = Math.min(.4, Math.abs(m.value))
+    head.current?.setAttribute('transform', `translate(${-m.value * 9} 0) rotate(${m.value * 9}) scale(${1 + stretch} ${1 / (1 + stretch)})`)
+    if (Math.abs(m.value - m.target) > .0004 || Math.abs(m.velocity) > .002) m.frame = requestAnimationFrame(animate)
+    else { m.frame = 0; m.last = 0; if (!pointer.current) head.current?.removeAttribute('transform') }
+  }
+  function energize(velocity: number) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    motion.current.target = Math.max(-.4, Math.min(.4, velocity / 2200))
+    if (!motion.current.frame) motion.current.frame = requestAnimationFrame(animate)
+  }
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const stop = () => { cancelAnimationFrame(motion.current.frame); Object.assign(motion.current, { frame: 0, last: 0, value: 0, velocity: 0, target: 0 }); head.current?.removeAttribute('transform') }
+    media.addEventListener('change', stop)
+    window.addEventListener('blur', stop)
+    return () => { stop(); media.removeEventListener('change', stop); window.removeEventListener('blur', stop) }
+  }, [])
 
   function follow(event: PointerEvent<HTMLInputElement>) {
     if (pointer.current !== event.pointerId || !root.current || !axis.current) return
     const { left, width } = axis.current.getBoundingClientRect()
     if (width <= 0) return
+    const m = motion.current, now = event.timeStamp
+    if (m.pointerTime) energize((event.clientX - m.pointerX) / Math.max(8, now - m.pointerTime) * 1000)
+    m.pointerX = event.clientX; m.pointerTime = now
     const fraction = Math.max(0, Math.min(1, (event.clientX - left) / width))
     root.current.style.setProperty('--paint-position', `${fraction * 100}%`)
     // Retract the outward tip at the ends of the rail.
@@ -37,6 +69,8 @@ export default function StickyPaintRange({share, valueText, disabled = false, on
 
   function release(input: HTMLInputElement) {
     pointer.current = null
+    motion.current.pointerTime = 0
+    energize(0)
     root.current?.removeAttribute('data-dragging')
     root.current?.style.removeProperty('--paint-position')
     root.current?.querySelector('.paint-outline')?.setAttribute('d', gripShape(input.value === '0' ? 0 : 1, input.value === '100' ? 0 : 1))
@@ -64,7 +98,7 @@ export default function StickyPaintRange({share, valueText, disabled = false, on
           </mask>
           <clipPath id={id + '-clip'}><use href={'#' + id + '-shape'}/></clipPath>
         </defs>
-        <g className="paint-head" mask={'url(#' + id + '-join)'}>
+        <g ref={head} className="paint-head" mask={'url(#' + id + '-join)'}>
           <use href={'#' + id + '-shape'} fill={'url(#' + id + '-lime)'} />
           <g clipPath={'url(#' + id + '-clip)'}>
             <path d="M9-21C22-13 16.5-3.3 9 3.8C2.4 10.2.6 14.9 3.5 21H55V-23Z" fill={'url(#' + id + '-pink)'}/>
@@ -84,6 +118,8 @@ export default function StickyPaintRange({share, valueText, disabled = false, on
         pointer.current = event.pointerId
         root.current?.setAttribute('data-dragging', '')
         event.currentTarget.setPointerCapture(event.pointerId)
+        motion.current.pointerX = event.clientX
+        motion.current.pointerTime = 0
         follow(event)
       }}
       onPointerMove={follow}

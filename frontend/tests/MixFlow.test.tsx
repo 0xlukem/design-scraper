@@ -75,7 +75,7 @@ it.each([-50, 50])('focuses the included URL after a failed single-source reques
   fireEvent.click(screen.getByRole('button', { name: 'Review URL' }))
   expect(screen.getByLabelText(label)).toHaveFocus()
   await act(async () => { window.location.hash = '/activity/1'; window.dispatchEvent(new HashChangeEvent('hashchange')) })
-  fireEvent.click(screen.getByRole('button', { name: 'Review inputs' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Review inputs' }))
   await waitFor(() => expect(screen.getByLabelText(label)).toHaveFocus())
   expect(screen.getByLabelText(label)).toHaveValue('https://included.example/')
   expect(screen.getByLabelText('Mix balance')).toHaveValue(String(50 - bias))

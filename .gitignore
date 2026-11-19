@@ -37,3 +37,6 @@ coverage.xml
 *.[mM][dD][xX]
 *.[mM][aA][rR][kK][dD][oO][wW][nN]
 !/README.md
+
+# Isolated paint study; excluded from the production build
+/frontend/.local/

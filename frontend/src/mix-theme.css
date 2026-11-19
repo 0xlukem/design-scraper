@@ -29,36 +29,11 @@ body:has(.experience-shell.theme-wild) { background: #171815; }
 .theme-wild :is(button, a, select, input):focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
 .theme-wild select { color: var(--ink); }
 
-/* Pigment stays in the margins, below all controls and evidence. The hero keeps
-   its own animated splashes. These marks are static, noninteractive paint. */
-.theme-wild .workspace-main { position: relative; isolation: isolate; }
-.theme-wild .workspace-main::before,
-.theme-wild .workspace-main::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  width: clamp(24px, 12vw, 180px);
-  pointer-events: none;
-  background-repeat: repeat-y;
-  background-size: 180px 2370px;
-}
-.theme-wild .workspace-main::before {
-  left: calc(50% - 50vw);
-  background-image: url('/images/mix-paint-left.svg');
-  background-position: right top;
-}
-.theme-wild .workspace-main::after {
-  right: calc(50% - 50vw);
-  background-image: url('/images/mix-paint-right.svg');
-  background-position: left top;
-  background-size: 180px 2690px;
-}
-.theme-wild .workspace-main:not([data-page='analyze'])::before,
-.theme-wild .workspace-main:not([data-page='analyze'])::after {
-  width: max(20px, calc((100vw - 1340px) / 2));
-}
+/* All pigment is deposited by the live scene, never tiled into the page. */
+.experience-shell.theme-wild { position: relative; isolation: isolate; }
+.theme-wild .workspace-main { position: relative; z-index: 1; }
+.theme-wild .site-header { z-index: 5; }
+.theme-wild .drawing-footer { position: relative; z-index: 1; background: transparent; }
 
 .theme-wild .reference-box { border: 1px solid var(--line); box-shadow: none; }
 .theme-wild .reference-topline { background: transparent; color: var(--pink); border-color: var(--line); border-bottom-width: 1px; }
@@ -134,22 +109,11 @@ body:has(.experience-shell.theme-wild) { background: #171815; }
 .theme-wild .mix-banner {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  background: var(--paper);
+  overflow: visible;
+  background: transparent;
+  z-index: 1;
   border-block: 1px solid var(--line);
 }
-.theme-wild .mix-banner::before,
-.theme-wild .mix-banner::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  width: clamp(100px, 13vw, 190px);
-  height: 270px;
-  pointer-events: none;
-  background: url('/images/mix-paint-banner.svg') center / contain no-repeat;
-}
-.theme-wild .mix-banner::before { left: -65px; top: -30px; }
-.theme-wild .mix-banner::after { right: -70px; top: -65px; background-image: url('/images/mix-paint-banner-right.svg'); }
 .theme-wild .drawing-footer { --drawing-ink: #b9bcb0; --drawing-rule: var(--line); }
 .theme-wild .drawing-footer-inner { border-top: 0; }
 .theme-wild .drawing-footer-inner::before,
@@ -158,17 +122,5 @@ body:has(.experience-shell.theme-wild) { background: #171815; }
 .theme-wild .drawing-footer :is(a, button):hover { color: var(--acid); }
 
 @media (max-width: 760px) {
-  .theme-wild .workspace-main::before,
-  .theme-wild .workspace-main::after { width: 14px; }
   .theme-wild .reference-box { box-shadow: none; }
-  .theme-wild .reference-box::before {
-    content: '';
-    position: absolute;
-    top: -35px;
-    right: -8px;
-    width: 54px;
-    height: 90px;
-    pointer-events: none;
-    background: url('/images/mix-paint-banner.svg') center / contain no-repeat;
-  }
 }

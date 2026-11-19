@@ -20,21 +20,13 @@
   overflow: visible;
   background: transparent;
 }
-/* Pigment extends past the panel; the glass samples this real painted surface. */
-.theme-wild .mix-workspace::before {
-  content: '';
-  position: absolute;
-  grid-area: controls;
-  inset: -24px -46px -36px;
-  z-index: 0;
-  pointer-events: none;
-  background: url('/images/mix-paint-workspace.svg') center / 100% 100% no-repeat;
-}
 .mix-workspace-heading { grid-area: title; position: relative; z-index: 2; text-align: center; margin-bottom: clamp(20px, 3svh, 36px); }
 .theme-wild .mix-workspace .experience-headline {
   max-width: none;
   margin: 0;
   font-size: clamp(3rem, 7.15cqw, 6.5rem);
+  font-weight: 950;
+  pointer-events: none;
   line-height: .98;
   letter-spacing: -.07em;
   white-space: nowrap;
@@ -42,12 +34,14 @@
 .theme-wild .mix-workspace .experience-headline > span { display: inline; width: auto; }
 .theme-wild .mix-workspace .experience-headline > span + span { margin-inline-start: .12em; }
 .theme-wild .mix-workspace .mix-letter { margin-right: -.07em; }
-.theme-wild .mix-workspace .analysis-description { max-width: 68ch; margin: 14px auto 0; font-size: clamp(16px, 1.35vw, 20px); line-height: 1.4; text-wrap: balance; }
+.theme-wild .mix-workspace .analysis-description { color: #d0d1c7; max-width: 68ch; margin: 14px auto 0; font-size: clamp(16px, 1.35vw, 20px); line-height: 1.4; text-wrap: balance; }
 .theme-wild .mix-workspace > .reference-box {
   grid-area: controls; align-self: center; position: relative; z-index: 4;
   width: 100%; margin: 0; padding: 20px;
   border: 1px solid rgb(244 243 238 / .18);
   border-radius: 8px;
+  overflow: clip;
+  clip-path: inset(0 round 8px);
   background: rgb(23 24 21 / .66);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   backdrop-filter: blur(16px) saturate(1.15);
@@ -92,8 +86,8 @@
 @supports not (backdrop-filter: blur(1px)) {
   .theme-wild .mix-workspace > .reference-box { background: rgb(23 24 21 / .9); }
 }
-/* Cropping is confined to the decorative scene; inputs stay in normal flow. */
-.theme-wild .mix-workspace .mix-blender-scene { overflow: hidden; }
+/* The expanded canvas shares the page, not the narrow grid cell. */
+.theme-wild .mix-workspace .mix-blender-scene { overflow: visible; }
 @media (min-width: 901px) and (max-height: 800px) {
   .theme-wild .analysis-controls.mix-workspace { padding-block: 16px; }
   .theme-wild .mix-workspace .experience-headline { font-size: min(7.15cqw, 10svh); }
@@ -107,7 +101,7 @@
   .theme-wild .mix-workspace .analysis-description { margin-top: 12px; font-size: 16px; }
   .theme-wild .mix-workspace .mix-world { height: 440px; min-height: 0; margin-top: 16px; }
   .theme-wild .mix-workspace > .reference-box { max-width: 540px; justify-self: center; }
-  .theme-wild .mix-workspace::before { width: min(100% + 48px, 610px); inset-inline: auto; justify-self: center; }
+
 }
 @media (max-width: 540px) {
   .theme-wild .mix-workspace > .reference-box { padding: 16px; }

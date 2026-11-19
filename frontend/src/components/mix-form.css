@@ -41,10 +41,6 @@
 }
 .paint-range { overflow: hidden; }
 .paint-head { transform-box: view-box; transform-origin: center; }
-@media (prefers-reduced-motion: no-preference) {
-  .paint-head { transition: transform 180ms ease-out; }
-  .paint-range[data-dragging] .paint-head { transform: scale(1.18, .91); }
-}
 .mix-form .paint-range .blend-slider {
   position: absolute;
   inset: 0;

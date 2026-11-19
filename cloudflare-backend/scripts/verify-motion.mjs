@@ -35,6 +35,14 @@ async function open(reducedMotion, record = false) {
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.addInitScript(() => {
     window.__mixDraws = new WeakMap();
+    window.__mixPaintStarts = [];
+    const seenPaintSurfaces = new WeakSet();
+    new MutationObserver(() => {
+      const wall = document.querySelector('.experience-shell > .mix-stains');
+      if (wall && !seenPaintSurfaces.has(wall)) {
+        seenPaintSurfaces.add(wall); window.__mixPaintStarts.push(wall.childElementCount);
+      }
+    }).observe(document, { childList: true, subtree: true });
     for (const Context of [WebGLRenderingContext, WebGL2RenderingContext]) {
       for (const method of ['drawArrays', 'drawElements']) {
         const draw = Context.prototype[method];
@@ -184,8 +192,10 @@ async function watchMixInView(page) {
   await page.waitForFunction(() => document.querySelector('.mix-world').dataset.phase === 'continuous-mix' && document.querySelector('.mix-world').dataset.playback === 'playing');
   const canvas = page.locator(blenderCanvas);
   const title = page.locator('.experience-headline');
-  const titleBox = await title.boundingBox();
   const before = await canvas.screenshot();
+  // The expanded-canvas screenshot may scroll. Measure layout after that
+  // tool action so the assertion checks animation, not screenshot scrolling.
+  const titleBox = await title.boundingBox();
   const time = Number(await world.getAttribute('data-time'));
   await page.waitForFunction(t => Number(document.querySelector('.mix-world').dataset.time) > t + 400, time);
   assert.ok(!(await canvas.screenshot()).equals(before), 'The blender and airborne paint keep moving');
@@ -195,10 +205,13 @@ async function watchMixInView(page) {
   await page.evaluate(() => {
     const spacer = document.createElement('div');
     spacer.id = 'motion-offscreen-space';
-    spacer.style.height = `${innerHeight}px`;
+    // Leave clearance for fractional CSS pixels at responsive layout boundaries.
+    spacer.style.height = `${innerHeight + 64}px`;
     document.body.append(spacer);
     scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
   });
+  assert.ok(await page.locator('.experience-shell').evaluate(el => el.getBoundingClientRect().bottom < 0),
+    'The complete paint surface is outside the viewport');
   await still(page, 'mix', 'The offscreen blender stops rendering');
   const stopped = Number(await world.getAttribute('data-time'));
   await world.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
@@ -376,6 +389,11 @@ try {
   await page.waitForFunction(() => Number(document.querySelector('.analysis-intro').dataset.inkLetters) > 0 && Number(document.querySelector('.analysis-intro').dataset.inkBackground) > 0);
   assert.match(await page.locator('.experience-headline').getAttribute('aria-label'), /MAKE A BEAUTIFUL MESS/);
   checks.push('The Home blender runs on charcoal in Mix It; flying paint stains the existing title and background');
+  assert.equal(await page.evaluate(() => window.__mixPaintStarts.at(-1)), 0, 'Mix It enters without pre-existing stains');
+  await page.waitForFunction(() => document.querySelectorAll('.mix-letter.is-inked').length >= 8);
+  assert.equal(await page.locator('.experience-shell > .mix-stains').count(), 1, 'Deposits share a page-wide surface');
+  assert.equal(await page.locator('.mix-workspace').evaluate(el => getComputedStyle(el, '::before').backgroundImage), 'none');
+  checks.push('A clean page receives large opening impacts, with paint spanning adjacent title letters');
   assert.notEqual(await page.locator('[data-experience]').evaluate(element => getComputedStyle(element).getPropertyValue('--paper')), basePaper, 'The two worlds must have distinct surfaces');
   const mixBanner = page.locator('.mix-banner');
   const bannerWord = mixBanner.locator('.mix-banner-word').first();
@@ -393,6 +411,9 @@ try {
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.mix-banner-word')).opacity) > 0);
   await page.waitForFunction(() => [...document.querySelectorAll('.mix-banner-word')].every(word => getComputedStyle(word).opacity === '1'));
   checks.push('Banner waits through partial exposure and reveals its words when most of the band is visible');
+  await page.waitForSelector('.mix-stains path[data-region="banner"]');
+  assert.equal(await page.locator('.drawing-footer').evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)', 'Footer does not hide the paint');
+  checks.push('Lower-page paint arrives on exposure and continues behind the transparent footer');
   await watchMixInView(page);
   await page.getByLabel('First website URL').fill('https://one.example/');
   await page.getByLabel('Second website URL').fill('https://two.example/');
@@ -445,10 +466,21 @@ try {
 
   for (const mode of ['single', 'mix']) {
     if (await page.locator('[data-experience]').getAttribute('data-experience') !== mode) { await switchWorld(page, mode); await settled(page); }
-    for (const width of [1440, 768, 390, 320]) {
+    for (const width of mode === 'mix' ? [320, 390, 540, 541, 760, 761, 900, 901, 1024, 1440, 1920, 2560, 3840] : [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${mode} has no overflow at ${width}px`);
+      if (mode === 'mix') {
+        const paintBounds = await page.evaluate(() => {
+          const canvas = document.querySelector('.mix-blender-scene canvas').getBoundingClientRect();
+          const cell = document.querySelector('.mix-blender-scene').getBoundingClientRect();
+          return { left: canvas.left, right: canvas.right, topExtra: cell.top - canvas.top, bottomExtra: canvas.bottom - cell.bottom,
+            overflow: getComputedStyle(document.querySelector('.mix-blender-scene')).overflow };
+        });
+        assert.ok(paintBounds.left <= 1 && paintBounds.right >= width - 1, `Airborne pieces cross columns at ${width}px`);
+        assert.ok(paintBounds.topExtra > 80 && paintBounds.bottomExtra > 100, `Vertical flight overscan at ${width}px`);
+        assert.equal(paintBounds.overflow, 'visible');
+      }
       await page.evaluate(() => scrollTo(0, 0));
       await page.screenshot({ path: `${artifacts}/${mode === 'single' ? 'design-scraper' : 'mix-it'}-${width}.png`, fullPage: true });
     }
