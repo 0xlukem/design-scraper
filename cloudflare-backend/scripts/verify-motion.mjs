@@ -192,13 +192,24 @@ async function watchMixInView(page) {
   await page.waitForFunction(() => document.querySelector('.mix-world').dataset.phase === 'continuous-mix' && document.querySelector('.mix-world').dataset.playback === 'playing');
   const canvas = page.locator(blenderCanvas);
   const title = page.locator('.experience-headline');
-  const before = await canvas.screenshot();
-  // The expanded-canvas screenshot may scroll. Measure layout after that
-  // tool action so the assertion checks animation, not screenshot scrolling.
+  // Sample the same visible part of the scene without auto-scrolling its oversized canvas.
+  const box = await world.boundingBox();
+  const viewport = page.viewportSize();
+  const x = Math.max(0, Math.ceil(box.x)), y = Math.max(0, Math.ceil(box.y));
+  const clip = {
+    x, y,
+    width: Math.min(viewport.width, Math.floor(box.x + box.width)) - x,
+    height: Math.min(viewport.height, Math.floor(box.y + box.height)) - y,
+  };
+  assert.ok(clip.width > 0 && clip.height > 0, 'The running scene is visible');
+  const before = await page.screenshot({ clip });
+  const draws = () => canvas.evaluate(el => window.__mixDraws.get(el) || 0);
+  const initialDraws = await draws();
   const titleBox = await title.boundingBox();
   const time = Number(await world.getAttribute('data-time'));
   await page.waitForFunction(t => Number(document.querySelector('.mix-world').dataset.time) > t + 400, time);
-  assert.ok(!(await canvas.screenshot()).equals(before), 'The blender and airborne paint keep moving');
+  assert.ok(await draws() > initialDraws, 'The blender renders new WebGL frames');
+  assert.ok(!(await page.screenshot({ clip })).equals(before), 'The blender and airborne paint keep moving');
   assert.deepEqual(await title.boundingBox(), titleBox, 'Paint impacts do not move the title layout');
   // The compact workspace can leave the blender visible even at the footer.
   // Supply real offscreen space instead of assuming the old tall hero layout.
