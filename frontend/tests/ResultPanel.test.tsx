@@ -183,6 +183,11 @@ describe('ResultPanel experience', () => {
 
     expect(screen.getByRole('button', { name: 'Export design', exact: true })).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByLabelText('DESIGN.md raw output')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close export' }))
+    const trigger = screen.getByRole('button', { name: 'Export design', exact: true })
+    expect(trigger).toHaveFocus()
+    fireEvent.click(trigger)
+    expect(screen.getByRole('dialog', { name: 'Export design' })).toBeVisible()
   })
 })
 

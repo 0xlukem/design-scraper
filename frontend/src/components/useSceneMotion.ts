@@ -9,10 +9,11 @@ export function useSceneMotion(
   root: RefObject<HTMLElement>,
   paused: boolean,
   createTimeline: () => gsap.core.Timeline,
+  minimumVisibleRatio = 0,
 ) {
   const animation = useRef<gsap.core.Timeline | null>(null)
   const pauseRequested = useRef(paused)
-  const visible = useRef(true)
+  const visible = useRef(false)
   const syncPlayback = useCallback(() => {
     animation.current?.paused(pauseRequested.current || !visible.current || document.hidden)
   }, [])
@@ -23,6 +24,7 @@ export function useSceneMotion(
   }, [paused, syncPlayback])
 
   useGSAP(() => {
+    visible.current = typeof IntersectionObserver === 'undefined'
     const media = gsap.matchMedia()
     media.add('(prefers-reduced-motion: no-preference)', () => {
       animation.current = createTimeline()
@@ -31,9 +33,10 @@ export function useSceneMotion(
     }, root)
 
     const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
-      visible.current = entries[0]?.isIntersecting ?? true
+      const entry = entries[entries.length - 1]
+      visible.current = entry.isIntersecting && entry.intersectionRatio >= minimumVisibleRatio
       syncPlayback()
-    }, { threshold: 0 })
+    }, { threshold: minimumVisibleRatio })
     if (root.current) observer?.observe(root.current)
     document.addEventListener('visibilitychange', syncPlayback)
     return () => {

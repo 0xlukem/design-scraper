@@ -3,23 +3,20 @@ import ProviderRates from './components/ProviderRates'
 import './components/activity.css'
 import { AnalysisError, makeIssue, toIssue } from './analysisError'
 import SessionUsage, { type UsageEntry } from './components/SessionUsage'
-import SessionRun from './components/SessionRun'
-import DesignLibrary from './components/DesignLibrary'
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { analyzeWebsite, mixWebsites } from './api'
 import MixForm from './components/MixForm'
 import { mixInputIssue } from './mixInput'
 import ModeToggle from './components/ModeToggle'
-import ResultPanel from './components/ResultPanel'
 import SingleForm from './components/SingleForm'
 import SiteFooter from './components/SiteFooter'
+import MixBanner from './components/MixBanner'
 import StudioScene from './components/StudioScene'
 import MixWorld from './components/MixWorld'
 import WorldTransition from './components/WorldTransition'
 import './components/workspace-hero.css'
-import HeroReveal from './components/HeroReveal'
-import { ArrowDown, ArrowUpRight, Globe } from '@phosphor-icons/react'
+import { Globe } from '@phosphor-icons/react'
 import PrintFolio from './components/letterpress/PrintFolio'
 import AllowanceHint from './components/AllowanceHint'
 import { librarySuggestions, type LibraryExample } from './library'
@@ -38,6 +35,11 @@ import type {
   AppState,
   MixBias,
 } from './types'
+
+// Result inspection and the library are loaded when their task is opened.
+const ResultPanel = lazy(() => import('./components/ResultPanel'))
+const DesignLibrary = lazy(() => import('./components/DesignLibrary'))
+const SessionRun = lazy(() => import('./components/SessionRun'))
 
 // Keep the build guard local so it folds before entry chunks are separated.
 const isLocalDemo = import.meta.env.DEV && import.meta.env.MODE === 'demo'
@@ -127,7 +129,6 @@ function reducer(state: AppState, action: AppAction): AppState {
 
 const singleSuggestions = librarySuggestions('single', 3).map(example => ({ id: example.id, label: new URL(example.sources[0]).hostname.replace(/^www\./, ''), urls: example.sources }))
 const mixSuggestions = librarySuggestions('mix', 2).map(example => ({ id: example.id, label: example.name, urls: example.sources, bias: example.bias }))
-const sculptureArtwork = '/images/mix-it-paint-sculpture.webp'
 
 function App() {
   // The requested world; the paint transition decides when `state.mode` follows.
@@ -151,6 +152,8 @@ function App() {
     setUsingOwnKey(Boolean(value))
   }, [])
   const [section, setSection] = useState(() => readSection())
+  const [libraryVisited, setLibraryVisited] = useState(() => readSection() === 'library')
+  useEffect(() => { if (section === 'library') setLibraryVisited(true) }, [section])
   const [runId, setRunId] = useState(readRunId)
   const previousRun = useRef<number | null>(null)
   const [keyStatus, setKeyStatus] = useState<'unverified' | 'checking' | 'verified' | 'error'>('unverified')
@@ -326,12 +329,8 @@ function App() {
     })
   }
   const requestAllowance = useCallback(() => setAllowanceRequested(true), [])
-  const changeMode = (mode: AppMode) => {
-    if (mode === 'mix') new Image().src = sculptureArtwork
-    setTargetMode(mode)
-  }
   const switchExperience = (mode: AppMode) => {
-    changeMode(mode)
+    setTargetMode(mode)
     if (section !== 'analyze') window.location.hash = '/analyze'
     window.scrollTo?.({ top: 0, behavior: 'instant' })
     main.current?.focus({ preventScroll: true })
@@ -370,10 +369,10 @@ function App() {
       </div>
     </header>
     <main ref={main} tabIndex={-1} id="main-content" className={`workspace-main${section === 'analyze' && state.mode === 'single' ? ' workspace-with-proof' : ''}`} data-page={section}>
-      {isLocalDemo && (section !== 'analyze' || state.mode === 'mix') && <DemoControls busy={busy} />}
+      {isLocalDemo && section !== 'analyze' && <DemoControls busy={busy} />}
       {section === 'activity' && <div className="page-intro activity-intro"><h1>Activity &amp; costs</h1><p>Check the site’s remaining quota and the estimated cost of analyses in this tab.</p></div>}
       <div className="activity-content" hidden={section !== 'activity'}>
-        {runId !== null ? <SessionRun entry={usageEntries.find(entry => entry.id === runId)} busy={busy} onRestore={restoreRun} /> : <>
+        {runId !== null ? <Suspense fallback={<p role="status">Opening analysis…</p>}><SessionRun entry={usageEntries.find(entry => entry.id === runId)} busy={busy} onRestore={restoreRun} /></Suspense> : <>
         {busy && <p role="status" className="form-notice">An analysis is running. <a href="#/analyze">View progress</a></p>}
         <div className="activity-tabs" role="tablist" aria-label="Activity and model information" onKeyDown={event => {
           if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
@@ -385,36 +384,23 @@ function App() {
         <div id="activity-panel-models" role="tabpanel" aria-labelledby="activity-tab-models" hidden={activityTab !== 'models'}><ProviderRates active={section === 'activity' && activityTab === 'models'} /></div>
         </>}
       </div>
-      <div className={section === 'analyze' ? `analysis-controls${state.mode === 'single' ? ' press-workspace' : ''}` : 'activity-settings'} hidden={section === 'library' || section === 'activity' && runId !== null}>
-      {section === 'analyze' && (state.mode === 'single' ? <div className="analysis-intro workspace-hero">
+      <div className={section === 'analyze' ? `analysis-controls${state.mode === 'single' ? ' press-workspace' : ' mix-workspace analysis-intro'}` : 'activity-settings'} hidden={section === 'library' || section === 'activity' && runId !== null}>
+      {section === 'analyze' && (state.mode === 'single' ? <div key="single-heading" className="analysis-intro workspace-hero">
         <h1 className="experience-headline"><span>The web,</span>{' '}<span>in print.</span></h1>
         <p className="analysis-description">Turn a website’s type, colors and spacing into five reusable design files.</p>
-      </div> : <HeroReveal mode="mix" paused={false}>
-        <div className="section-kicker"><span className="kicker-dot" /> Two references. Zero rules for good taste.</div>
-        <h1 className="experience-headline"><span className="mix-line-one">MIX</span><br /><span className="mix-line-two">IT UP.</span></h1>
+      </div> : <div key="mix-heading" className="mix-workspace-heading">
+        <h1 className="experience-headline">
+          <span>MAKE A</span>{' '}<span>BEAUTIFUL</span>{' '}<span>MESS</span>
+        </h1>
         <p className="analysis-description">A little from here. A little from there. Pour two websites together and see what happens.</p>
-        <div className="hero-actions">
-          <a href="#/library" className="hero-library-link">Borrow some inspiration <ArrowUpRight size={18} aria-hidden="true" /></a>
-          <a href="#analysis-form" className="hero-lab-link" onClick={event => {
-            event.preventDefault()
-            document.getElementById('analysis-form')?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
-            document.getElementById(state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus({ preventScroll: true })
-          }}>Go to the lab <ArrowDown size={16} aria-hidden="true" /></a>
-        </div>
-        <MixWorld paused={false} />
-        <ul className="analysis-capabilities" aria-label="Analysis capabilities">
-          <li><span>01</span> CSS evidence</li><li><span>02</span> AI vision</li><li><span>03</span> Five exports</li>
-        </ul>
-      </HeroReveal>)}
+      </div>)}
       <div className={section === 'analyze' ? 'reference-box' : 'activity-access'}>
         {section === 'analyze' && <>
-          {state.mode === 'mix' && <div className="reference-topline"><span>THE MIXING DESK</span><span>MAKE A BEAUTIFUL MESS</span></div>}
-          <ModeToggle mode={state.mode} onChange={changeMode} />
-          {isLocalDemo && state.mode === 'single' && <DemoControls busy={busy} />}
+          <ModeToggle mode={state.mode} onChange={setTargetMode} />
+          {isLocalDemo && <DemoControls busy={busy} />}
           {state.mode === 'single' ? <div className="reference-heading"><h2>Analyze a website</h2></div> :
             <div className="reference-heading">
-              <div><span className="reference-step">{Math.abs(state.mix.bias) === 50 ? 'YOUR SELECTED SOURCE' : '01 / POUR IN YOUR INGREDIENTS'}</span>
-                <h2>{Math.abs(state.mix.bias) === 50 ? 'One source. Its own design.' : 'Good things collide.'}</h2></div>
+              <h2>{Math.abs(state.mix.bias) === 50 ? 'One source. Its own design.' : 'Good things collide.'}</h2>
               <Globe size={24} aria-hidden="true" />
             </div>}
         </>}
@@ -431,37 +417,40 @@ function App() {
           {section === 'activity' && <SharedBudget revision={usageEntries.length} active usingOwnKey={usingOwnKey} onUseKey={isLocalDemo ? undefined : reviewSettings} />}
           <ProviderControls simulated={isLocalDemo} busy={busy} onChange={setProviderAccess} status={keyStatus} statusError={keyError} openRevision={settingsRevision} />
           <div hidden={section !== 'analyze'}>
-            {state.mode === 'single' && <div className="analysis-submit">
+            <div className="analysis-submit">
               <button type="submit" form="website-references" className="action-button"
-                disabled={!providerReady || busy || retryRemaining > 0 || !state.single.url.trim()}>
-                {state.single.loading ? 'Analyzing…' : 'Analyze design'}
+                disabled={!providerReady || busy || retryRemaining > 0 || (state.mode === 'single' ? !state.single.url.trim() : Boolean(mixIssue))}>
+                {state.mode === 'single' ? state.single.loading ? 'Analyzing…' : 'Analyze design'
+                  : state.mix.loading ? Math.abs(state.mix.bias) === 50 ? 'Analyzing source' : 'Mixing sources'
+                  : Math.abs(state.mix.bias) === 50 ? 'Analyze selected source' : 'Mix designs'}
               </button>
-            </div>}
+            </div>
             <AllowanceHint requested={allowanceRequested} revision={usageEntries.length} />
             {retryRemaining > 0 && <p className="form-notice" role="status">You can start another analysis in {retryRemaining}s.</p>}
             {busy && !state[state.mode].loading && <p role="status" className="form-notice">Switch back to {state.mode === 'single' ? 'Mix It' : 'Extract design'} to see your analysis.</p>}
           </div>
         </section>
-        {section === 'analyze' && state.mode === 'mix' && <div className="reference-footnote"><span aria-hidden="true">↳</span> {Math.abs(state.mix.bias) === 50 ? 'Colors, type, components. Ready for your next build.' : 'Two design languages. One entirely new direction.'}</div>}
       </div>
       {section === 'analyze' && state.mode === 'single' && <StudioScene />}
+      {section === 'analyze' && state.mode === 'mix' && <MixWorld />}
       </div>
-      {section === 'analyze' && state.mode === 'single' && <PrintFolio />}
+      {section === 'analyze' && (state.mode === 'single' ? <PrintFolio /> : <MixBanner />)}
       <div hidden={section !== 'analyze'}>
         <section ref={results} tabIndex={-1} aria-label="Analysis results" className="analysis-results"
           data-started={Boolean(state[state.mode].startedAt)}
-          hidden={state.mode === 'single' && !state.single.startedAt}>
-          {(['single', 'mix'] as const).map(mode => <div key={mode} hidden={state.mode !== mode}>
-            <ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
+          hidden={!state[state.mode].startedAt}>
+          {(['single', 'mix'] as const).filter(mode => state[mode].startedAt).map(mode => <div key={mode} hidden={state.mode !== mode}>
+            <Suspense fallback={<p role="status">Preparing analysis…</p>}><ResultPanel mode={mode} loading={state[mode].loading} error={state[mode].error} result={state[mode].result}
               progress={state[mode].progress} startedAt={state[mode].startedAt} retryDisabled={!providerReady || busy || retryRemaining > 0 || (mode === 'mix' && Boolean(mixIssue))}
               active={section === 'analyze' && state.mode === mode} cancelled={state[mode].cancelled} onCancel={() => cancel(mode)}
               onRetry={retry} onReviewSettings={reviewSettings}
-              onReviewUrl={() => document.getElementById(mode === 'single' ? 'single-url' : state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()} />
+              onReviewUrl={() => document.getElementById(mode === 'single' ? 'single-url' : state.mix.bias === 50 ? 'mix-url-2' : 'mix-url-1')?.focus()} /></Suspense>
           </div>)}
         </section>
       </div>
-      <div hidden={section !== 'library'}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></div>
+      <div hidden={section !== 'library'}>{(section === 'library' || libraryVisited) && <Suspense fallback={<p role="status">Opening design library…</p>}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></Suspense>}</div>
     </main>
+    {section !== 'analyze' && state.mode === 'mix' && <MixBanner />}
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
   </div>
 }

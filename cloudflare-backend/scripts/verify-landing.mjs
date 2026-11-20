@@ -291,7 +291,9 @@ try {
     assert.ok(['paused','complete'].includes(await mp.locator('.hero').getAttribute('data-playback')));
     await mp.waitForFunction(()=>document.querySelector('#mix-scene').dataset.ready==='true');
     assert.equal(await mp.locator('#mix-scene canvas').count(),1);
-    assert.ok(Number(await mp.locator('#mix-scene').getAttribute('data-meshes'))>300);
+    assert.ok(Number(await mp.locator('#mix-scene').getAttribute('data-triangles'))>10000, 'The blender remains real geometry');
+    const drawCalls=Number(await mp.locator('#mix-scene').getAttribute('data-draw-calls'));
+    assert.ok(drawCalls>0 && drawCalls<=150, 'Rigid parts and internal fragments stay batched');
     await mp.waitForFunction(()=>Number(document.querySelector('#mix-it').dataset.inkMarks)>4,{},{timeout:10000});
     await mp.locator('#faq').scrollIntoViewIfNeeded();
     await mp.waitForFunction(()=>document.querySelector('#mix-it').dataset.playback==='paused');

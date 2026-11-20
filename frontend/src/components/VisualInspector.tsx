@@ -1,5 +1,6 @@
-import { ArrowUpRight, CaretDown } from '@phosphor-icons/react'
+import { CaretDown } from '@phosphor-icons/react'
 import { createContext, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
+import type { ReactElement } from 'react'
 import type { DesignSystem, EvidenceToken } from '../types'
 import EvidenceBadge from './EvidenceBadge'
 import TokenCopyButton from './TokenCopyButton'
@@ -7,7 +8,7 @@ import ComponentPreview from './ComponentPreview'
 import TypographySample, { typeLabel } from './TypographySample'
 
 export interface InspectorSource { label: string; url: string; title?: string }
-interface VisualInspectorProps { system: DesignSystem; sources?: InspectorSource[]; onBackToControls: () => void }
+interface VisualInspectorProps { system: DesignSystem; sources?: InspectorSource[]; exportAction: ReactElement }
 const EvidenceContext = createContext<{ sources: InspectorSource[]; inspect: (sources: string[], tokenName?: string) => void }>({ sources: [], inspect: () => {} })
 const sections = [['overview', 'Overview'], ['colors', 'Colors'], ['type', 'Typography'], ['spacing', 'Spacing'], ['elevation', 'Elevation'], ['components', 'Components'], ['responsive', 'Responsive'], ['evidence', 'Evidence & gaps']] as const
 const COLOR_GROUPS = [['brand', 'Brand'], ['accent', 'Accent'], ['surfaces', 'Surfaces'], ['text', 'Text'], ['borders', 'Borders'], ['gradients', 'Gradients']] as const
@@ -37,7 +38,7 @@ function EvidenceGuide() { return <details className="evidence-guide inspector-d
   </dl><p>Recorded confidence is not a verified accuracy score. Measurements describe sampled elements; roles and suggested recipes can be interpretations.</p></details> }
 const gapGroup = (code: string) => /model|inferred|unsupported/i.test(code) ? 'Interpretation limits' : /css|measurement|shadow|font|dimension/i.test(code) ? 'Measurement limits' : 'Capture limits'
 
-export default function VisualInspector({ system, sources = [], onBackToControls }: VisualInspectorProps) {
+export default function VisualInspector({ system, sources = [], exportAction }: VisualInspectorProps) {
   const id = useId().replace(/:/g, '')
   const [active, setActive] = useState('overview')
   const [componentIndex, setComponentIndex] = useState(0)
@@ -81,7 +82,7 @@ export default function VisualInspector({ system, sources = [], onBackToControls
     <nav ref={nav} className="inspector-nav" aria-label="Design sections">
       <div className="inspector-section-links">{sections.map(([key, label]) => <button key={key} type="button" aria-current={active === key ? 'true' : undefined} aria-controls={`${id}-section`} onClick={() => jump(key)}>{label}</button>)}</div>
       <label className="inspector-section-select"><span className="sr-only">Design section</span><select value={active} onChange={event => jump(event.target.value)}>{sections.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select><CaretDown size={16} aria-hidden="true" /></label>
-      <button type="button" className="inspector-back" aria-label="Open export controls" onClick={onBackToControls}><span>Export</span><ArrowUpRight size={16} aria-hidden="true" /></button>
+      {exportAction}
     </nav>
     <section ref={panel} id={`${id}-section`} className="inspector-section inspector-active-panel" tabIndex={-1} aria-labelledby={`${id}-title`}>
       <Heading id={`${id}-title`} title={title} />

@@ -167,11 +167,18 @@ try {
         }
       } else if (width <= 640) {
         const previousUrl = page.url(), previousCalls = analyses;
-        await page.getByRole('link', { name: 'Go to the lab', exact: true }).click();
-        assert.equal(await page.locator(kind === 'single' ? '#single-url' : '#mix-url-1').evaluate(element => element === document.activeElement), true);
-        assert.equal(page.url(), previousUrl, 'Jumping to the form must not mutate the route');
-        assert.equal(analyses, previousCalls, 'Jumping to the form must not start an analysis');
-        results.push(`${kind}: mobile lab shortcut focuses the form without navigation or analysis at ${width}px`);
+        assert.equal(await page.getByRole('link', { name: 'Go to the lab', exact: true }).count(), 0);
+        const input = page.locator('#mix-url-1');
+        const [formBox, sceneBox] = await Promise.all([
+          page.locator('.mix-workspace > .reference-box').boundingBox(),
+          page.locator('.mix-world').boundingBox(),
+        ]);
+        assert.ok(formBox.y + formBox.height <= sceneBox.y, 'The mobile form precedes the blender');
+        await input.click();
+        assert.equal(await input.evaluate(element => element === document.activeElement), true);
+        assert.equal(page.url(), previousUrl, 'Focusing the form must not mutate the route');
+        assert.equal(analyses, previousCalls, 'Focusing the form must not start an analysis');
+        results.push(`${kind}: mobile form precedes the scene and accepts focus without navigation or analysis at ${width}px`);
       }
       await page.evaluate(() => scrollTo(0, 0));
       await page.screenshot({ path: `${artifacts}/${kind === "single" ? "design-scraper" : "mix-it"}-home-${width}.png`, fullPage: true });

@@ -18,10 +18,10 @@ it('keeps Design Scraper and Mix It as distinct visual experiences', () => {
   expect(shell).toHaveAttribute('data-experience', 'mix')
   expect(shell).toHaveClass('theme-wild')
   expect(container.querySelector('.proof-press')).not.toBeInTheDocument()
-  expect(screen.getByRole('heading', { name: 'Good things collide.' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Good things collide.' })).toBeInTheDocument()
   expect(container.querySelector('.mix-world')).toBeInTheDocument()
   expect(container.querySelector('.studio-scene')).not.toBeInTheDocument()
-  expect(screen.getByRole('heading', { name: 'MIX IT UP.', exact: true })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'MAKE A BEAUTIFUL MESS', exact: true })).toBeVisible()
 })
 
 it('preserves both forms and their blend balance during rapid world changes without submitting', () => {
@@ -54,7 +54,7 @@ it('bypasses the paint transition with reduced motion and retains a usable form'
   expect(screen.getByLabelText('Website URL')).toBeEnabled()
 })
 
-it('keeps each home link in its own world and provides an explicit footer return', () => {
+it('keeps each home link in its own world and returns to Design Scraper from the footer', () => {
   const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
   const { container } = render(<App />)
   fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Enter Mix It', exact: true }))
