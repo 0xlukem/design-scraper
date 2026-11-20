@@ -82,7 +82,19 @@ img { display: block; max-width: 100%; }
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary span { display: inline-block; flex: none; font-size: 28px; line-height: 1; }
 .faq details[open] summary span { transform: rotate(45deg); }
-.faq details p { font-size: 16px; line-height: 1.7; color: var(--muted); padding: 0 40px 28px 0; max-width: 62ch; }
+.faq details p { min-height:0; overflow:hidden; font-size: 16px; line-height: 1.7; color: var(--muted); padding-right: 40px; max-width: 62ch; }
+.faq details p::after { content: ""; display: block; height: 28px; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  .faq summary span { transition: transform 280ms ease; }
+  .faq details::details-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 320ms ease, opacity 240ms ease, content-visibility 320ms allow-discrete;
+  }
+  .faq details[open]::details-content { grid-template-rows: 1fr; opacity: 1; }
+}
 .rates-section { margin-block: 0 90px; }
 .model-rates { border-top: 1px solid var(--ink); scroll-margin-top: 30px; }
 .model-rates summary { cursor: pointer; padding-block: 24px; min-height: 60px; font-size: 18px; }

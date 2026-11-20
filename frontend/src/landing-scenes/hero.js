@@ -212,7 +212,7 @@ function init(font, brandFont) {
   function resize() {
     const {width,height} = host.getBoundingClientRect();
     const aspect = width/height;
-    const vertical = 5.2;
+    const vertical = Math.max(5.2, 5.8 / aspect);
     camera.left = -vertical*aspect/2; camera.right = vertical*aspect/2;
     camera.top = vertical/2; camera.bottom = -vertical/2;
     camera.updateProjectionMatrix(); renderer.setSize(width,height,false);
@@ -253,30 +253,15 @@ function init(font, brandFont) {
 }
 
 function choreographHeadline(master, brandFont, environment) {
-  // Real text throughout. A single accessible name survives the visual letter split.
-  for (const line of root.querySelectorAll('.headline-line')) {
-    const glyphs = [...line.textContent].map(character => {
-      const glyph = document.createElement('span');
-      glyph.className = character === ' ' ? 'headline-space' : 'headline-glyph';
-      glyph.textContent = character === ' ' ? '\u00a0' : character;
-      return glyph;
-    });
-    line.replaceChildren(...glyphs);
-  }
-  const scrape = root.querySelectorAll('.line-scrape .headline-glyph');
-  const connector = root.querySelectorAll('.line-like .headline-glyph');
-  const hot = root.querySelectorAll('.line-hot .headline-glyph');
-  const closed = 'polygon(0% 0%, 0% 0%, -24% 100%, 0% 100%)';
-  const open = 'polygon(0% 0%, 124% 0%, 100% 100%, 0% 100%)';
-  scrape.forEach((glyph, i) => {
-    master.add(glyph, {
-      clipPath: [closed, open], translateX: [14, 0], skewX: [-9, 0],
-      duration: 900, ease: steady,
-    }, 100 + i * 128);
+  // The iron needs individual glyph bounds to align its face with the impression.
+  const line = root.querySelector('.line-hot');
+  const hot = [...line.textContent].map(character => {
+    const glyph = document.createElement('span');
+    glyph.className = 'headline-glyph';
+    glyph.textContent = character;
+    return glyph;
   });
-  connector.forEach((glyph, i) => {
-    master.add(glyph, { clipPath: [closed, open], duration: 650, ease: steady }, 780 + i * 75);
-  });
+  line.replaceChildren(...hot);
   root.classList.add('scene-active');
   const brand=createHotBrand(root,brandFont,environment);
   disposers.push(()=>brand.dispose());
