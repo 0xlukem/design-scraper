@@ -8,9 +8,9 @@
 .section-help { font-size: 13px; margin-top: 8px; color: var(--muted); }
 .section-help summary { cursor: pointer; }
 .section-help p { max-width: 65ch; margin-top: 8px; }
-@media(max-width: 540px) { .result-exports { padding: 16px; } .result-heading { align-items: flex-start; } .result-heading .action-button { width: auto; min-width: 0; } }
+@media(max-width: 540px) { .result-exports { padding: 16px; } }
 /* Keep the result's identity and navigation stable while inspecting one section. */
-.result-shell .result-heading { align-items: center; gap: 24px; }
+.result-shell .result-heading { display: block; padding: 12px clamp(12px, 2vw, 24px); }
 .result-shell .result-title { font-size: clamp(1.65rem, 3vw, 2.5rem); line-height: 1.15; letter-spacing: -.045em; font-weight: 600; overflow-wrap: anywhere; margin: 0; scroll-margin-top: 24px; }
 .result-source-list { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 12px 0 28px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
 .inspector-workspace .inspector-section-links { flex-wrap: nowrap; gap: 6px 18px; }
@@ -36,7 +36,7 @@
 .inspector-workspace .swatch-list { gap: 0; }
 .inspector-workspace .swatch-row { grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding: 16px 0; }
 .inspector-workspace .color-swatch { width: 40px; min-height: 40px; height: 40px; border: 1px solid var(--line); box-shadow: none; }
-.inspector-workspace .token-evidence-line { grid-template-columns: minmax(0, 1fr) 104px; gap: 8px 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.inspector-workspace .token-evidence-line { grid-template-columns: minmax(0, 1fr) var(--copy-width, 104px); gap: 8px 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .inspector-workspace .swatch-row .token-evidence-line { padding: 0; border: 0; }
 .inspector-workspace .token-evidence-line > .token-identity { grid-column: 1; }
 .inspector-workspace .token-name { font: 550 14px/1.5 'Geist Variable', sans-serif; text-transform: none; letter-spacing: 0; }
@@ -56,7 +56,7 @@
 .type-source summary { cursor: pointer; }
 .inspector-workspace .measure-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
 .spacing-value { padding: 16px 0; border-bottom: 1px solid var(--line); }
-.spacing-value-heading { display: grid; grid-template-columns: 90px minmax(0, 1fr) 104px; align-items: center; gap: 12px; }
+.spacing-value-heading { display: grid; grid-template-columns: 90px minmax(0, 1fr) var(--copy-width, 104px); align-items: center; gap: 12px; }
 .spacing-value-heading code { font-size: 13px; overflow-wrap: anywhere; }
 .spacing-value-heading .spacing-track { grid-column: auto; overflow: hidden; }
 .spacing-value-heading .spacing-bar { display: block; }
@@ -112,8 +112,6 @@
  .component-picker { display: flex; overflow-x: auto; max-height: none; }
  .component-picker button { flex: 0 0 170px; }
  .source-records li { display: grid; gap: 6px; }
- .result-shell .result-heading { align-items: flex-start; }
- .result-shell .result-heading > button { min-width: 100px; white-space: nowrap; }
  .export-dialog { width: calc(100vw - 24px); padding: 20px; }
  .export-dialog .output-controls { align-items: stretch; }
  .export-dialog .output-actions { display: flex; flex-wrap: wrap; gap: 12px; }

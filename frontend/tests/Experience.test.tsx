@@ -54,14 +54,13 @@ it('bypasses the paint transition with reduced motion and retains a usable form'
   expect(screen.getByLabelText('Website URL')).toBeEnabled()
 })
 
-it('keeps each home link in its own world and returns to Design Scraper from the header', () => {
+it('keeps each home link in its own world and returns to Design Scraper from the footer', () => {
   const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
   const { container } = render(<App />)
   fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Enter Mix It', exact: true }))
   fireEvent.click(screen.getByRole('link', { name: 'Mix It home', exact: true }))
   expect(container.querySelector('[data-experience]')).toHaveAttribute('data-experience', 'mix')
-  expect(within(screen.getByRole('contentinfo')).queryByRole('button', { name: 'Back to Design Scraper' })).toBeNull()
-  fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Back to Design Scraper', exact: true }))
+  fireEvent.click(within(screen.getByRole('contentinfo')).getByRole('button', { name: 'Back to Design Scraper', exact: true }))
   expect(container.querySelector('[data-experience]')).toHaveAttribute('data-experience', 'single')
   expect(screen.getByRole('link', { name: 'Design Scraper home', exact: true })).toBeInTheDocument()
   expect(scroll).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))

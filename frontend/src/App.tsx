@@ -434,7 +434,7 @@ function App() {
       {section === 'analyze' && state.mode === 'single' && <StudioScene />}
       {section === 'analyze' && state.mode === 'mix' && <MixWorld />}
       </div>
-      {section === 'analyze' && state.mode === 'single' && <PrintFolio />}
+      {section === 'analyze' && (state.mode === 'single' ? <PrintFolio /> : <MixBanner />)}
       <div hidden={section !== 'analyze'}>
         <section ref={results} tabIndex={-1} aria-label="Analysis results" className="analysis-results"
           data-started={Boolean(state[state.mode].startedAt)}
@@ -450,7 +450,7 @@ function App() {
       </div>
       <div hidden={section !== 'library'}>{(section === 'library' || libraryVisited) && <Suspense fallback={<p role="status">Opening design library…</p>}><DesignLibrary active={section === 'library'} busy={busy} onUseReference={useReference} /></Suspense>}</div>
     </main>
-    {state.mode === 'mix' && <MixBanner />}
+    {section !== 'analyze' && state.mode === 'mix' && <MixBanner />}
     <SiteFooter isMix={state.mode === 'mix'} onSwitch={() => switchExperience(state.mode === 'single' ? 'mix' : 'single')} />
   </div>
 }

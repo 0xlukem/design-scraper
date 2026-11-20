@@ -3,6 +3,10 @@
 .theme-wild:has(.mix-workspace) { --masthead-height: 68px; }
 .theme-wild:has(.mix-workspace) .nav-inner { min-height: 67px; padding-block: 8px; }
 .theme-wild .workspace-main:has(.mix-workspace) { max-width: 1400px; padding-top: 0; }
+.theme-wild .workspace-main > .mix-banner {
+  width: 100vw;
+  margin: 0 calc(50% - 50vw);
+}
 .theme-wild .analysis-controls.mix-workspace {
   --form-inset: 0px;
   position: relative;
@@ -38,10 +42,13 @@
 .theme-wild .mix-workspace > .reference-box {
   grid-area: controls; align-self: center; position: relative; z-index: 4;
   width: 100%; margin: 0; padding: 20px;
-  border: 1px solid rgb(244 243 238 / .18);
-  border-radius: 8px;
   overflow: clip;
   clip-path: inset(0 round 8px);
+}
+.theme-wild .mix-workspace > .reference-box,
+.theme-wild .analysis-results .result-shell {
+  border: 1px solid rgb(244 243 238 / .18);
+  border-radius: 8px;
   background: rgb(23 24 21 / .66);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   backdrop-filter: blur(16px) saturate(1.15);
@@ -83,8 +90,81 @@
 .theme-wild .mix-workspace .local-demo select,
 .theme-wild .mix-workspace .url-chip { background: rgb(23 24 21 / .5); }
 .theme-wild .mix-workspace .funding-buttons button[aria-pressed='true'] { background: rgb(239 255 118 / .13); }
-@supports not (backdrop-filter: blur(1px)) {
-  .theme-wild .mix-workspace > .reference-box { background: rgb(23 24 21 / .9); }
+.theme-wild .analysis-results .inspector-nav {
+  position: relative;
+  padding: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--line);
+}
+@supports (container-type: scroll-state) {
+  .theme-wild .analysis-results .inspector-nav {
+    position: sticky;
+    container-type: scroll-state;
+  }
+  /* Keep scrolling content from showing through the pinned labels. */
+  @container scroll-state(stuck: top) {
+    .theme-wild .analysis-results .inspector-nav::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--paper);
+    }
+  }
+}
+.theme-wild .inspector-workspace .inspector-section-links button[aria-current] {
+  border-bottom-color: currentColor;
+}
+.theme-wild .analysis-results .inspector-back {
+  padding: 0 0 0 8px;
+  color: var(--muted);
+  border: 0;
+  background: transparent;
+}
+.theme-wild .analysis-results .inspector-back .control-arrow { display: block; }
+.theme-wild .analysis-results .inspector-back:is(:hover, :focus-visible) { color: var(--acid); }
+.theme-wild .analysis-results .inspector-section-select select {
+  padding-left: 0;
+  color: var(--acid);
+  border: 0;
+  border-bottom: 2px solid currentColor;
+  background: transparent;
+}
+.theme-wild .analysis-results .inspector-section-select option {
+  color: var(--ink);
+  background: var(--paper);
+}
+.theme-wild .result-shell .copy-button {
+  border: 1px solid rgb(244 243 238 / .32);
+  border-radius: 6px;
+  background: rgb(23 24 21 / .42);
+  color: var(--ink);
+}
+.theme-wild .result-shell .copy-button:hover:not(:disabled),
+.theme-wild .result-shell .copy-button[data-status='copied'] {
+  background: #303527;
+  border-color: var(--acid);
+  color: var(--acid);
+}
+.theme-wild .result-shell .copy-button[data-status='failed'] {
+  color: var(--pink);
+  border-color: currentColor;
+}
+.theme-wild .result-shell .copy-button:disabled { opacity: .55; }
+.theme-wild .inspector-workspace .shadow-sample {
+  padding: clamp(12px, 1.5vw, 20px);
+  gap: clamp(12px, 2vw, 24px);
+  grid-template-columns: clamp(40px, 6vw, 72px) minmax(0, 1fr);
+  border: 1px solid rgb(244 243 238 / .18);
+  border-radius: 8px;
+  background: rgb(23 24 21 / .42);
+}
+.theme-wild .inspector-workspace .shadow-sample:only-child { grid-column: 1 / -1; }
+.theme-wild .inspector-workspace .shadow-sample > div:first-child { width: 100%; height: auto; aspect-ratio: 1; }
+.theme-wild .inspector-workspace .shadow-sample .token-evidence-line { padding: 0; border: 0; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .theme-wild .mix-workspace > .reference-box,
+  .theme-wild .analysis-results .result-shell { background: rgb(23 24 21 / .9); }
 }
 /* The expanded canvas shares the page, not the narrow grid cell. */
 .theme-wild .mix-workspace .mix-blender-scene { overflow: visible; }

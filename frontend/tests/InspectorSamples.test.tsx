@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import ComponentPreview, { componentPreviewStyle } from '../src/components/ComponentPreview'
 import TypographySample from '../src/components/TypographySample'
@@ -48,7 +48,7 @@ it('keeps measurements accessible in a selected section and restores that export
   fireEvent.click(screen.getByRole('button', { name: 'Components', exact: true }))
   expect(screen.getByRole('region', { name: 'Components' })).toHaveFocus()
   expect(screen.getAllByText('Measured element')).toHaveLength(5)
-  const trigger = screen.getByRole('button', { name: 'Open export controls' })
+  const trigger = within(screen.getByRole('navigation', { name: 'Design sections' })).getByRole('button', { name: 'Export design' })
   trigger.focus()
   fireEvent.click(trigger)
   fireEvent.click(screen.getByRole('button', { name: 'Close export' }))

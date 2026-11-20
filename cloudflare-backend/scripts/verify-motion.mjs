@@ -412,6 +412,15 @@ try {
   await page.waitForFunction(() => [...document.querySelectorAll('.mix-banner-word')].every(word => getComputedStyle(word).opacity === '1'));
   checks.push('Banner waits through partial exposure and reveals its words when most of the band is visible');
   await page.waitForSelector('.mix-stains path[data-region="banner"]');
+  await page.waitForFunction(() => {
+    const lip = document.querySelector('.mix-banner').getBoundingClientRect().top;
+    const pool = document.querySelector('[data-region="ledge-pool"]');
+    const piece = document.querySelector('[data-region="floor-piece"]');
+    if (!pool || !piece) return false;
+    const paint = pool.getBoundingClientRect(), object = piece.getBoundingClientRect();
+    return paint.top < lip && paint.bottom > lip + 3 && Math.abs(object.bottom - lip) < 2;
+  });
+  checks.push('Paint collects above the banner lip, drips below it, and a landed blender piece rests on the divider');
   assert.equal(await page.locator('.drawing-footer').evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)', 'Footer does not hide the paint');
   checks.push('Lower-page paint arrives on exposure and continues behind the transparent footer');
   await watchMixInView(page);

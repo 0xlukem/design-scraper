@@ -93,10 +93,3 @@
   display: inline-block;
   transform-origin: left bottom;
 }
-.theme-wild .drawing-footer {
-  --drawing-ink: #2937d8;
-  --drawing-rule: currentColor;
-  margin-top: 0;
-  padding-top: 16px;
-  background: var(--paper);
-}

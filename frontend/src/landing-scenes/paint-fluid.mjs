@@ -16,14 +16,24 @@ export class PaintFluid {
     // Equal-volume material parcels. Initial tangential speed comes from impact
     // momentum; uneven angles/thickness break symmetry without scripted silhouettes.
     const speed = Math.min(480, Math.hypot(vx, vy) * .36 + 65) * spread;
+    const length = Math.hypot(vx, vy);
+    const ux = length ? vx / length : 0, uy = length ? vy / length : 0;
+    const obliqueness = Math.min(1, length / 600) * spread;
     const thicknessPhase = r() * Math.PI * 2, thicknessLobes = 2 + r() * 3;
     for (let i = 0; i < Math.min(count, 120); i++) {
       const a = i * 2.399963229728653 + (r() - .5) * .35;
-      const d = Math.sqrt(i + .5) * radius * .68;
-      const edge = Math.pow((i + 1) / count, 2), impulse = speed * edge * (.45 + r() * .9);
-      this.particles.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d,
-        vx: Math.cos(a) * impulse + vx * .035, vy: Math.sin(a) * impulse + vy * .035,
-        px: 0, py: 0, wetness: .35 + .5 * (1 + Math.sin(a * thicknessLobes + thicknessPhase)) / 2 + r() * .15, density: 0, anchor: null, depositedX: x + Math.cos(a) * d, depositedY: y + Math.sin(a) * d, deposits: 0 });
+      const dx = Math.cos(a), dy = Math.sin(a);
+      const along = dx * ux + dy * uy;
+      const d = Math.sqrt(i + .5) * radius * .52;
+      const px = x + d * (dx + ux * along * obliqueness);
+      const py = y + d * (dy + uy * along * obliqueness);
+      const edge = ((i + 1) / count) ** 2;
+      const impulse = speed * edge * (.45 + r() * .9) * (1 + along * obliqueness * .65);
+      this.particles.push({
+        x: px, y: py, vx: dx * impulse + ux * speed * .36, vy: dy * impulse + uy * speed * .36,
+        px, py, wetness: .35 + .5 * (1 + Math.sin(a * thicknessLobes + thicknessPhase)) / 2 + r() * .15,
+        density: 0, anchor: null, depositedX: px, depositedY: py, deposits: 0, volume: 1,
+      });
     }
     this.sleeping = false; this.age = 0;
   }
@@ -32,11 +42,12 @@ export class PaintFluid {
     const ps = this.particles, h = this.radius * 4, dt2 = dt * dt;
     this.age += dt; this.steps++;
     const wet = Math.max(0, 1 - this.age / this.dryAfter);
+    const relaxation = wet * Math.min(1, this.age / .2);
     const grid = new Map();
     for (const p of ps) {
       p.px = p.x; p.py = p.y;
       // Thin film adheres quickly; thick wet material continues under gravity.
-      const mobile = Math.max(0, p.wetness * wet - .16);
+      const mobile = Math.max(0, p.wetness * wet - .095);
       p.vy += this.gravity * mobile * dt;
       if (this.age > .22 && !p.anchor && p.wetness < .72) p.anchor = { x: p.x, y: p.y };
       if (p.anchor) { p.vx += (p.anchor.x - p.x) * 180 * dt; p.vy += (p.anchor.y - p.y) * 180 * dt; }
@@ -62,7 +73,7 @@ export class PaintFluid {
       const pressure = 1100 * Math.max(-.3, density - 4.4), nearPressure = 2100 * near;
       let dx = 0, dy = 0;
       for (const [q, nx, ny, w] of ns) {
-        const amount = dt2 * (pressure * w + nearPressure * w * w) * wet * .5;
+        const amount = dt2 * (pressure * w + nearPressure * w * w) * relaxation * .5;
         q.x += nx * amount; q.y += ny * amount; dx -= nx * amount; dy -= ny * amount;
         pairs.push([p, q, w]);
       }
@@ -79,9 +90,15 @@ export class PaintFluid {
     }
     // Moving wet parcels leave a thin adhered film along their actual trajectory.
     // This is deposition on a wall, not a tether drawn toward a preset endpoint.
-    for (const p of ps) if (this.age > .2 && p.deposits < 60 && Math.hypot(p.x-p.depositedX,p.y-p.depositedY)>this.radius*.65) {
-      this.film.push({x:p.x,y:p.y,r:this.radius*.65});
-      p.depositedX=p.x;p.depositedY=p.y;p.deposits++;
+    for (const p of ps) {
+      if (this.age <= .2 || p.deposits >= 60) continue;
+      const distance = Math.hypot(p.x - p.depositedX, p.y - p.depositedY);
+      if (distance < this.radius * .48) continue;
+      const transferred = p.volume * .012;
+      p.volume -= transferred;
+      // A thin coating spreads over a wider area than the same volume in a bead.
+      this.film.push({ x: p.x, y: p.y, r: this.radius * Math.sqrt(transferred / .042) });
+      p.depositedX = p.x; p.depositedY = p.y; p.deposits++;
     }
     this.neighborPairs = pairs.length;
     if (this.age >= this.dryAfter) { this.sleeping = true; for (const p of ps) p.vx = p.vy = 0; }
@@ -99,7 +116,7 @@ export function fluidPath(fluid, cell = 3) {
   const b = fluid.bounds(), r = fluid.radius * 2.65, cols = Math.ceil((b.right-b.x)/cell)+1, rows = Math.ceil((b.bottom-b.y)/cell)+1;
   const field = new Float32Array(cols * rows), cutoff = .65;
   for (const p of [...fluid.particles, ...fluid.film]) {
-    const support = p.r ? p.r * 2.65 : r;
+    const support = p.r ? p.r * 2.65 : r * Math.cbrt(p.volume);
     const x0 = Math.max(0, Math.floor((p.x-support-b.x)/cell)), x1 = Math.min(cols-1, Math.ceil((p.x+support-b.x)/cell));
     const y0 = Math.max(0, Math.floor((p.y-support-b.y)/cell)), y1 = Math.min(rows-1, Math.ceil((p.y+support-b.y)/cell));
     for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) {

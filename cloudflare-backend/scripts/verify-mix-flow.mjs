@@ -106,6 +106,20 @@ try {
     const before = requests.length;
     await page.getByRole('button', { name: 'Analyze selected source', exact: true }).click();
     await page.getByRole('button', { name: 'Export design', exact: true }).waitFor();
+    const panels = await page.evaluate(() => {
+      const form = getComputedStyle(document.querySelector('.mix-workspace .reference-box'));
+      const result = document.querySelector('.analysis-results .result-shell');
+      const glass = getComputedStyle(result);
+      return {
+        exportOnlyInNav: !result.querySelector('.result-heading button') && Boolean(result.querySelector('.inspector-nav [aria-haspopup="dialog"]')),
+        matchingGlass: form.backdropFilter === glass.backdropFilter && form.backgroundColor === glass.backgroundColor,
+        filter: glass.backdropFilter,
+        bannerAboveResult: document.querySelector('.mix-banner').getBoundingClientRect().bottom <= result.getBoundingClientRect().top,
+      };
+    });
+    assert.ok(panels.exportOnlyInNav, 'Export is available in the section navigation only');
+    assert.ok(panels.matchingGlass && panels.filter.includes('blur('), 'The result uses the same frosted surface as the form');
+    assert.ok(panels.bannerAboveResult, 'Opening results keeps the banner underneath the blender');
     assert.equal(requests.length, before + 1);
     assert.deepEqual(requests.at(-1), { path: '/api/analyze', payload: { url: 'https://milligram.io/' } });
     await page.getByRole('link', { name: 'Activity & costs', exact: true }).click();

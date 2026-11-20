@@ -13,8 +13,8 @@ export default function SiteFooter({ isMix = false, onSwitch }: { isMix?: boolea
         <a href="/" aria-label="About Design Scraper" className="drawing-home">
           <img src="/design-scraper.svg" width="24" height="24" alt="" />
         </a>
-        {!isMix && onSwitch && <button type="button" onClick={onSwitch} aria-label="Open Mix It">
-          Mix It
+        {onSwitch && <button type="button" onClick={onSwitch} aria-label={isMix ? 'Back to Design Scraper' : 'Open Mix It'}>
+          {isMix ? 'Design Scraper' : 'Mix It'}
         </button>}
       </div>
       <nav aria-label="Lucas Malizia’s social profiles">

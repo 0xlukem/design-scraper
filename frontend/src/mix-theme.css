@@ -8,6 +8,7 @@
   --line: #45483e;
   --accent: #efff76;
   --focus: #efff76;
+  --copy-width: 84px;
   --mix-first: var(--acid);
   --mix-second: var(--pink);
   --drawing-paper: var(--paper);
@@ -114,10 +115,11 @@ body:has(.experience-shell.theme-wild) { background: #171815; }
   z-index: 1;
   border-block: 1px solid var(--line);
 }
-.theme-wild .drawing-footer { --drawing-ink: #b9bcb0; --drawing-rule: var(--line); }
-.theme-wild .drawing-footer-inner { border-top: 0; }
-.theme-wild .drawing-footer-inner::before,
-.theme-wild .drawing-footer-inner::after { display: none; }
+.theme-wild .drawing-footer {
+  --drawing-ink: var(--ink);
+  --drawing-rule: rgb(244 243 238 / .55);
+}
+.theme-wild .drawing-footer-inner { background: rgb(23 24 21 / .78); }
 .theme-wild .drawing-home img { mix-blend-mode: normal; }
 .theme-wild .drawing-footer :is(a, button):hover { color: var(--acid); }
 

@@ -2,9 +2,7 @@ import { isLocalDemo } from '../demo'
 import TelemetrySummary from './TelemetrySummary'
 import AnalysisErrorPanel from './AnalysisErrorPanel'
 import type { AnalysisIssue } from '../analysisError'
-import {
-  Scan,
-} from '@phosphor-icons/react'
+import { ArrowUpRight, Scan } from '@phosphor-icons/react'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type {
@@ -128,7 +126,7 @@ export default function ResultPanel({
   const panelId = useId().replace(/:/g, '')
   const controls = useRef<HTMLHeadingElement>(null)
   const previousResult = useRef<AnalysisResult | null>(null)
-  const exportOrigin = useRef<HTMLElement | null>(null)
+  const exportTrigger = useRef<HTMLButtonElement>(null)
   const exportScroll = useRef({ x: 0, y: 0 })
   const dialog = useRef<HTMLDialogElement>(null)
   const [selection, setSelection] = useState<{
@@ -229,15 +227,20 @@ export default function ResultPanel({
   const closeExport = () => {
     setSelection({ ...currentSelection, result, view: 'visual' })
     dialog.current?.close()
-    exportOrigin.current?.focus({ preventScroll: true })
+    exportTrigger.current?.focus({ preventScroll: true })
     window.scrollTo?.({ left: exportScroll.current.x, top: exportScroll.current.y, behavior: 'instant' })
     requestAnimationFrame(() => window.scrollTo?.({ left: exportScroll.current.x, top: exportScroll.current.y, behavior: 'instant' }))
   }
   const openExport = () => {
-    exportOrigin.current = document.activeElement as HTMLElement
     exportScroll.current = { x: window.scrollX, y: window.scrollY }
     setSelection({ ...currentSelection, result, view: 'raw' })
   }
+  const exportAction = (
+    <button ref={exportTrigger} type="button" className="inspector-back" aria-label="Export design"
+      aria-haspopup="dialog" aria-controls={`${panelId}-exports`} aria-expanded={exportsOpen} onClick={openExport}>
+      <span>Export</span><ArrowUpRight className="control-arrow" size={16} aria-hidden="true" />
+    </button>
+  )
   const sources = mixResult ? result.metadata.sources.map(source => ({ label: source.slot, url: source.url, title: source.title })) : [{ label: 'web_1', url: singleMetadata?.url || '', title: singleMetadata?.title }]
   const sourceName = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, '') } catch { return url } }
   const resultTitle = title || sources.map(source => sourceName(source.url)).filter(Boolean).join(' + ') || 'Design findings'
@@ -249,7 +252,6 @@ export default function ResultPanel({
           'Source CSS only. Visual verification was unavailable. These values are declared in the page styles.'}</p>}
       <div className="result-heading">
         <Heading ref={controls} tabIndex={-1} className="result-title">{resultTitle}</Heading>
-        <button type="button" className="action-button" aria-expanded={exportsOpen} aria-controls={`${panelId}-exports`} onClick={openExport}>Export design</button>
       </div>
       <div className="result-source-list">{sources.map(source => <span key={source.label}>{source.url}{mixResult && ` · ${result.metadata.sources.find(item => item.slot === source.label)?.influence}% influence`}</span>)}</div>
       <dialog ref={dialog} id={`${panelId}-exports`} className="export-dialog" aria-labelledby={`${panelId}-export-title`} onCancel={event => { event.preventDefault(); closeExport() }}>
@@ -302,7 +304,12 @@ export default function ResultPanel({
         <details className="export-preview" open={!result.design_system || undefined}><summary>Preview code</summary><SyntaxHighlightedCode content={selectedOutput.content} language={selectedOutput.language} label={`${selectedOutput.label} raw output`} /></details>
       </div>
       </>}</dialog>
-      {result.design_system ? <VisualInspector key={resultTitle} system={result.design_system} sources={sources} onBackToControls={openExport} /> : <p className="field-help">This saved response has no visual evidence. Use Export design to open its original document.</p>}
+      {result.design_system
+        ? <VisualInspector key={resultTitle} system={result.design_system} sources={sources} exportAction={exportAction} />
+        : <div>
+            <p className="field-help">This saved response has no visual evidence. Open Export to view its original document.</p>
+            {exportAction}
+          </div>}
       {historical ? <details className="provider-rates"><summary>Original analysis usage</summary><p className="field-help">Historical usage from the saved analysis. Opening or downloading this design adds no usage.</p>
         {result.telemetry && <TelemetrySummary telemetry={result.telemetry} />}
         {result.metadata.usage ? <UsageSummary usage={result.metadata.usage} /> : <p>Usage unavailable.</p>}
