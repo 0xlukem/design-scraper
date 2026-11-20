@@ -59,6 +59,7 @@ export default function DownloadButton({
         type="button"
         onClick={handleCopy}
         className="copy-button"
+        data-status={visibleCopyStatus}
         aria-label={visibleCopyStatus === 'failed' ? 'Copy failed' : undefined}
         disabled={disabled}
       >

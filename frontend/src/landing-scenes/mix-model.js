@@ -1,5 +1,34 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+
+// Bake only parts that share a rigid parent/material. The jar, dial, blade and
+// emissive light remain independently controlled; no silhouette is simplified.
+function batchRigidParts(group) {
+  const batches = new Map();
+  for (const part of [...group.children]) {
+    if (!part.isMesh || part.material.transparent || part.material.transmission > 0) continue;
+    const key = part.material.uuid + ':' + part.castShadow;
+    if (!batches.has(key)) batches.set(key, []);
+    batches.get(key).push(part);
+  }
+  for (const parts of batches.values()) {
+    if (parts.length < 2) continue;
+    const sources = parts.map(part => {
+      part.updateMatrix();
+      const geometry = part.geometry.index ? part.geometry.toNonIndexed() : part.geometry.clone();
+      return geometry.applyMatrix4(part.matrix);
+    });
+    const geometry = mergeGeometries(sources);
+    sources.forEach(g => g.dispose());
+    if (!geometry) continue;
+    const mesh = new THREE.Mesh(geometry, parts[0].material);
+    mesh.castShadow = parts[0].castShadow; mesh.receiveShadow = true;
+    parts.forEach(part => { group.remove(part); part.geometry.dispose(); });
+    group.add(mesh);
+  }
+}
 
 export function block(w,h,d,material,r=.045){
   const mesh=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,3,Math.min(r,w/3,h/3,d/3)),material);
@@ -48,6 +77,7 @@ export function buildBlender(font,materials){
     const mesh=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.025,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:2,steps:1}),chrome);
     mesh.rotation.x=-Math.PI/2;const arm=new THREE.Group();arm.rotation.y=i*Math.PI/2;arm.rotation.z=i%2?.1:-.1;arm.add(mesh);blade.add(arm);
   }
+  batchRigidParts(dial); batchRigidParts(rig);
   rig.scale.setScalar(1.08);rig.position.set(3.0,.03,0);
   return {rig,blade,dial,led:ledMaterial};
 }
@@ -83,5 +113,6 @@ export function buildMixToken(font,m,kind){
   }else{
     add(new THREE.Mesh(new THREE.TorusGeometry(.29,.10,12,36),m.pink));
   }
+  batchRigidParts(group);
   return group;
 }

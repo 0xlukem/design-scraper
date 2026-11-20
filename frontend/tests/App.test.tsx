@@ -64,7 +64,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /mix it/i }))
     expect(
-      await screen.findByRole('heading', { name: 'MIX IT UP.', exact: true }),
+      await screen.findByRole('heading', { name: 'MAKE A BEAUTIFUL MESS', exact: true }),
     ).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('First website URL'), {
       target: { value: 'https://one.example' },

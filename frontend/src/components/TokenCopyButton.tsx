@@ -29,6 +29,7 @@ export default function TokenCopyButton({ value, label }: TokenCopyButtonProps) 
       <button
         type="button"
         className="copy-button token-copy-button"
+        data-status={status}
         onClick={copy}
         aria-label={`${status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed for' : 'Copy'} ${label}`}
       >

@@ -1,0 +1,128 @@
+/* The same charcoal canvas from the blender continues through the working UI.
+   Only application chrome is themed; extracted specimens keep their own colors. */
+.experience-shell.theme-wild {
+  --paper: #171815;
+  --surface: #20211d;
+  --ink: #f4f3ee;
+  --muted: #b9bcb0;
+  --line: #45483e;
+  --accent: #efff76;
+  --focus: #efff76;
+  --copy-width: 84px;
+  --mix-first: var(--acid);
+  --mix-second: var(--pink);
+  --drawing-paper: var(--paper);
+  --drawing-ink: var(--ink);
+  --drawing-rule: var(--line);
+  --drawing-guide: var(--line);
+  color-scheme: dark;
+}
+html:has(.experience-shell.theme-wild),
+body:has(.experience-shell.theme-wild) { background: #171815; }
+
+.theme-wild .site-header { border-color: var(--line); }
+.theme-wild .mix-wordmark { color: var(--acid); }
+.theme-wild .mix-wordmark span { color: var(--pink); }
+.theme-wild .nav-inner nav a[aria-current='page'] { color: var(--acid); border-color: var(--acid); }
+.theme-wild .nav-inner nav a:hover { color: var(--pink); }
+.theme-wild .experience-switch { background: transparent; color: var(--ink); border-color: var(--line); }
+.theme-wild .experience-switch:hover { background: var(--surface); color: var(--acid); border-color: var(--acid); }
+.theme-wild :is(button, a, select, input):focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.theme-wild select { color: var(--ink); }
+
+/* All pigment is deposited by the live scene, never tiled into the page. */
+.experience-shell.theme-wild { position: relative; isolation: isolate; }
+.theme-wild .workspace-main { position: relative; z-index: 1; }
+.theme-wild .site-header { z-index: 5; }
+.theme-wild .drawing-footer { position: relative; z-index: 1; background: transparent; }
+
+.theme-wild .reference-box { border: 1px solid var(--line); box-shadow: none; }
+.theme-wild .reference-topline { background: transparent; color: var(--pink); border-color: var(--line); border-bottom-width: 1px; }
+.theme-wild .reference-box .mode-toggle,
+.theme-wild .reference-box .mode-tab + .mode-tab { border-color: var(--line); }
+.theme-wild .reference-box .mode-tab[aria-selected='true'] { color: #171815; }
+.theme-wild .reference-box .mode-tab[aria-selected='false']:hover { color: var(--ink); }
+.theme-wild .reference-heading > svg { color: #171815; border-color: var(--cyan); }
+.theme-wild #analysis-form .mix-source { background: #28211e; border-color: #704c3e; }
+.theme-wild #analysis-form .mix-source-two { background: #1c2828; border-color: #426263; }
+.theme-wild .mix-source .field-label,
+.theme-wild .blend-labels > span:first-child strong { color: var(--mix-first); }
+.theme-wild .mix-source-two .field-label,
+.theme-wild .blend-labels > span:last-child strong { color: var(--mix-second); }
+.theme-wild #analysis-form .mix-source[data-excluded='true'] { background: var(--surface); border-color: var(--line); }
+.theme-wild .url-input,
+.theme-wild .mix-source .url-input { background: var(--paper); border-color: #66695e; color: var(--ink); }
+.theme-wild .url-input:hover:not(:disabled),
+.theme-wild .url-input:focus { background: #252720; border-color: var(--acid); }
+.theme-wild .url-input[aria-invalid='true'] { border-color: var(--coral); }
+.theme-wild .url-chip { background: var(--paper); border-color: var(--line); color: var(--ink); }
+.theme-wild .url-chip:hover:not(:disabled),
+.theme-wild .url-chip:focus-visible { background: var(--acid); color: #171815; border-color: var(--acid); }
+.theme-wild .blend-control { border-color: var(--line); }
+.theme-wild .reference-footnote { background: var(--paper); color: var(--muted); border-color: var(--line); }
+.theme-wild .allowance-hint { color: var(--muted); }
+
+.theme-wild .action-button,
+.theme-wild #analysis-form .action-button,
+.theme-wild .library-entry-actions .action-button,
+.theme-wild .card-actions .action-button,
+.theme-wild .card-download .action-button {
+  background: var(--acid);
+  color: #171815;
+  border-color: var(--acid);
+  box-shadow: none;
+}
+.theme-wild .action-button:hover:not(:disabled),
+.theme-wild #analysis-form .action-button:hover:not(:disabled) { background: #dce96f; border-color: #dce96f; box-shadow: none; }
+.theme-wild .action-button:disabled,
+.theme-wild #analysis-form .action-button:disabled { background: #34372e; border-color: var(--line); color: #a9ae9e; opacity: 1; filter: none; box-shadow: none; }
+.theme-wild :is(.secondary-button, .copy-button, .inspector-back) { border-color: #66695e; }
+.theme-wild .secondary-button:hover:not(:disabled) { background: #2e3128; box-shadow: none; }
+.theme-wild .funding-buttons button[aria-pressed='true'] { background: #303527; color: var(--acid); border-color: #738042; }
+.theme-wild .funding-buttons button:enabled:hover { border-color: var(--acid); }
+
+.theme-wild :is(.result-shell-wild, .findings-empty) { background: var(--surface); border-color: var(--line); box-shadow: none; }
+.theme-wild :is(.result-heading, .inspector-nav, .output-navigation, .segmented-control, .design-card, .library-grid.library-index) { border-color: var(--line); }
+.theme-wild .metadata-strip { background: var(--paper); border-color: var(--line); }
+.theme-wild :is(.output-tab, .segmented-control button) { border-color: var(--line); }
+.theme-wild .output-tab:hover,
+.theme-wild .output-tab:focus-visible { background: #303527; color: var(--acid); }
+.theme-wild .output-tab[aria-selected='true'],
+.theme-wild .segmented-control button[aria-pressed='true'] { background: var(--acid); color: #171815; }
+.theme-wild .inspector-section-links button[aria-current],
+.theme-wild .activity-tabs button[aria-selected='true'] { color: var(--acid); border-color: var(--acid); }
+.theme-wild .component-picker button[aria-pressed='true'] { background: #303527; border-left-color: var(--acid); }
+.theme-wild .technical-preview { background: #11120f; color: var(--ink); }
+.theme-wild :is(.key-dialog, .export-dialog) { border-color: #66695e; }
+.theme-wild :is(.key-dialog, .export-dialog)::backdrop { background: rgb(0 0 0 / .72); }
+.theme-wild .inspector-index { color: #171815; }
+.theme-wild .evidence-detected { background: #303527; color: var(--acid); }
+.theme-wild .evidence-inferred { background: #223738; color: var(--cyan); }
+.theme-wild .evidence-interpreted { background: #3b2a24; color: var(--coral); }
+.theme-wild .findings-empty-heading { background: #223738; border-color: var(--line); }
+.theme-wild .findings-empty-symbol { color: #171815; border-color: var(--pink); }
+.theme-wild .analysis-progress[value]::-webkit-progress-value { background: var(--acid); }
+.theme-wild .analysis-progress[value]::-moz-progress-bar { background: var(--acid); }
+.theme-wild .error-state { background: #35251f; border-color: #835642; }
+.theme-wild .form-notice { background: #303527; }
+
+/* A separate typographic banner, on the same canvas as the rest of Mix It. */
+.theme-wild .mix-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  background: transparent;
+  z-index: 1;
+  border-block: 1px solid var(--line);
+}
+.theme-wild .drawing-footer {
+  --drawing-ink: var(--ink);
+  --drawing-rule: rgb(244 243 238 / .55);
+}
+.theme-wild .drawing-footer-inner { background: rgb(23 24 21 / .78); }
+.theme-wild .drawing-home img { mix-blend-mode: normal; }
+.theme-wild .drawing-footer :is(a, button):hover { color: var(--acid); }
+
+@media (max-width: 760px) {
+  .theme-wild .reference-box { box-shadow: none; }
+}
