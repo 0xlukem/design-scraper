@@ -5,7 +5,9 @@
     "dev": "npm run demo --",
     "demo": "npm --prefix frontend run demo --",
     "dev:live": "node scripts/dev-live.mjs",
-    "test:demo": "npm --prefix cloudflare-backend run test:demo"
+    "test:demo": "npm --prefix cloudflare-backend run test:demo",
+    "check:seo": "node frontend/scripts/check-seo.mjs",
+    "test:seo": "node --test scripts/check-seo.test.mjs"
   },
   "engines": {
     "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
